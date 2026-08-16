@@ -1,20 +1,12 @@
-# EL8 Prototype
+# EL8 Prototype v0.12
 
-Public mobile-first prototype for the EL8 wellness operating system.
+Mobile-first EL8 interface iteration.
 
-## Current prototype
-This build demonstrates:
-- autosave/resume onboarding
-- eight-dimension screening and prioritization
-- primary, supporting, dependency, and monitored dimensions
-- targeted deepening
-- useful free wellness planning
-- lightweight check-ins
-- notification opt-in and DND controls
-- optional professional support without gating the core plan
+Design direction:
+- Oura-inspired information hierarchy: what matters now, strong daily focus, trends over noise
+- Headspace-inspired low cognitive load and approachable navigation
+- Noom-inspired guided plan structure without turning EL8 into a lesson/task treadmill
 
-## Privacy
-This public prototype uses demonstration content only. Do not commit real Member Zero data, financial information, credentials, API keys, or other sensitive information.
+Navigation: Today / Plan / Progress / EL8
 
-## GitHub Pages
-The site entry point is `index.html`.
+Public prototype uses demonstration content only. Do not commit sensitive Member Zero data.
