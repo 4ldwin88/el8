@@ -1,110 +1,82 @@
 # EL8 Prototype
 
-Current version: **v0.14**  
-Status: **Working prototype / concept validation**
+Current version: **v0.15**  
+Status: **Working prototype / Member Zero validation**
 
-This repository contains the mobile-first EL8 interface prototype. It is used to test product architecture, interaction concepts, information hierarchy, and the current visual direction before implementation decisions are treated as approved product specifications.
+This repository contains the mobile-first EL8 interface prototype. It tests product architecture, interaction concepts, information hierarchy, and the current visual direction. Prototype behavior remains subordinate to the EL8 Concept Authority and Product & App Blueprint.
 
 ## Governing hierarchy
 
-1. **EL8 Concept Authority** — governs what EL8 is and the non-negotiable concept baseline.
-2. **EL8 Product & App Blueprint** — governs how the concept is expressed as a digital product.
-3. **Design System & Component Specifications** — reusable visual and interaction standards.
-4. **Prototype** — demonstrates approved or explicitly experimental behavior.
-5. **Implementation** — production software built from approved specifications.
+1. **EL8 Concept Authority**
+2. **EL8 Product & App Blueprint**
+3. **Design System & Component Specifications**
+4. **Prototype**
+5. **Implementation**
 
 If this prototype conflicts with a higher-level governing document, the higher-level document governs.
 
 ## Current product direction
 
-- Official eight dimensions: **Physical, Emotional, Intellectual, Social, Spiritual, Occupational, Financial, Environmental**.
-- Subdimensions such as movement, nutrition, sleep, and recovery sit beneath their official dimension rather than replacing top-level dimensions.
-- Member-facing state is currently being explored qualitatively rather than through universal 0–100 life or dimension scores.
-- Current navigation hypothesis: **Home / Plan / + / Insights / Me**.
-- The central **+** is being explored as universal capture for check-ins, logs, notes, photos, and voice.
-- Check-ins should be simple, intuitive, seamless, and progressively disclose follow-up questions only when useful.
-- Recommendations are being explored through a compact **What → Why → Next Step** pattern.
-- Core architecture direction: **local-first, AI-enhanced**. Basic product operation should not depend on AI or constant connectivity when technically reasonable.
-- Accessibility target: **WCAG 2.2 AA** for applicable interfaces.
+- Official dimensions: **Physical, Emotional, Intellectual, Social, Spiritual, Occupational, Financial, Environmental**.
+- Member-facing state is qualitative rather than a universal numerical wellness score.
+- Navigation hypothesis: **Home / Plan / + / Insights / Me**.
+- Quick Add is universal capture for check-ins, expenses/logs, notes, photos, voice, and progress.
+- Assessments use progressive disclosure and should preserve progress.
+- Longer optional assessments may show estimated completion time and participation Points before starting.
+- Points reward useful participation and honest completion, never desirable answers or preferred outcomes.
+- Points and future tangible-value Credits remain separate concepts; Credit economics are not approved.
+- Recommendations use compact **What → Why → Next Step** reasoning.
+- Architecture direction remains **local-first, AI-enhanced**.
+- Accessibility target remains **WCAG 2.2 AA** where applicable.
+- Public prototype content must not expose sensitive Member Zero data.
 
 ## Current visual direction
 
-The preferred concept-design direction is **Concept 1 / Continuous Flow**.
-
-Working characteristics:
-- warm ivory default/light theme;
-- EL8 Ink typography and dark surfaces;
-- Solar Gold primary brand accent;
-- restrained functional colors for the eight dimensions;
-- continuous eight-part EL8 emblem;
-- generous whitespace and low visual clutter;
-- dark mode as an alternative appearance direction;
-- color is never the sole carrier of meaning.
-
-Branding remains exploratory and is not yet a final production identity.
-
-## Prototype status
-
-The prototype is intentionally allowed to contain experimental behavior. A mockup or implemented interaction does **not** become an approved EL8 product rule merely because it appears here.
-
-Internal maturity states used by the Blueprint are:
-
-**PROPOSED → PROTOTYPE → VALIDATED → APPROVED → DEPRECATED**
-
-## Versioning
-
-Prototype versions use lightweight pre-release numbering (`v0.xx`). A version should be incremented when a meaningful product, UX, information-architecture, or visual-design iteration is published.
-
-The README changelog records the purpose and major changes of each meaningful prototype version. Git commit history remains the detailed technical record and should not be duplicated here.
+Concept 1 / Continuous Flow remains the preferred exploration direction: warm ivory default interface, EL8 Ink, Solar Gold accent, restrained functional dimension colors, generous whitespace, and low visual clutter. Branding remains exploratory.
 
 ## Changelog
+
+### v0.15 — 2026-08-16
+
+Member Zero live-plan and Financial deepening pass.
+
+- Corrected the prototype state to show **Member Zero is already underway** rather than waiting for an August 17 start.
+- Rebuilt Home around the current primary Financial focus, Physical supporting focus, and Occupational dependency pathway.
+- Added a Financial plan sequence: **stabilize → measure → earn → repay**.
+- Added expense capture to Quick Add so the real monthly burn rate can be learned prospectively.
+- Added the assessment-reward hypothesis: estimated time plus participation Points before longer optional modules.
+- Explicitly separated participation Points from future tangible-value Credits.
+- Added save/resume direction for longer assessments.
+- Added the product principle that rewards are based on participation, not desirable answers or wellness outcomes.
+- Added the distinction between financial risk tolerance and financial risk capacity.
+- Added Financial privacy/system-of-record language: specialist financial systems may hold source data while EL8 performs interpretation, planning, and coordination.
+- Kept private Member Zero balances out of the public prototype and used qualitative/demo-safe financial language instead.
+- Preserved qualitative states, eight-dimension architecture, Quick Add, local-first/AI-enhanced direction, and mobile-first visual language.
 
 ### v0.14 — 2026-08-16
 
 External-review refinement and prototype traceability pass.
 
-- Added visible prototype version/status identification under Me so external reviews can be tied to the correct build.
-- Added qualitative directional context such as **Improving**, **About the same**, and comparison with a recent baseline without restoring universal numerical dimension scores.
-- Refined Insights to distinguish qualitative dimension/subdimension state from meaningful raw measurements.
-- Reworked check-in language around natural rotating micro-prompts rather than taxonomy-heavy or blank-page journaling prompts.
-- Added examples such as “Anything noticeably better or worse today?” and “What took most of your energy today?”
-- Reinforced progressive disclosure: follow-up questions appear only when useful.
-- Clarified that EL8 can classify captured information after entry rather than requiring the member to select a dimension first.
-- Clarified in the interface that dark mode is a planned visual direction rather than falsely presenting it as an implemented switch.
-- Retained the official eight dimensions, qualitative state philosophy, proposed navigation, Quick Add, local-first architecture, and What → Why → Next Step recommendations.
+- Added visible version/status identification.
+- Added qualitative directional context without restoring universal numerical scores.
+- Refined Insights around meaningful context and raw measurements.
+- Reworked check-ins around rotating micro-prompts and progressive disclosure.
+- Clarified post-entry classification and planned dark-mode direction.
 
 ### v0.13 — 2026-08-16
 
 Blueprint-alignment pass.
 
 - Replaced numerical life/dimension scoring with qualitative state concepts.
-- Rebuilt the whole-person view around the eight official EL8 dimensions.
-- Added an experimental eight-segment **EL8 Ring** with current focus in the center.
-- Correctly nested movement, nutrition, sleep, and recovery beneath Physical.
-- Changed primary navigation from `Today / Plan / Progress / EL8` to the proposed `Home / Plan / + / Insights / Me` model.
-- Added universal Quick Add concept.
-- Added a low-friction 10-second check-in concept with progressive follow-up behavior.
-- Reframed Insights around meaning, direction, patterns, and context rather than numerical scores.
-- Added the proposed **What → Why → Next Step** recommendation presentation.
-- Added explicit local-first / AI-enhanced product messaging.
-- Added accessibility and non-color semantic cues to the prototype direction.
-- Continued the warm ivory / Ink / restrained dimension-color visual direction.
-
-### v0.12
-
-Earlier mobile-first prototype iteration.
-
-- Established a strong daily-focus information hierarchy.
-- Explored low-cognitive-load navigation and guided plan presentation.
-- Used `Today / Plan / Progress / EL8` navigation.
-- Pre-dated the current Blueprint alignment and is retained only as historical prototype context.
+- Rebuilt the whole-person view around the official eight dimensions.
+- Added the experimental EL8 Ring.
+- Introduced Home / Plan / + / Insights / Me navigation and universal Quick Add.
+- Added What → Why → Next Step recommendations and local-first / AI-enhanced direction.
 
 ## External review rule
 
-Any external review of the prototype should identify the exact prototype version being reviewed. Feedback that describes behavior not present in that version should be treated as feedback on an older build or separate visual concept rather than evidence about the current implementation.
+External reviews should identify the exact prototype version. Feedback describing behavior absent from that version should be treated as feedback on another build or visual concept.
 
 ## Repository rule
 
-When a meaningful prototype update changes the visible product concept, update both the prototype version and this README changelog in the same development pass.
-
-Public prototype content must remain demonstration content. Do not commit sensitive member or personal data to this repository.
+Meaningful prototype changes should update both the visible prototype version and this changelog. Public prototype content must remain demonstration content; do not commit sensitive member or personal data.
