@@ -1,6 +1,6 @@
 # EL8 Prototype
 
-Current version: **v0.13**  
+Current version: **v0.14**  
 Status: **Working prototype / concept validation**
 
 This repository contains the mobile-first EL8 interface prototype. It is used to test product architecture, interaction concepts, information hierarchy, and the current visual direction before implementation decisions are treated as approved product specifications.
@@ -38,7 +38,7 @@ Working characteristics:
 - restrained functional colors for the eight dimensions;
 - continuous eight-part EL8 emblem;
 - generous whitespace and low visual clutter;
-- dark mode as an alternative appearance;
+- dark mode as an alternative appearance direction;
 - color is never the sole carrier of meaning.
 
 Branding remains exploratory and is not yet a final production identity.
@@ -58,6 +58,20 @@ Prototype versions use lightweight pre-release numbering (`v0.xx`). A version sh
 The README changelog records the purpose and major changes of each meaningful prototype version. Git commit history remains the detailed technical record and should not be duplicated here.
 
 ## Changelog
+
+### v0.14 — 2026-08-16
+
+External-review refinement and prototype traceability pass.
+
+- Added visible prototype version/status identification under Me so external reviews can be tied to the correct build.
+- Added qualitative directional context such as **Improving**, **About the same**, and comparison with a recent baseline without restoring universal numerical dimension scores.
+- Refined Insights to distinguish qualitative dimension/subdimension state from meaningful raw measurements.
+- Reworked check-in language around natural rotating micro-prompts rather than taxonomy-heavy or blank-page journaling prompts.
+- Added examples such as “Anything noticeably better or worse today?” and “What took most of your energy today?”
+- Reinforced progressive disclosure: follow-up questions appear only when useful.
+- Clarified that EL8 can classify captured information after entry rather than requiring the member to select a dimension first.
+- Clarified in the interface that dark mode is a planned visual direction rather than falsely presenting it as an implemented switch.
+- Retained the official eight dimensions, qualitative state philosophy, proposed navigation, Quick Add, local-first architecture, and What → Why → Next Step recommendations.
 
 ### v0.13 — 2026-08-16
 
@@ -84,6 +98,10 @@ Earlier mobile-first prototype iteration.
 - Explored low-cognitive-load navigation and guided plan presentation.
 - Used `Today / Plan / Progress / EL8` navigation.
 - Pre-dated the current Blueprint alignment and is retained only as historical prototype context.
+
+## External review rule
+
+Any external review of the prototype should identify the exact prototype version being reviewed. Feedback that describes behavior not present in that version should be treated as feedback on an older build or separate visual concept rather than evidence about the current implementation.
 
 ## Repository rule
 
