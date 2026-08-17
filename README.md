@@ -1,9 +1,14 @@
 # EL8 Prototype
 
-Current version: **v0.15**  
+Current version: **v0.16**  
 Status: **Working prototype / Member Zero validation**
 
 This repository contains the mobile-first EL8 interface prototype. It tests product architecture, interaction concepts, information hierarchy, and the current visual direction. Prototype behavior remains subordinate to the EL8 Concept Authority and Product & App Blueprint.
+
+## Interactive prototype entry points
+
+- `index.html` — current EL8 product prototype shell.
+- `baseline.html` — **interactive Universal Baseline v0.4** prototype. This is a real browser-based six-screen flow, not a static design mockup. It includes timing, structured controls, conditional result logic, local browser persistence for the demo, and a completion summary.
 
 ## Governing hierarchy
 
@@ -35,6 +40,18 @@ If this prototype conflicts with a higher-level governing document, the higher-l
 Concept 1 / Continuous Flow remains the preferred exploration direction: warm ivory default interface, EL8 Ink, Solar Gold accent, restrained functional dimension colors, generous whitespace, and low visual clutter. Branding remains exploratory.
 
 ## Changelog
+
+### v0.16 — 2026-08-17
+
+Interactive Universal Baseline prototype pass.
+
+- Added `baseline.html` as a functioning six-screen Universal Baseline v0.4 prototype.
+- Replaced serial-chat interaction assumptions with grouped form controls suitable for actual burden testing.
+- Added an in-session completion timer.
+- Added structured consent/profile, compact safety routing inputs, eight-dimension life scan, combined prioritization screen, readiness/feasibility, and material-constraint capture.
+- Added explicit handling for No / Yes / Unsure safety responses without pretending the prototype implements final safety routing.
+- Added simple demonstration-only primary/supporting output logic while preserving that final prioritization rules remain governed elsewhere.
+- Added browser-local demo persistence only; no Member Zero private data is committed to the repository.
 
 ### v0.15 — 2026-08-16
 
