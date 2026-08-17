@@ -1,15 +1,29 @@
 # EL8 Prototype
 
-Current version: **v0.17**  
+Current version: **v0.18**  
 Status: **Working prototype / Member Zero validation**
 
-This repository contains the mobile-first EL8 interface prototype. It tests product architecture, interaction concepts, information hierarchy, and the current visual direction. Prototype behavior remains subordinate to the EL8 Concept Authority and Product & App Blueprint.
+This repository contains the mobile-first EL8 interface prototype. It tests product architecture, interaction concepts, information hierarchy, current visual direction, and selected engineering behaviors needed for Member Zero validation. Prototype behavior remains subordinate to the EL8 Concept Authority and Product & App Blueprint.
 
 ## Interactive prototype entry points
 
-- `index.html` — current EL8 product prototype shell, now with direct module-testing navigation.
-- `baseline.html` — **interactive Universal Baseline v0.4** prototype. Six-screen structured flow with timing, grouped controls, local browser demo persistence, and completion summary.
+- `index.html` — current EL8 product prototype shell with direct module-testing and engineering-harness navigation.
+- `baseline.html` — **interactive Universal Baseline v0.4.1** prototype. Six-screen structured flow with timing, grouped controls, explicit safety-answer completeness, stale-state clearing, and completion summary.
 - `financial-deepening.html` — **interactive Financial Core Deepening v0.4** prototype. Six-screen structured flow covering financial stability, obligations, runway/spending, income pathway, contingency support, visibility, and decision output.
+- `persistence-harness.html` — **Persistence Concurrency Harness v0.1**. Controlled IndexedDB test store for concurrent unique-ID writes, identical retry storms, conflicting same-ID payloads, and repeated overlapping rounds.
+
+## Persistence harness scope
+
+The persistence harness is an engineering validation aid, not the production persistence layer. It deliberately uses browser IndexedDB because IndexedDB supports transactional writes and unique primary keys in a static prototype without exposing private credentials or a real member database.
+
+Current harness tests:
+
+- 20 concurrent writes using distinct Entry IDs must all persist once.
+- 20 concurrent writes using the same Entry ID and identical payload must produce one canonical row plus duplicate-safe outcomes.
+- Two concurrent writes using the same Entry ID but conflicting payloads must preserve exactly one row and surface the other as a conflict rather than silently overwrite it.
+- Ten repeated rounds of overlapping create/retry attempts must preserve one canonical record per Entry ID.
+
+A PASS proves the controlled store contract. It does **not** prove Google Sheets atomicity, production database behavior, distributed locking, server idempotency, or Member 1 persistence readiness by itself. The next backend implementation should carry the same semantics into the actual canonical store.
 
 ## Governing hierarchy
 
@@ -43,6 +57,18 @@ If this prototype conflicts with a higher-level governing document, the higher-l
 Concept 1 / Continuous Flow remains the preferred exploration direction: warm ivory default interface, EL8 Ink, Solar Gold accent, restrained functional dimension colors, generous whitespace, and low visual clutter. Branding remains exploratory.
 
 ## Changelog
+
+### v0.18 — 2026-08-17
+
+Persistence-integrity harness pass.
+
+- Added `persistence-harness.html` as a controlled transactional concurrency and idempotency test surface.
+- Added concurrent distinct-ID, same-ID identical retry, same-ID conflicting payload, and repeated-overlap tests.
+- Same-ID conflicting content is designed to surface as a conflict instead of silently replacing canonical content.
+- Added direct Persistence Harness navigation from the EL8 shell.
+- Updated visible shell references to Universal Baseline v0.4.1.
+- Kept the harness intentionally demo-safe: no credentials, real member data, or production backend secrets are required.
+- Documented that harness PASS is evidence for persistence semantics only, not proof of production-database or Google Sheets atomicity.
 
 ### v0.17 — 2026-08-17
 
