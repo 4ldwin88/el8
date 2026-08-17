@@ -1,14 +1,15 @@
 # EL8 Prototype
 
-Current version: **v0.16**  
+Current version: **v0.17**  
 Status: **Working prototype / Member Zero validation**
 
 This repository contains the mobile-first EL8 interface prototype. It tests product architecture, interaction concepts, information hierarchy, and the current visual direction. Prototype behavior remains subordinate to the EL8 Concept Authority and Product & App Blueprint.
 
 ## Interactive prototype entry points
 
-- `index.html` — current EL8 product prototype shell.
-- `baseline.html` — **interactive Universal Baseline v0.4** prototype. This is a real browser-based six-screen flow, not a static design mockup. It includes timing, structured controls, conditional result logic, local browser persistence for the demo, and a completion summary.
+- `index.html` — current EL8 product prototype shell, now with direct module-testing navigation.
+- `baseline.html` — **interactive Universal Baseline v0.4** prototype. Six-screen structured flow with timing, grouped controls, local browser demo persistence, and completion summary.
+- `financial-deepening.html` — **interactive Financial Core Deepening v0.4** prototype. Six-screen structured flow covering financial stability, obligations, runway/spending, income pathway, contingency support, visibility, and decision output.
 
 ## Governing hierarchy
 
@@ -25,8 +26,10 @@ If this prototype conflicts with a higher-level governing document, the higher-l
 - Official dimensions: **Physical, Emotional, Intellectual, Social, Spiritual, Occupational, Financial, Environmental**.
 - Member-facing state is qualitative rather than a universal numerical wellness score.
 - Navigation hypothesis: **Home / Plan / + / Insights / Me**.
+- Interactive assessment/deepening modules are launched contextually from the product shell rather than exposed as a large member-facing library.
 - Quick Add is universal capture for check-ins, expenses/logs, notes, photos, voice, and progress.
 - Assessments use progressive disclosure and should preserve progress.
+- Confirmed evidence should be reused instead of repeatedly re-asking unchanged questions.
 - Longer optional assessments may show estimated completion time and participation Points before starting.
 - Points reward useful participation and honest completion, never desirable answers or preferred outcomes.
 - Points and future tangible-value Credits remain separate concepts; Credit economics are not approved.
@@ -40,6 +43,20 @@ If this prototype conflicts with a higher-level governing document, the higher-l
 Concept 1 / Continuous Flow remains the preferred exploration direction: warm ivory default interface, EL8 Ink, Solar Gold accent, restrained functional dimension colors, generous whitespace, and low visual clutter. Branding remains exploratory.
 
 ## Changelog
+
+### v0.17 — 2026-08-17
+
+Interactive module-navigation and Financial Deepening pass.
+
+- Wired the working module prototypes into `index.html` so they can be launched from the EL8 shell rather than only by knowing the file path.
+- Added `financial-deepening.html` as a functioning six-screen Financial Core Deepening v0.4 prototype.
+- Included structured financial stability, obligations/debt coverage, liquid runway, spending flexibility, income pathway/readiness, contingency support, financial visibility, and cash-tightness inputs.
+- Preserved the important distinction between contingency-resource availability, willingness to use it, and reliability.
+- Kept contingency resources out of ordinary cash/income calculations unless actually received and confirmed.
+- Added simple demonstration-only objective/pathway output and conditional Financial Planning Detail indication.
+- Added local browser demo persistence and an in-session completion timer.
+- Updated the main shell to v0.17 with direct Universal Baseline and Financial Deepening launch controls.
+- Kept public content demo-safe and avoided committing private Member Zero figures.
 
 ### v0.16 — 2026-08-17
 
