@@ -1,29 +1,85 @@
 # EL8 Prototype
 
-Current version: **v0.18**  
+Current version: **v0.19**  
 Status: **Working prototype / Member Zero validation**
 
-This repository contains the mobile-first EL8 interface prototype. It tests product architecture, interaction concepts, information hierarchy, current visual direction, and selected engineering behaviors needed for Member Zero validation. Prototype behavior remains subordinate to the EL8 Concept Authority and Product & App Blueprint.
+This repository contains the mobile-first EL8 interface prototype. It remains subordinate to the EL8 Concept Authority and Product & App Blueprint.
 
-## Interactive prototype entry points
+## Current member information architecture
 
-- `index.html` — current EL8 product prototype shell with direct module-testing and engineering-harness navigation.
-- `baseline.html` — **interactive Universal Baseline v0.4.1** prototype. Six-screen structured flow with timing, grouped controls, explicit safety-answer completeness, stale-state clearing, and completion summary.
-- `financial-deepening.html` — **interactive Financial Core Deepening v0.4** prototype. Six-screen structured flow covering financial stability, obligations, runway/spending, income pathway, contingency support, visibility, and decision output.
-- `persistence-harness.html` — **Persistence Concurrency Harness v0.1**. Controlled IndexedDB test store for concurrent unique-ID writes, identical retry storms, conflicting same-ID payloads, and repeated overlapping rounds.
+Primary navigation: **Home · Plan · [EL8] Track · Insights · Me**.
 
-## Persistence harness scope
+- **Home** — Today's Plan, concise expandable reasoning/“Why this today?”, contextually relevant learning, and only a small status element where useful.
+- **Plan** — Actions, Schedule organized as Today / This Week / Later, and current priorities. Completed actions remain in context and are crossed out/faded when checked rather than moved into a separate completed area.
+- **Track** — central universal-capture action. Text, Photo and Voice are communication methods rather than separate tracker silos. The member chooses the easiest input method; EL8 handles interpretation/classification. Inference-bearing entries require confirmation/correction before confirmed structured persistence.
+- **Insights** — whole-person 8-dimension Radar / Bar toggle; candidate Current / Baseline / Goal layers; dimension drill-down; trends; evidence-supported cross-dimensional patterns; and transparent priority reasoning.
+- **Me** — Profile, Achievements, History, Saved, Manage Subscription, Settings, Privacy & Data and Sign Out. Settings include Notifications & Reminders, Appearance and Language. Admin Console is visible only to the authorized founder/test account (T0001/admin role).
 
-The persistence harness is an engineering validation aid, not the production persistence layer. It deliberately uses browser IndexedDB because IndexedDB supports transactional writes and unique primary keys in a static prototype without exposing private credentials or a real member database.
+## Brand direction used in v0.19
 
-Current harness tests:
+- Canonical brand name: **EL8** (pronounced “elate”).
+- Current tagline: **Life, in balance.**
+- Core prototype palette: **Gold #D6A648 · Ivory #F7F3EA · Ink #121417**.
+- Domains/TLDs are not part of the brand name.
+- The continuous eight-part emblem is the intended central Track affordance. The current static shell uses a simplified temporary mark placeholder until the approved vector asset is committed to the repository.
+- Typography remains technically provisional pending final typeface selection/licensing and outlined wordmark production.
 
-- 20 concurrent writes using distinct Entry IDs must all persist once.
-- 20 concurrent writes using the same Entry ID and identical payload must produce one canonical row plus duplicate-safe outcomes.
-- Two concurrent writes using the same Entry ID but conflicting payloads must preserve exactly one row and surface the other as a conflict rather than silently overwrite it.
-- Ten repeated rounds of overlapping create/retry attempts must preserve one canonical record per Entry ID.
+## Product principles retained
 
-A PASS proves the controlled store contract. It does **not** prove Google Sheets atomicity, production database behavior, distributed locking, server idempotency, or Member 1 persistence readiness by itself. The next backend implementation should carry the same semantics into the actual canonical store.
+- Official dimensions: **Physical, Emotional, Intellectual, Social, Spiritual, Occupational, Financial, Environmental**.
+- Qualitative member-facing interpretation; no prominent universal numerical wellness grade.
+- Universal capture is the front door to structured longitudinal records.
+- AI-derived, transcribed, classified or estimated information remains provisional when materially uncertain until member confirmation/correction.
+- Recommendations use compact **What → Why → Next Step** reasoning with deeper evidence available on demand.
+- Cross-dimensional observations must be described as patterns/possible relationships unless causation is independently justified.
+- Architecture direction remains **local-first, AI-enhanced**.
+- Accessibility target remains **WCAG 2.2 AA** where applicable.
+- Public prototype content must not expose sensitive Member Zero data.
+- EL8 should absorb complexity so the member does not have to.
+
+## Member 1 boundary
+
+Member 1 remains a controlled external test, not a public launch. The branded v0.19 shell is an information-architecture and visual-direction prototype; visual polish does not supersede the formal Member 1 safety, privacy, persistence-integrity, prioritization, reporting and decision-reconstruction gates.
+
+## Changelog
+
+### v0.19 — 2026-08-18
+
+Brand and member-information-architecture pass.
+
+- Applied the locked working EL8 identity direction: EL8 name, “Life, in balance.” tagline and Gold / Ivory / Ink palette.
+- Rebuilt Home around Today's Plan, concise reasoning and contextual learning rather than a dense whole-person dashboard.
+- Rebuilt Plan around Actions, Today / This Week / Later scheduling and current priorities.
+- Removed the separate completed-actions concept; checked actions remain visible, struck through and faded.
+- Replaced generic Quick Add with central **Track** and reduced capture methods to Text / Photo / Voice with explanatory copy.
+- Preserved confirmation-first handling for inferred/transcribed/classified data.
+- Added Insights Radar / Bar view switching, candidate Current / Baseline / Goal controls, dimension drill-down, pattern language and priority reasoning.
+- Expanded Me to Profile, Achievements, History, Saved, Subscription, Settings, Privacy & Data and founder-only Admin Console.
+- Added explicit naming rule that domains/TLDs are not part of the EL8 brand identity.
+
+### v0.18 — 2026-08-17
+
+Persistence-integrity harness pass. Added controlled concurrency/idempotency testing and retained the formal distinction between prototype persistence evidence and production readiness.
+
+### v0.17 — 2026-08-17
+
+Interactive module-navigation and Financial Deepening pass.
+
+### v0.16 — 2026-08-17
+
+Interactive Universal Baseline prototype pass.
+
+### v0.15 — 2026-08-16
+
+Member Zero live-plan and Financial deepening pass.
+
+### v0.14 — 2026-08-16
+
+External-review refinement and prototype traceability pass.
+
+### v0.13 — 2026-08-16
+
+Blueprint-alignment pass introducing qualitative state concepts, the eight-dimension architecture and Home / Plan / + / Insights / Me navigation.
 
 ## Governing hierarchy
 
@@ -34,109 +90,3 @@ A PASS proves the controlled store contract. It does **not** prove Google Sheets
 5. **Implementation**
 
 If this prototype conflicts with a higher-level governing document, the higher-level document governs.
-
-## Current product direction
-
-- Official dimensions: **Physical, Emotional, Intellectual, Social, Spiritual, Occupational, Financial, Environmental**.
-- Member-facing state is qualitative rather than a universal numerical wellness score.
-- Navigation hypothesis: **Home / Plan / + / Insights / Me**.
-- Interactive assessment/deepening modules are launched contextually from the product shell rather than exposed as a large member-facing library.
-- Quick Add is universal capture for check-ins, expenses/logs, notes, photos, voice, and progress.
-- Assessments use progressive disclosure and should preserve progress.
-- Confirmed evidence should be reused instead of repeatedly re-asking unchanged questions.
-- Longer optional assessments may show estimated completion time and participation Points before starting.
-- Points reward useful participation and honest completion, never desirable answers or preferred outcomes.
-- Points and future tangible-value Credits remain separate concepts; Credit economics are not approved.
-- Recommendations use compact **What → Why → Next Step** reasoning.
-- Architecture direction remains **local-first, AI-enhanced**.
-- Accessibility target remains **WCAG 2.2 AA** where applicable.
-- Public prototype content must not expose sensitive Member Zero data.
-
-## Current visual direction
-
-Concept 1 / Continuous Flow remains the preferred exploration direction: warm ivory default interface, EL8 Ink, Solar Gold accent, restrained functional dimension colors, generous whitespace, and low visual clutter. Branding remains exploratory.
-
-## Changelog
-
-### v0.18 — 2026-08-17
-
-Persistence-integrity harness pass.
-
-- Added `persistence-harness.html` as a controlled transactional concurrency and idempotency test surface.
-- Added concurrent distinct-ID, same-ID identical retry, same-ID conflicting payload, and repeated-overlap tests.
-- Same-ID conflicting content is designed to surface as a conflict instead of silently replacing canonical content.
-- Added direct Persistence Harness navigation from the EL8 shell.
-- Updated visible shell references to Universal Baseline v0.4.1.
-- Kept the harness intentionally demo-safe: no credentials, real member data, or production backend secrets are required.
-- Documented that harness PASS is evidence for persistence semantics only, not proof of production-database or Google Sheets atomicity.
-
-### v0.17 — 2026-08-17
-
-Interactive module-navigation and Financial Deepening pass.
-
-- Wired the working module prototypes into `index.html` so they can be launched from the EL8 shell rather than only by knowing the file path.
-- Added `financial-deepening.html` as a functioning six-screen Financial Core Deepening v0.4 prototype.
-- Included structured financial stability, obligations/debt coverage, liquid runway, spending flexibility, income pathway/readiness, contingency support, financial visibility, and cash-tightness inputs.
-- Preserved the important distinction between contingency-resource availability, willingness to use it, and reliability.
-- Kept contingency resources out of ordinary cash/income calculations unless actually received and confirmed.
-- Added simple demonstration-only objective/pathway output and conditional Financial Planning Detail indication.
-- Added local browser demo persistence and an in-session completion timer.
-- Updated the main shell to v0.17 with direct Universal Baseline and Financial Deepening launch controls.
-- Kept public content demo-safe and avoided committing private Member Zero figures.
-
-### v0.16 — 2026-08-17
-
-Interactive Universal Baseline prototype pass.
-
-- Added `baseline.html` as a functioning six-screen Universal Baseline v0.4 prototype.
-- Replaced serial-chat interaction assumptions with grouped form controls suitable for actual burden testing.
-- Added an in-session completion timer.
-- Added structured consent/profile, compact safety routing inputs, eight-dimension life scan, combined prioritization screen, readiness/feasibility, and material-constraint capture.
-- Added explicit handling for No / Yes / Unsure safety responses without pretending the prototype implements final safety routing.
-- Added simple demonstration-only primary/supporting output logic while preserving that final prioritization rules remain governed elsewhere.
-- Added browser-local demo persistence only; no Member Zero private data is committed to the repository.
-
-### v0.15 — 2026-08-16
-
-Member Zero live-plan and Financial deepening pass.
-
-- Corrected the prototype state to show **Member Zero is already underway** rather than waiting for an August 17 start.
-- Rebuilt Home around the current primary Financial focus, Physical supporting focus, and Occupational dependency pathway.
-- Added a Financial plan sequence: **stabilize → measure → earn → repay**.
-- Added expense capture to Quick Add so the real monthly burn rate can be learned prospectively.
-- Added the assessment-reward hypothesis: estimated time plus participation Points before longer optional modules.
-- Explicitly separated participation Points from future tangible-value Credits.
-- Added save/resume direction for longer assessments.
-- Added the product principle that rewards are based on participation, not desirable answers or wellness outcomes.
-- Added the distinction between financial risk tolerance and financial risk capacity.
-- Added Financial privacy/system-of-record language: specialist financial systems may hold source data while EL8 performs interpretation, planning, and coordination.
-- Kept private Member Zero balances out of the public prototype and used qualitative/demo-safe financial language instead.
-- Preserved qualitative states, eight-dimension architecture, Quick Add, local-first/AI-enhanced direction, and mobile-first visual language.
-
-### v0.14 — 2026-08-16
-
-External-review refinement and prototype traceability pass.
-
-- Added visible version/status identification.
-- Added qualitative directional context without restoring universal numerical scores.
-- Refined Insights around meaningful context and raw measurements.
-- Reworked check-ins around rotating micro-prompts and progressive disclosure.
-- Clarified post-entry classification and planned dark-mode direction.
-
-### v0.13 — 2026-08-16
-
-Blueprint-alignment pass.
-
-- Replaced numerical life/dimension scoring with qualitative state concepts.
-- Rebuilt the whole-person view around the official eight dimensions.
-- Added the experimental EL8 Ring.
-- Introduced Home / Plan / + / Insights / Me navigation and universal Quick Add.
-- Added What → Why → Next Step recommendations and local-first / AI-enhanced direction.
-
-## External review rule
-
-External reviews should identify the exact prototype version. Feedback describing behavior absent from that version should be treated as feedback on another build or visual concept.
-
-## Repository rule
-
-Meaningful prototype changes should update both the visible prototype version and this changelog. Public prototype content must remain demonstration content; do not commit sensitive member or personal data.
