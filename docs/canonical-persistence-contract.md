@@ -1,96 +1,145 @@
-# EL8 Canonical Persistence Contract v0.1
+# EL8 Canonical Persistence Contract v0.2
 
-Status: Working implementation contract for Member Zero / Member 1 Gate 1.
+Status: Working implementation contract for Member Zero / Member 1 persistence integrity.
 
 ## Purpose
 
-Define the minimum persistence semantics that the actual canonical EL8 backend must satisfy before Gate 1 — Canonical Data Integrity can receive a full Pass.
+Define the minimum persistence semantics the canonical EL8 backend must satisfy before external Member 1 testing. The current prototype uses Supabase/Postgres as the canonical transactional backend. Google Sheets may remain useful for founder reporting, analysis or exported evidence, but it is not the canonical write store.
 
-The browser Persistence Concurrency Harness proves that these semantics are achievable in the prototype. It does not prove that Google Sheets or any future backend automatically provides them.
+## Canonical record classes
 
-## Required write identity
+EL8 does not force every record type into one identifier shape. Each material record must have a backend-enforced immutable identity appropriate to its class.
 
-Every material record must have:
-
-- `entry_id` — globally unique immutable record identity.
-- `submission_id` — required when one member submission can create one or more records; otherwise a direct-entry provenance identity may be used.
-- `payload_hash` or equivalent canonical payload fingerprint — used to distinguish an identical retry from a conflicting same-ID request.
-- `created_at` — backend timestamp.
-- `source` — structured provenance label.
-- `confirmation_status` — separate from persistence state.
+- Tracking entries: `entry_id`, with submission provenance where applicable.
+- Capture submissions: `submission_id`.
+- Assessment sessions: immutable session `id` once completed.
+- Daily and Weekly Check-ins: immutable row `id` once submitted, with user/date or user/week uniqueness enforced where required.
+- Revisions/corrections: immutable revision identity linked to the canonical record being corrected.
+- Safety, plan and administrative records: stable backend identity plus actor/time/provenance appropriate to the record class.
 
 Personal names must never be database keys.
 
-## Canonical create semantics
+## Required provenance
 
-The backend create operation is `create_once(entry_id, payload)`.
+Material records must preserve enough provenance to reconstruct what happened. Depending on record class this includes:
 
-It must return exactly one of:
+- member/user identity;
+- canonical record identity;
+- source/input type;
+- creation/submission timestamp;
+- local timezone or local date where the record depends on a member-local period;
+- confirmation status when interpretation or inference requires member confirmation;
+- payload fingerprint/hash where idempotency or optimistic correction requires it;
+- source submission identity when a capture produces a derived canonical record.
+
+Missing fields are not silently converted to zero, normal or false.
+
+## Canonical tracking create semantics
+
+For canonical tracking entries, the create operation must behave as `create_once(entry_id, payload)` and return one of:
 
 1. `created` — the ID did not exist and the canonical record was durably created.
-2. `duplicate_safe` — the ID already existed and the canonical stored payload is materially identical. No second row is created.
-3. `conflict` — the ID already existed but the incoming payload materially differs. Existing canonical data is not silently replaced. The conflict is surfaced for resolution.
+2. `duplicate_safe` — the ID already existed and the stored payload is materially identical. No second canonical record is created.
+3. `conflict` — the ID already existed but the incoming payload materially differs. Existing canonical data is not silently replaced.
 4. `failed` — durability is not confirmed. The member must not be told the data was saved.
 
-A retry after timeout or ambiguous acknowledgement must therefore be safe.
+Retries after timeout or ambiguous acknowledgement must therefore be safe.
 
-## Atomicity / uniqueness requirements
+## Atomicity and uniqueness
 
-- `entry_id` must be enforced by the canonical backend as a unique or primary key, not merely checked in application code.
-- Concurrent requests with different IDs must all persist independently without row collision or overwrite.
-- Concurrent requests with the same ID and identical payload must produce exactly one canonical record.
-- Concurrent requests with the same ID and different payloads must preserve one canonical record and surface at least one explicit conflict.
-- The application must not rely on a previously observed "next empty row".
+- Canonical uniqueness is enforced by Postgres constraints/indexes, not only application checks.
+- Concurrent requests with distinct identities persist independently.
+- Same-identity identical retries cannot create duplicate canonical records.
+- Same-identity conflicting writes cannot silently overwrite canonical data.
+- Periodic records such as Daily Check-ins use backend uniqueness appropriate to the product rule rather than relying on a prior browser read.
+- The application must never depend on a previously observed “next empty row.”
 
-## Update and correction semantics
+## Immutability by record type
 
-Material corrections must be reconstructable.
+Historical self-report and assessment records are point-in-time evidence.
 
-Preferred model:
+- Completed assessment sessions are immutable.
+- Submitted Daily Check-ins are immutable.
+- Submitted Weekly Check-ins are immutable.
+- Canonical tracking entries are not directly rewritten or destructively deleted by members.
+- Plan check-ins, plan reviews, focus clarifications and deepening submissions are append-only historical observations where implemented as evidence records.
+- Administrative and safety audit history must remain reconstructable.
 
-- Canonical record identity remains stable.
-- Corrections create an attributable immutable revision / audit event containing actor, timestamp, previous value or hash, new value or hash, reason, and confirmation provenance.
-- No material correction silently destroys prior history.
+Later change is represented by a later observation, reassessment or governed correction—not by silently rewriting what the member reported earlier.
+
+## Tracking correction semantics
+
+Material tracking corrections must be reconstructable.
+
+- Canonical `entry_id` remains stable.
+- A correction creates an attributable immutable revision/audit event.
+- The revision preserves actor, timestamp, previous payload/hash, new payload/hash and reason.
+- Optimistic concurrency prevents a stale correction from overwriting a newer correction.
+- No correction silently destroys the prior state.
 
 ## Persistence acknowledgement rule
 
-Member approval and persistence success are separate states.
+Member approval and persistence success are separate states. The UI or conversational layer may say “saved,” “logged,” “recorded,” or equivalent only after the canonical backend confirms success.
 
-The UI or conversational layer may say "saved", "logged", "recorded", or equivalent only after the backend has confirmed durable success. Where technically practical, material writes should receive read-after-write or equivalent verification.
-
-Ambiguous write status must be presented as pending/failed, not success.
+Ambiguous write status must be presented as pending or failed rather than success. Where practical, critical writes should use returned canonical rows, RPC result contracts or equivalent verification rather than assuming success from a button press.
 
 ## Normalization requirements
 
 Canonical persistence normalizes at write time:
 
-- dates as canonical date values / ISO-compatible backend date representation;
-- timestamps with timezone/UTC semantics explicitly defined;
-- numeric values as numeric types;
-- enumerations from governed vocabularies;
-- confidence, confirmation, coverage, source and approximation as distinct fields;
-- missing data remains missing and is never converted to zero, normal, or false.
+- dates as canonical date values;
+- timestamps with explicit timezone/UTC semantics;
+- numeric values as numeric types where appropriate;
+- governed enumerations rather than uncontrolled near-duplicates;
+- confidence, confirmation, coverage, source and approximation as distinct concepts;
+- legacy display vocabulary may be normalized at presentation boundaries without rewriting immutable historical source records.
 
-## Required backend harness cases
+For the current condition model, member-facing condition vocabulary is **Attention · Stable · Healthy · Thriving**. `Beyond` is legacy and may be normalized to `Thriving` for display when encountered in older records.
 
-The backend implementation must pass the same classes exercised by `persistence-harness.html`:
+## Media lifecycle
 
-1. 20 overlapping distinct IDs → exactly 20 canonical records.
-2. 20 overlapping identical same-ID requests → exactly 1 canonical record; 19 safe duplicates or equivalent.
-3. Overlapping same-ID conflicting payloads → exactly 1 canonical record; conflict surfaced; no silent overwrite.
-4. 10 repeated overlapping retry rounds → every round remains duplicate-safe.
-5. Ambiguous/failure simulation → no false-success message; retry does not duplicate.
-6. Correction test → previous state remains reconstructable.
+Capture media and the structured record derived from it are separate persistence concerns.
 
-## Current Google Sheets role
+- Ordinary capture media is temporary unless the member explicitly chooses to retain the original.
+- Text, transcripts, interpretations and confirmed structured records may be retained according to their record class.
+- Temporary media cleanup must not destroy the confirmed canonical structured record.
+- Discarded or failed submissions must not be presented as confirmed tracking history.
 
-The Member Zero workbook remains the current longitudinal test record and evidence surface. It is not considered sufficient evidence of database-level uniqueness or transactional concurrency guarantees by itself.
+## Required backend integrity cases
 
-For Member 1, EL8 needs either:
+The canonical implementation should continue to test:
 
-- a transactional canonical backend implementing this contract, with Sheets used only as reporting/export/test evidence; or
-- another explicitly approved architecture that demonstrably provides equivalent guarantees.
+1. overlapping distinct tracking IDs persist independently;
+2. overlapping identical same-ID tracking requests remain duplicate-safe;
+3. same-ID conflicting payloads surface conflict without silent overwrite;
+4. repeated retry rounds remain idempotent;
+5. ambiguous/failure simulation never produces false-success UI;
+6. correction preserves prior state and rejects stale optimistic writes;
+7. completed assessments reject mutation;
+8. submitted Daily/Weekly Check-ins reject mutation;
+9. member access cannot read or mutate another member’s protected records;
+10. administrative and service-role pathways are explicitly privileged rather than accidentally exposed to ordinary authenticated clients.
 
-## Gate 1 rule
+## Current storage roles
 
-Gate 1 cannot receive full Pass until the actual canonical write path—not only the browser harness—passes the required concurrency, retry, verification, normalization, reconciliation and correction tests without founder repair.
+**Supabase/Postgres** is the canonical transactional backend for the working prototype.
+
+**Supabase Storage** holds capture media subject to the temporary/retained media lifecycle.
+
+**Google Sheets/Drive** may be used for founder operations, reporting, planning, exports and Member Zero evidence, but must not be treated as the authoritative concurrency or transaction layer for product writes.
+
+## Member 1 persistence gate
+
+Persistence integrity is not passed merely because the interface appears to work. Before Member 1, the actual canonical path must demonstrate:
+
+- backend uniqueness and idempotency;
+- RLS/authorization isolation;
+- immutable historical records where specified;
+- reconstructable corrections;
+- truthful write acknowledgement;
+- media lifecycle behavior;
+- normalization and provenance;
+- retry/failure handling;
+- no founder repair required for ordinary successful use.
+
+The browser harness remains useful regression evidence, but the canonical Supabase path is the system that must satisfy this contract.
