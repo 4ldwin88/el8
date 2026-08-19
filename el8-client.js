@@ -5,6 +5,8 @@ export const supabase = createClient(
   'sb_publishable_CkcqWpD6nkzRzBfuJV08TQ_t38C9j34'
 );
 
+let profilePromise = null;
+
 export async function getSessionOrRedirect() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
@@ -15,13 +17,25 @@ export async function getSessionOrRedirect() {
   return session;
 }
 
-export async function getMyProfile() {
-  const { data, error } = await supabase.from('el8_profiles').select('*').single();
-  if (error) throw error;
-  return data;
+export async function getMyProfile({ refresh = false } = {}) {
+  if (refresh || !profilePromise) {
+    profilePromise = supabase
+      .from('el8_profiles')
+      .select('*')
+      .single()
+      .then(({ data, error }) => {
+        if (error) {
+          profilePromise = null;
+          throw error;
+        }
+        return data;
+      });
+  }
+  return profilePromise;
 }
 
 export async function signOut() {
+  profilePromise = null;
   await supabase.auth.signOut();
   location.replace('index.html');
 }
