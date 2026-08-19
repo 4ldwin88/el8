@@ -1,6 +1,6 @@
 # EL8 Prototype
 
-Current version: **v0.23**  
+Current version: **v0.24**  
 Status: **Working prototype / Member Zero validation**
 
 This repository contains the mobile-first EL8 interface prototype. It remains subordinate to the EL8 Concept Authority and Product & App Blueprint.
@@ -9,11 +9,11 @@ This repository contains the mobile-first EL8 interface prototype. It remains su
 
 Primary navigation: **Home · Plan · [EL8] Track · Insights · Me**.
 
-- **Home** — Today's Plan, concise expandable reasoning/“Why this today?”, contextually relevant learning, and only a small status element where useful.
-- **Plan** — Actions, Schedule organized as Today / This Week / Later, and current priorities. Completed actions remain in context and are crossed out/faded when checked rather than moved into a separate completed area.
+- **Home** — Today's Plan, concise reasoning/“Why this today?”, Daily/Weekly Check-in status, and only a small status element where useful. Plan content is account-backed; the UI shows an explicit empty state rather than fabricated actions when no active plan exists.
+- **Plan** — account-backed active actions, review schedule and current priority. Today / This Week / Later remains the intended organization as plan persistence expands.
 - **Track** — central universal capture. Text, Photo and Voice are communication methods rather than tracker silos. Inference-bearing entries require confirmation/correction before confirmed structured persistence.
 - **Insights** — whole-person comparison plus linked dimension detail. The working qualitative condition model is four bands: **Attention · Stable · Healthy · Thriving**. Target is removed from condition visualization. Baseline is immutable; Current is the best-supported present condition. Dimension detail carries trajectory and longitudinal history.
-- **Me** — Profile, Achievements, History, Saved, Manage Subscription, Settings, Privacy & Data and Sign Out. Admin Console remains authorization-restricted.
+- **Me** — Profile, Achievements, History, Saved, Manage Subscription, Settings, Privacy & Data and Sign Out. Achievements, Saved and Manage Subscription are explicitly marked Coming Soon in the current prototype. Admin Console remains authorization-restricted.
 
 ## Condition architecture
 
@@ -24,9 +24,9 @@ EL8 keeps four concepts distinct:
 - **Priority** — how much active EL8 attention the dimension warrants (for example primary, supporting, monitor).
 - **Safety** — independently determines whether ordinary wellness guidance is appropriate.
 
-The four condition bands are a working member-facing vocabulary pending external comprehension testing. They are qualitative bands, not a disguised 1–4 wellness score. **Thriving is descriptive, not a universal goal.** Stable may be entirely appropriate for a dimension that does not warrant additional optimization.
+The four condition bands are a working member-facing vocabulary pending external comprehension testing. They are qualitative bands, not a disguised 1–4 wellness score. **Thriving is descriptive, not a universal goal.** Stable may be entirely appropriate for a dimension that does not warrant additional optimization. Legacy condition terms may be normalized for display, but **Beyond is legacy; Thriving is the current highest condition label.**
 
-## Time model
+## Time and record model
 
 - **Baseline** is the original validated starting snapshot and is never overwritten.
 - **Current** is EL8's best-supported present condition and should change only when sufficient evidence/confidence justifies a change.
@@ -34,6 +34,11 @@ The four condition bands are a working member-facing vocabulary pending external
 - Formal condition history is **monthly by default** in the current design direction. Continuous/weekly evidence may inform Current and Trajectory without forcing weekly condition-band changes.
 - Detailed dimension pages show the original Baseline and Current on one segmented condition bar and provide a qualitative history line chart across formal reassessments.
 - History chart positions map internally to ordered display bands only for rendering; the member-facing axis remains Attention / Stable / Healthy / Thriving rather than numerical scores.
+- Submitted Daily Check-ins and Weekly Check-ins are immutable historical records.
+- Completed assessment sessions are immutable.
+- Canonical tracking entries cannot be directly edited or deleted by members; material corrections use the revision/correction pathway.
+- Plan check-ins, plan reviews, focus clarifications and emotional deepening submissions are append-only historical observations.
+- Legacy onboarding storage is retained only for historical prototype records and is no longer client-accessible.
 
 ## Brand direction
 
@@ -62,6 +67,21 @@ The four condition bands are a working member-facing vocabulary pending external
 Member 1 remains a controlled external test, not a public launch. Visual polish does not supersede the formal Member 1 safety, privacy, persistence-integrity, prioritization, reporting and decision-reconstruction gates.
 
 ## Changelog
+
+### v0.24 — 2026-08-19
+
+Persistence, security and consistency pass.
+
+- Enforced database-level immutability for submitted Daily/Weekly Check-ins and completed assessments.
+- Hardened RPC execution privileges, removed anonymous EL8 table privileges and optimized RLS authentication predicates.
+- Added missing foreign-key indexes and retired legacy onboarding storage from direct client access.
+- Protected canonical tracking, submission, safety and revision history against destructive member mutation.
+- Added account-aware Privacy & Data and shared Coming Soon member surfaces.
+- Replaced dead Me links with explicit Coming Soon destinations.
+- Restored Thriving as the current highest condition label and normalized legacy Beyond values to Thriving for display.
+- Linked dimension cards to dimension detail.
+- Removed fabricated Plan actions; Home and Plan now read the persisted active plan and show a truthful empty state when none exists.
+- Aligned Daily and Weekly Check-in UI with immutable-history behavior.
 
 ### v0.23 — 2026-08-18
 
