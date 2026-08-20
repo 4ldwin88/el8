@@ -13,12 +13,16 @@ Internal project-management surfaces do not belong in this repository.
 The member experience is organized around five primary destinations:
 
 - Home
-- Plan
+- Explore
 - Track
 - Insights
 - Me
 
-Standalone pages support onboarding, assessment/deepening, check-ins, plan review, history, safety, privacy/data, account states, reports, and other focused workflows.
+**Explore** is the learning and discovery destination for modules, lessons, practical guidance, saved/recommended resources, and dimension-based content.
+
+The member's **adaptive plan** remains a core EL8 feature, but it is not a primary navigation destination. Plan actions surface contextually on Home and through focused workflows such as plan check-in, plan review, plan history, and plan evidence. The word “Plan” should therefore describe the member's personalized adaptive plan, not a tab or navigation destination.
+
+Standalone pages support onboarding, assessment/deepening, check-ins, adaptive-plan review/history/evidence, safety, privacy/data, account states, reports, and other focused workflows.
 
 ## Internal infrastructure
 
