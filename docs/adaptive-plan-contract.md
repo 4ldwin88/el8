@@ -2,6 +2,10 @@
 
 Status: implementation contract for the current prototype.
 
+## Information architecture boundary
+
+The member's adaptive plan is a core EL8 system, not a primary navigation destination. The canonical navigation destination formerly called Plan is now **Explore**. Explore contains modules, lessons, practical guidance and discoverable wellness content. Adaptive-plan actions should surface contextually on Home and in focused plan workflows; implementation must not recreate a Plan tab by accident.
+
 ## Core model
 
 An EL8 plan is not defined as one primary dimension plus one supporting dimension. The canonical model contains two independent collections:
