@@ -1,6 +1,7 @@
 import { supabase, getMyProfile } from './el8-client.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const WATER_TARGET_ML = 3000;
 
 function localDate(timeZone) {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone, year:'numeric', month:'2-digit', day:'2-digit' }).formatToParts(new Date());
@@ -22,7 +23,7 @@ function classify(rows) {
   const movement = checkins.filter(x => String(x.payload?.movement || '').trim());
   return [
     {key:'nutrition',name:'Nutrition',state:food.length >= 2 ? 'Complete' : food.length ? 'Partial' : 'No data',detail:food.length ? `${food.length} food log${food.length===1?'':'s'}` : 'No confirmed meals'},
-    {key:'hydration',name:'Hydration',state:waterMl >= 2000 ? 'Complete' : waterMl > 0 ? 'Partial' : 'No data',detail:waterMl ? `${waterMl.toLocaleString()} mL logged` : 'No water logged'},
+    {key:'hydration',name:'Hydration',state:waterMl >= WATER_TARGET_ML ? 'Complete' : waterMl > 0 ? 'Partial' : 'No data',detail:waterMl ? `${waterMl.toLocaleString()} / ${WATER_TARGET_ML.toLocaleString()} mL` : `0 / ${WATER_TARGET_ML.toLocaleString()} mL`},
     {key:'sleep',name:'Sleep',state:sleep.length ? 'Complete' : 'No data',detail:sleep.length ? `${sleep.length} sleep interval${sleep.length===1?'':'s'}` : 'No valid sleep interval'},
     {key:'mood',name:'Mood',state:mood.length ? 'Complete' : 'No data',detail:mood.length ? `${mood.at(-1).payload.value}/10` : 'Not logged'},
     {key:'energy',name:'Energy',state:energy.length ? 'Complete' : 'No data',detail:energy.length ? `${energy.at(-1).payload.value}/10` : 'Not logged'},
@@ -34,13 +35,11 @@ function classify(rows) {
 
 function adaptivePrompt(signals) {
   const missing = key => signals.find(x => x.key === key)?.state === 'No data';
-  const partial = key => signals.find(x => x.key === key)?.state === 'Partial';
-  if (missing('mood') && missing('energy')) return {title:'A little more context would help',body:'Mood and energy are still unknown today. Logging them gives EL8 context for interpreting sleep, activity and other changes.',action:'Log mood & energy',target:'quick'};
-  if (missing('sleep')) return {title:'Sleep context is missing',body:'If you slept or napped today, logging the interval will improve today’s Physical evidence.',action:'Log sleep',href:'sleep-log.html'};
-  if (missing('hydration') || partial('hydration')) return {title:'Hydration is still incomplete',body:'EL8 has limited hydration evidence today. Add water as you drink it rather than estimating everything later.',action:'Add water',target:'quick'};
-  if (missing('checkin')) return {title:'Daily context is still missing',body:'Your quick logs show events; the daily check-in adds context about how the day actually went.',action:'Daily check-in',href:'daily-checkin.html'};
-  if (missing('nutrition') || partial('nutrition')) return {title:'Nutrition coverage is limited',body:'If you have another meal today, Track can add it without requiring a separate questionnaire.',action:'Track something',href:'track.html'};
-  return {title:'No extra question needed',body:'Today’s core signals are sufficiently covered. EL8 will avoid asking for information it already has.',action:'View coverage',href:'daily-coverage.html'};
+  if (missing('mood') && missing('energy')) return {title:'A little more context would help',body:'Mood and energy are still unknown today. Logging them gives EL8 context for interpreting sleep, activity and other changes.'};
+  if (missing('sleep')) return {title:'Sleep context is missing',body:'If you slept or napped today, logging the interval will improve today’s Physical evidence.',href:'sleep-log.html',action:'Log sleep'};
+  if (missing('checkin')) return {title:'Daily context is still missing',body:'Your quick logs show events; the daily check-in adds context about how the day actually went.',href:'daily-checkin.html',action:'Daily check-in'};
+  if (missing('nutrition')) return {title:'Nutrition coverage is limited',body:'If you have a meal today, Track can add it without requiring a separate questionnaire.',href:'track.html',action:'Track something'};
+  return {title:'No extra question needed',body:'EL8 will avoid prompting for information that is already being tracked. Partial targets such as hydration remain visible in coverage until completed.'};
 }
 
 export async function mountHomeCoverage() {
@@ -62,17 +61,13 @@ export async function mountHomeCoverage() {
   const complete = signals.filter(x => x.state === 'Complete').length;
   const partial = signals.filter(x => x.state === 'Partial').length;
   const percent = Math.round((complete + partial * .5) / signals.length * 100);
-  const missingNames = signals.filter(x => x.state !== 'Complete').slice(0,3).map(x => x.name);
+  const limited = signals.filter(x => x.state !== 'Complete').slice(0,4);
   const prompt = adaptivePrompt(signals);
   card.innerHTML = `
     <div class="quickHead"><div><h2 style="margin:0">Today’s coverage</h2><div class="quickMeta">${complete} of ${signals.length} core signals covered${partial ? ` · ${partial} partial` : ''}</div></div><b>${percent}%</b></div>
     <div class="progress"><i style="width:${percent}%"></i></div>
-    <p class="quickMeta">${missingNames.length ? `Still limited: ${esc(missingNames.join(', '))}.` : 'EL8 has adequate daily evidence.'} Missing data is not scored as failure.</p>
+    <div class="quickMeta">${limited.length ? limited.map(x => `<div style="margin-top:5px"><b>${esc(x.name)}</b> · ${esc(x.state)} · ${esc(x.detail)}</div>`).join('') : 'EL8 has adequate daily evidence.'}<div style="margin-top:7px">Missing data is not scored as failure.</div></div>
     <a class="reviewLink" href="daily-coverage.html">View daily coverage</a>
-    <div style="border-top:1px solid var(--line);margin-top:16px;padding-top:16px"><b>${esc(prompt.title)}</b><p style="margin:6px 0 0">${esc(prompt.body)}</p>${prompt.href ? `<a class="reviewLink" href="${esc(prompt.href)}">${esc(prompt.action)}</a>` : `<button class="qbtn" id="adaptiveQuick" style="margin-top:10px">${esc(prompt.action)}</button>`}</div>`;
+    <div style="border-top:1px solid var(--line);margin-top:16px;padding-top:16px"><b>${esc(prompt.title)}</b><p style="margin:6px 0 0">${esc(prompt.body)}</p>${prompt.href ? `<a class="reviewLink" href="${esc(prompt.href)}">${esc(prompt.action)}</a>` : ''}</div>`;
   quickCard.after(card);
-  document.getElementById('adaptiveQuick')?.addEventListener('click', () => {
-    document.querySelector('.quickDetails')?.setAttribute('open','');
-    quickCard.scrollIntoView({behavior:'smooth',block:'start'});
-  });
 }
