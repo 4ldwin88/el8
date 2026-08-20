@@ -10,7 +10,7 @@ let profilePromise = null;
 export async function getSessionOrRedirect() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
-    const next = encodeURIComponent(location.pathname.split('/').pop() || 'app.html');
+    const next = encodeURIComponent(location.pathname.split('/').pop() || 'home.html');
     location.replace(`index.html?next=${next}`);
     return null;
   }
@@ -33,8 +33,14 @@ export async function signOut() {
   location.replace('index.html');
 }
 
-// Shared enhancements for the current single-file member shell. These keep
-// Plan/Insights routes additive while app.html is gradually decomposed.
+// Track remains a large working capture surface. Migrate only its navigation
+// so capture, interpretation, confirmation and persistence logic stay intact.
+if (location.pathname.endsWith('/track.html') || location.pathname.endsWith('track.html')) {
+  queueMicrotask(() => import('./track-nav.js').catch(error => console.error('Track navigation unavailable', error)));
+}
+
+// Compatibility enhancements for the retired combined shell while old links
+// are being drained. New primary navigation uses independent pages.
 if (location.pathname.endsWith('/app.html') || location.pathname.endsWith('app.html')) {
   queueMicrotask(() => {
     const actions = document.getElementById('planActions');
@@ -55,7 +61,5 @@ if (location.pathname.endsWith('/app.html') || location.pathname.endsWith('app.h
       card.innerHTML = '<div class="row"><div><h2>Plan evidence</h2><p style="margin:0">See what check-ins and reviews actually support.</p></div><span>›</span></div>';
       insightCards.after(card);
     }
-    import('./home-coverage.js').then(m => m.mountHomeCoverage()).catch(error => console.error('Home coverage unavailable', error));
-    import('./plan-v2.js').catch(error => console.error('Active Plan v2 unavailable', error));
   });
 }
