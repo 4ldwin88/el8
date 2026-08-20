@@ -1,6 +1,6 @@
 import { supabase, getMyProfile } from './el8-client.js';
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
 const WATER_TARGET_ML = 3000;
 
 function localDate(timeZone) {
@@ -39,7 +39,7 @@ function adaptivePrompt(signals) {
   if (missing('sleep')) return {title:'Sleep context is missing',body:'If you slept or napped today, logging the interval will improve today’s Physical evidence.',href:'sleep-log.html',action:'Log sleep'};
   if (missing('checkin')) return {title:'Daily context is still missing',body:'Your quick logs show events; the daily check-in adds context about how the day actually went.',href:'daily-checkin.html',action:'Daily check-in'};
   if (missing('nutrition')) return {title:'Nutrition coverage is limited',body:'If you have a meal today, Track can add it without requiring a separate questionnaire.',href:'track.html',action:'Track something'};
-  return {title:'No extra question needed',body:'EL8 will avoid prompting for information that is already being tracked. Partial targets such as hydration remain visible in coverage until completed.'};
+  return null;
 }
 
 export async function mountHomeCoverage() {
@@ -63,11 +63,12 @@ export async function mountHomeCoverage() {
   const percent = Math.round((complete + partial * .5) / signals.length * 100);
   const limited = signals.filter(x => x.state !== 'Complete').slice(0,4);
   const prompt = adaptivePrompt(signals);
+  const promptHtml = prompt ? `<div style="border-top:1px solid var(--line);margin-top:16px;padding-top:16px"><b>${esc(prompt.title)}</b><p style="margin:6px 0 0">${esc(prompt.body)}</p>${prompt.href ? `<a class="reviewLink" href="${esc(prompt.href)}">${esc(prompt.action)}</a>` : ''}</div>` : '';
   card.innerHTML = `
     <div class="quickHead"><div><h2 style="margin:0">Today’s coverage</h2><div class="quickMeta">${complete} of ${signals.length} core signals covered${partial ? ` · ${partial} partial` : ''}</div></div><b>${percent}%</b></div>
     <div class="progress"><i style="width:${percent}%"></i></div>
     <div class="quickMeta">${limited.length ? limited.map(x => `<div style="margin-top:5px"><b>${esc(x.name)}</b> · ${esc(x.state)} · ${esc(x.detail)}</div>`).join('') : 'EL8 has adequate daily evidence.'}<div style="margin-top:7px">Missing data is not scored as failure.</div></div>
     <a class="reviewLink" href="daily-coverage.html">View daily coverage</a>
-    <div style="border-top:1px solid var(--line);margin-top:16px;padding-top:16px"><b>${esc(prompt.title)}</b><p style="margin:6px 0 0">${esc(prompt.body)}</p>${prompt.href ? `<a class="reviewLink" href="${esc(prompt.href)}">${esc(prompt.action)}</a>` : ''}</div>`;
+    ${promptHtml}`;
   quickCard.after(card);
 }
