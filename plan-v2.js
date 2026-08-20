@@ -2,53 +2,9 @@ import { supabase } from './el8-client.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const title = value => String(value || '').replace(/(^|\s)\S/g, s => s.toUpperCase());
-
-function focusDimensions(plan) {
-  if (Array.isArray(plan.focus_dimensions) && plan.focus_dimensions.length) return plan.focus_dimensions;
-  return [plan.dimension, plan.supporting_dimension].filter(Boolean).map((dimension, i) => ({dimension, role:i===0?'lead':'support', source:'legacy_fallback'}));
-}
-
-function interventions(plan) {
-  if (Array.isArray(plan.interventions) && plan.interventions.length) return plan.interventions;
-  if (Array.isArray(plan.actions) && plan.actions.length) return plan.actions.map((a,i)=>({id:`legacy-${i+1}`,action:a.action,dimensions:[a.dimension].filter(Boolean),order:i+1,source:'legacy_fallback'}));
-  return [plan.primary_action, plan.supporting_action].filter(Boolean).map((action,i)=>({id:`legacy-${i+1}`,action,dimensions:[i?plan.supporting_dimension:plan.dimension].filter(Boolean),order:i+1,source:'legacy_fallback'}));
-}
-
-function dimensionPills(items) {
-  return items.map(f=>`<span class="pill">${esc(f.dimension || f)}</span>`).join(' ');
-}
-
-function interventionCard(item, index, compact=false) {
-  const ds = Array.isArray(item.dimensions) ? item.dimensions.filter(Boolean) : [];
-  const rationale = item.rationale || item.why || '';
-  const outcome = item.expected_outcome || item.expected_effect || '';
-  const evidence = item.evidence_signal || item.evidence || item.measure || '';
-  const burden = item.burden || item.effort || '';
-  const review = item.review_condition || item.review || '';
-  if (compact) return `<div class="action"><b>${esc(item.action || `Intervention ${index+1}`)}</b>${ds.length?`<div class="quickMeta" style="margin-top:5px">Supports ${esc(ds.join(' · '))}</div>`:''}</div>`;
-  return `<div class="action"><div class="quickMeta">Intervention ${index+1}${ds.length?` · ${esc(ds.join(' + '))}`:''}</div><b>${esc(item.action || 'Plan action')}</b>${rationale?`<p style="margin:7px 0 0">${esc(rationale)}</p>`:''}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px">${burden?`<span class="pill">Effort · ${esc(title(burden))}</span>`:''}${outcome?`<span class="pill">Expected · ${esc(outcome)}</span>`:''}</div>${evidence?`<div class="quickMeta" style="margin-top:9px"><b>Watch for:</b> ${esc(evidence)}</div>`:''}${review?`<div class="quickMeta" style="margin-top:5px"><b>Review when:</b> ${esc(review)}</div>`:''}</div>`;
-}
-
-async function mountPlanV2() {
-  const homePlan=document.getElementById('homePlan'), planActions=document.getElementById('planActions');
-  if(!homePlan || !planActions) return;
-  const {data:{session}}=await supabase.auth.getSession();
-  if(!session) return;
-  const {data:plan,error}=await supabase.from('el8_plans').select('*').eq('user_id',session.user.id).eq('status','active').order('created_at',{ascending:false}).limit(1).maybeSingle();
-  if(error){ console.error('Active Plan v2 unavailable',error); return; }
-  if(!plan) return;
-  const focus=focusDimensions(plan), ints=interventions(plan);
-  homePlan.innerHTML=ints.length?ints.map((x,i)=>interventionCard(x,i,true)).join(''):'<p>No intervention is required right now.</p>';
-  planActions.innerHTML=ints.length?ints.map((x,i)=>interventionCard(x,i)).join(''):'<p>No active intervention is required right now. EL8 can monitor without manufacturing work.</p>';
-  const priorities=document.getElementById('planPriorities');
-  if(priorities) priorities.innerHTML=focus.length?`<div style="display:flex;gap:7px;flex-wrap:wrap">${dimensionPills(focus)}</div><p class="quickMeta" style="margin-bottom:0">${focus.length} active focus dimension${focus.length===1?'':'s'} · ${ints.length} intervention${ints.length===1?'':'s'}. These counts are independent and can adapt at review.</p>`:'No active focus dimension is required right now.';
-  const rationale=document.getElementById('homeRationale');
-  if(rationale) rationale.textContent=plan.plan_objective || plan.rationale || 'EL8 selected the smallest useful set of interventions for the current priorities.';
-  const schedule=document.getElementById('planSchedule');
-  if(schedule) schedule.textContent=plan.review_days?`Review after ${plan.review_days} days, or sooner if the plan becomes too easy, too difficult, disruptive, ineffective, or circumstances change.`:'Review when evidence, manageability or circumstances justify adapting the plan.';
-  const heading=planActions.closest('.el8-card')?.querySelector('h2'); if(heading) heading.textContent='Interventions';
-  const page=document.getElementById('plan');
-  if(page){const h1=page.querySelector('h1');if(h1)h1.textContent='Your path, adapted to you.'; if(!document.getElementById('planObjective')){const card=document.createElement('div');card.id='planObjective';card.className='el8-card';card.innerHTML=`<div class="el8-eyebrow">Current objective</div><h2 style="margin-top:6px">${esc(plan.plan_objective || plan.rationale || 'Make meaningful progress with a manageable plan.')}</h2><p class="quickMeta">EL8 can narrow, maintain or expand this plan as evidence and capacity change.</p>`;page.insertBefore(card,page.querySelector('.el8-card'));}}
-}
-
+function focusDimensions(plan){if(Array.isArray(plan.focus_dimensions)&&plan.focus_dimensions.length)return plan.focus_dimensions;return[plan.dimension,plan.supporting_dimension].filter(Boolean).map((dimension,i)=>({dimension,role:i===0?'lead':'support',source:'legacy_fallback'}));}
+function interventions(plan){if(Array.isArray(plan.interventions)&&plan.interventions.length)return plan.interventions;if(Array.isArray(plan.actions)&&plan.actions.length)return plan.actions.map((a,i)=>({id:`legacy-${i+1}`,action:a.action,dimensions:[a.dimension].filter(Boolean),order:i+1,source:'legacy_fallback'}));return[plan.primary_action,plan.supporting_action].filter(Boolean).map((action,i)=>({id:`legacy-${i+1}`,action,dimensions:[i?plan.supporting_dimension:plan.dimension].filter(Boolean),order:i+1,source:'legacy_fallback'}));}
+function dimensionPills(items){return items.map(f=>`<span class="pill">${esc(f.dimension||f)}</span>`).join(' ')}
+function interventionCard(item,index,compact=false){const ds=Array.isArray(item.dimensions)?item.dimensions.filter(Boolean):[],rationale=item.rationale||item.why||'',outcome=item.expected_outcome||item.expected_effect||'',evidence=item.evidence_signal||item.evidence||item.measure||'',burden=item.burden||item.effort||'',review=item.review_condition||item.review||'';if(compact)return`<div class="action"><b>${esc(item.action||`Intervention ${index+1}`)}</b>${ds.length?`<div class="quickMeta" style="margin-top:5px">Supports ${esc(ds.join(' · '))}</div>`:''}</div>`;return`<div class="action"><div class="quickMeta">Intervention ${index+1}${ds.length?` · ${esc(ds.join(' + '))}`:''}</div><b>${esc(item.action||'Plan action')}</b>${rationale?`<p style="margin:7px 0 0">${esc(rationale)}</p>`:''}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px">${burden?`<span class="pill">Effort · ${esc(title(burden))}</span>`:''}${outcome?`<span class="pill">Expected · ${esc(outcome)}</span>`:''}</div>${evidence?`<div class="quickMeta" style="margin-top:9px"><b>Watch for:</b> ${esc(evidence)}</div>`:''}${review?`<div class="quickMeta" style="margin-top:5px"><b>Review when:</b> ${esc(review)}</div>`:''}</div>`}
+async function mountPlanV2(){const homePlan=document.getElementById('homePlan'),planActions=document.getElementById('planActions');if(!homePlan||!planActions)return;const{data:{session}}=await supabase.auth.getSession();if(!session)return;const{data:plan,error}=await supabase.from('el8_plans').select('*').eq('user_id',session.user.id).eq('status','active').order('created_at',{ascending:false}).limit(1).maybeSingle();if(error){console.error('Active Plan v2 unavailable',error);return}if(!plan)return;const focus=focusDimensions(plan),ints=interventions(plan);homePlan.innerHTML=ints.length?ints.map((x,i)=>interventionCard(x,i,true)).join(''):'<p>No intervention is required right now.</p>';planActions.innerHTML=ints.length?ints.map((x,i)=>interventionCard(x,i)).join(''):'<p>No active intervention is required right now. EL8 can monitor without manufacturing work.</p>';const priorities=document.getElementById('planPriorities');if(priorities)priorities.innerHTML=focus.length?`<div style="display:flex;gap:7px;flex-wrap:wrap">${dimensionPills(focus)}</div><p class="quickMeta" style="margin-bottom:0">${focus.length} active focus dimension${focus.length===1?'':'s'} · ${ints.length} intervention${ints.length===1?'':'s'}. These counts are independent and can adapt at review.</p>`:'No active focus dimension is required right now.';const rationale=document.getElementById('homeRationale');if(rationale)rationale.textContent=plan.plan_objective||plan.rationale||'EL8 selected the smallest useful set of interventions for the current priorities.';const schedule=document.getElementById('planSchedule');if(schedule)schedule.textContent=plan.review_days?`Review after ${plan.review_days} days, or sooner if the plan becomes too easy, too difficult, disruptive, ineffective, or circumstances change.`:'Review when evidence, manageability or circumstances justify adapting the plan.';const heading=planActions.closest('.el8-card')?.querySelector('h2');if(heading)heading.textContent='Interventions';const page=document.getElementById('plan');if(page){const h1=page.querySelector('h1');if(h1)h1.textContent='Your path, adapted to you.';if(!document.getElementById('planObjective')){const card=document.createElement('div');card.id='planObjective';card.className='el8-card';card.innerHTML=`<div class="el8-eyebrow">Current objective</div><h2 style="margin-top:6px">${esc(plan.plan_objective||plan.rationale||'Make meaningful progress with a manageable plan.')}</h2><p class="quickMeta">EL8 can narrow, maintain or expand this plan as evidence and capacity change.</p>`;page.insertBefore(card,page.querySelector('.el8-card'));}if(!document.getElementById('planHistoryLink')){const a=document.createElement('a');a.id='planHistoryLink';a.href='plan-history.html';a.className='el8-card';a.style.cssText='display:block;text-decoration:none;color:inherit';a.innerHTML='<b>Plan history</b><div class="quickMeta">See previous immutable plan versions and why they changed.</div>';page.appendChild(a);}}}
 window.addEventListener('load',()=>setTimeout(mountPlanV2,0),{once:true});
