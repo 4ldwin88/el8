@@ -56,5 +56,6 @@ if (location.pathname.endsWith('/app.html') || location.pathname.endsWith('app.h
       insightCards.after(card);
     }
     import('./home-coverage.js').then(m => m.mountHomeCoverage()).catch(error => console.error('Home coverage unavailable', error));
+    import('./plan-v2.js').catch(error => console.error('Active Plan v2 unavailable', error));
   });
 }
