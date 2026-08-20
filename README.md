@@ -16,9 +16,30 @@ The member experience is organized around five primary destinations:
 - Explore
 - Track
 - Insights
-- Me
+- Profile
 
-**Explore** is the learning and discovery destination for modules, lessons, practical guidance, saved/recommended resources, and dimension-based content.
+**Home** is the member's current-day surface: quick logging, current evidence, check-ins, and contextually relevant adaptive-plan actions.
+
+**Explore** is the learning and discovery destination for modules, lessons, practical guidance, recommended resources, and dimension-based content.
+
+**Track** is where members deliberately record and review logs and tracked events.
+
+**Insights** interprets patterns, relationships, progress, and the member's broader wellness picture.
+
+**Profile** is the member's personal EL8 hub and record, not merely account settings. Its working information architecture is:
+
+- Overview
+- Saved
+- History
+- Achievements
+- Assessments
+- Goals
+- Rewards
+- Reports
+- Connections
+- Settings & Data
+
+Overview is the Profile landing surface. Saved contains member-saved Explore content and resources. History contains meaningful historical EL8 records and activity. Achievements and Rewards remain distinct: achievements represent milestones/accomplishments, while rewards represent points, credits, benefits, or redemption systems. Assessments contains the immutable Universal Baseline and later assessments/reassessments. Goals contains active and historical goals. Reports contains member-facing summaries and future share/export reports. Connections contains integrations, devices, apps, and future connected services/providers. Settings & Data contains preferences, measurement settings, notifications, privacy, permissions, export/deletion, and account administration.
 
 The member's **adaptive plan** remains a core EL8 feature, but it is not a primary navigation destination. Plan actions surface contextually on Home and through focused workflows such as plan check-in, plan review, plan history, and plan evidence. The word “Plan” should therefore describe the member's personalized adaptive plan, not a tab or navigation destination.
 
