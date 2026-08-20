@@ -55,5 +55,6 @@ if (location.pathname.endsWith('/app.html') || location.pathname.endsWith('app.h
       card.innerHTML = '<div class="row"><div><h2>Plan evidence</h2><p style="margin:0">See what check-ins and reviews actually support.</p></div><span>›</span></div>';
       insightCards.after(card);
     }
+    import('./home-coverage.js').then(m => m.mountHomeCoverage()).catch(error => console.error('Home coverage unavailable', error));
   });
 }
