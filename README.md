@@ -6,7 +6,7 @@
 
 This repository contains the member-facing EL8 prototype and the technical infrastructure required to run, secure, persist, and test it.
 
-Internal project-management surfaces do not belong in the member prototype. The authoritative App Command Center and Founder Dashboard live in Google Drive.
+Internal project-management surfaces do not belong in this repository.
 
 ## Canonical member information architecture
 
