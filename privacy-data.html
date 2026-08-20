@@ -2,14 +2,14 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>EL8 · Privacy & Data</title><link rel="stylesheet" href="assets/el8-ui.css">
+<title>EL8 · Settings & Data</title><link rel="stylesheet" href="assets/el8-ui.css">
 <style>.menuRow{padding:15px 0;border-top:1px solid var(--line)}.menuRow:first-child{border-top:0}.label{font-weight:800}.value{font-size:13px;color:var(--muted);margin-top:4px}.notice{border-left:3px solid var(--gold)}</style>
 </head><body><main class="el8-shell">
 <div class="el8-brand"><img class="el8-brand-mark" src="assets/brand/el8-mark.svg" alt=""><div class="el8-brand-copy"><div class="el8-wordmark">EL8</div><div class="el8-tagline">Life, in balance.</div></div></div>
-<div class="el8-eyebrow">Me · Privacy & Data</div><h1>Your information.</h1><p>This prototype separates account information, assessments, check-ins, tracking records and temporary capture media. Historical self-reports remain time-stamped rather than being silently rewritten.</p>
+<div class="el8-eyebrow">Profile · Settings & Data</div><h1>Your information.</h1><p>This prototype separates account information, assessments, check-ins, tracking records and temporary capture media. Historical self-reports remain time-stamped rather than being silently rewritten.</p>
 <div class="el8-card"><div class="menuRow"><div class="label">Member ID</div><div class="value" id="memberId">—</div></div><div class="menuRow"><div class="label">Account email</div><div class="value" id="email">—</div></div><div class="menuRow"><div class="label">Measurement system</div><div class="value" id="units">—</div></div><div class="menuRow"><div class="label">Account appearance</div><div class="value" id="appearance">—</div></div></div>
 <div class="el8-card notice"><h2>Record integrity</h2><p>Submitted assessments, Daily Check-ins and Weekly Check-ins are historical records and cannot be edited after submission. Tracking records use a correction/revision pathway when information needs to be corrected.</p></div>
 <div class="el8-card"><h2>Capture media</h2><p>Photos and voice captures are temporary unless you explicitly choose to keep the original media during tracking. Confirmed structured records and interpretations may remain in your EL8 history.</p></div>
 <div class="el8-card"><h2>Data controls</h2><p>Download/export and production account-deletion workflows are not yet exposed in this prototype. They must be implemented before EL8 is treated as a production member service.</p></div>
-<button class="el8-bottom-action" onclick="location.href='app.html#me'">Back to Me</button>
+<button class="el8-bottom-action" onclick="location.href='app.html#profile'">Back to Profile</button>
 </main><script type="module">import{getSessionOrRedirect,getMyProfile}from'./el8-client.js';const s=await getSessionOrRedirect();if(s){const p=await getMyProfile();document.documentElement.dataset.theme=p.appearance||'light';if(p.onboarding_status==='safety_paused'){location.replace('safety-hold.html');throw new Error('Safety pause')}memberId.textContent=p.member_code||'—';email.textContent=s.user.email||'—';units.textContent=p.measurement_system==='imperial'?'Imperial':'Metric';appearance.textContent=(p.appearance||'light').replace(/^./,x=>x.toUpperCase())}</script></body></html>
