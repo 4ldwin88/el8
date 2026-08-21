@@ -1,0 +1,12 @@
+import assert from'node:assert/strict';
+import{inferQaOptionEvidence}from'./qa-option-evidence.js';
+const q={dimension:'Occupational'};
+assert.equal(inferQaOptionEvidence('Very insecure',q).delta.Occupational,.4);
+assert.equal(inferQaOptionEvidence('Somewhat insecure',q).delta.Occupational,.2);
+assert.equal(inferQaOptionEvidence('Comfortable',{dimension:'Financial'}).delta.Financial,-.34);
+assert.equal(inferQaOptionEvidence('Not manageable',{dimension:'Financial'}).delta.Financial,.3);
+assert.equal(inferQaOptionEvidence('Very disconnected',{dimension:'Social'}).delta.Social,.4);
+assert.equal(inferQaOptionEvidence('More than I wanted',{dimension:'Physical'}).delta.Physical,.2);
+assert.equal(inferQaOptionEvidence('A little rested',{dimension:'Physical'}).delta.Physical,undefined);
+assert.equal(inferQaOptionEvidence('Unsure',q).ambiguous,true);
+console.log('qa-option-evidence tests passed');
