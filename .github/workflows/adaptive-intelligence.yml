@@ -1,0 +1,36 @@
+name: Adaptive Intelligence QA
+
+on:
+  push:
+    branches:
+      - main
+      - refactor/adaptive-question-bank
+    paths:
+      - 'intelligence/**'
+      - 'package.json'
+      - '.github/workflows/adaptive-intelligence.yml'
+  pull_request:
+    paths:
+      - 'intelligence/**'
+      - 'package.json'
+      - '.github/workflows/adaptive-intelligence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  intelligence-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run unit and adversarial tests
+        run: npm run test:intelligence
+      - name: Run synthetic member simulation
+        run: npm run test:simulation
