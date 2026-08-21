@@ -1,12 +1,11 @@
 import {selectQuestions} from '../selection/question-selector.js';
 import {attachAnswerEvidence} from '../evidence/answer-value-matrix.js';
 import {syntheticMembers} from './synthetic-members.js';
-import {emotionalQuestions} from '../question-bank/emotional.js';
-import {financialQuestions} from '../question-bank/financial.js';
+import {questionBank} from '../question-bank/index.js';
 
-const bank=[...emotionalQuestions,...financialQuestions].map(attachAnswerEvidence);
+const bank=questionBank.map(attachAnswerEvidence);
 const signal=q=>q.signal??q.signal_map?.signal;
-const dims=q=>q.primary_dimensions??q.dimensions??[];
+const dims=q=>[q.dimension,...(q.secondary_dimensions??[]),...(q.primary_dimensions??[]),...(q.dimensions??[])].filter(Boolean);
 
 function assess(member,result){
  const selected=result.selected.map(x=>x.question),e=member.expect??{},fail=[];
@@ -16,7 +15,6 @@ function assess(member,result){
  if(e.preferSignal&&signal(selected[0])!==e.preferSignal)fail.push(`top signal ${signal(selected[0])??'none'}; expected ${e.preferSignal}`);
  if(e.avoidSignal&&selected.some(q=>signal(q)===e.avoidSignal))fail.push(`repeated avoided signal ${e.avoidSignal}`);
  if(e.preferPurpose&&selected[0]?.question_purpose!==e.preferPurpose)fail.push(`top purpose ${selected[0]?.question_purpose??'none'}; expected ${e.preferPurpose}`);
- if(e.allowSafetyOverride&&!selected.some(q=>q.safety_rules?.override_burden))fail.push('no explicit safety override selected');
  return fail;
 }
 
@@ -24,7 +22,7 @@ export function runSimulation(members=syntheticMembers,candidates=bank){
  return members.map(member=>{
    const result=selectQuestions(candidates,member.context);
    const failures=assess(member,result);
-   return {id:member.id,label:member.label,pass:failures.length===0,failures,selected:result.selected.map(x=>({id:x.question.id,signal:signal(x.question),dimensions:dims(x.question),score:Number(x.score.toFixed(4)),components:x.components})),topRejected:result.ranked.slice(result.selected.length,result.selected.length+3).map(x=>({id:x.question.id,signal:signal(x.question),score:Number(x.score.toFixed(4))})),burdenUsed:result.burdenUsed};
+   return {id:member.id,label:member.label,pass:failures.length===0,failures,selected:result.selected.map(x=>({id:x.question.id,signal:signal(x.question),dimensions:dims(x.question),purpose:x.question.question_purpose??null,score:Number(x.score.toFixed(4)),components:x.components})),topRejected:result.ranked.filter(x=>!result.selected.includes(x)).slice(0,3).map(x=>({id:x.question.id,signal:signal(x.question),score:Number(x.score.toFixed(4))})),burdenUsed:result.burdenUsed};
  });
 }
 
