@@ -1,0 +1,8 @@
+export const DIMENSIONS=['Physical','Emotional','Social','Spiritual','Intellectual','Occupational','Financial','Environmental'];
+export function createDimensionHypotheses(route={}){return Object.fromEntries(DIMENSIONS.map(d=>[d,{state:route[d]>=.4?'confirmed':route[d]>=.2?'candidate':'unknown',confidence:Number(route[d]||0),sources:route[d]?['experience']:[],positive:0,negative:0}]))}
+export function addDimensionClue(state,dimension,value=0,source='evidence'){const next=structuredClone(state),x=next[dimension]||{state:'unknown',confidence:0,sources:[],positive:0,negative:0};if(value>0)x.positive+=Math.abs(value);if(value<0)x.negative+=Math.abs(value);x.sources=[...new Set([...x.sources,source])];if(x.positive>=.35||x.positive>=.2&&x.sources.length>=2){x.state='confirmed';x.confidence=Math.max(x.confidence,.55)}else if(x.negative>=.3&&x.positive<.2){x.state='cleared';x.confidence=0}else if(x.state==='unknown'&&value!==0){x.state='candidate';x.confidence=Math.max(x.confidence,.25)}next[dimension]=x;return next}
+export function candidateDimensions(state){return DIMENSIONS.filter(d=>state[d]?.state==='candidate')}
+export function confirmedDimensions(state){return DIMENSIONS.filter(d=>state[d]?.state==='confirmed')}
+export function activeDimensions(state){return DIMENSIONS.filter(d=>['candidate','confirmed'].includes(state[d]?.state))}
+export function needsConfirmation(state){return candidateDimensions(state).sort((a,b)=>(state[b]?.confidence||0)-(state[a]?.confidence||0))[0]||null}
+export function dimensionPriority(state,d){const x=state[d];if(!x||x.state==='unknown'||x.state==='cleared')return 0;return(x.state==='confirmed'?2:1)+(x.confidence||0)+(x.positive||0)*.5-(x.negative||0)*.4}
