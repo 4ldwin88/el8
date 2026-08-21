@@ -23,26 +23,68 @@
   margin-top: 16px;
 }
 
-.scale input {
-  width: 100%;
-  accent-color: var(--ink);
+.segmentedScale {
+  display: grid;
+  grid-template-columns: repeat(var(--scale-count, 4), minmax(0, 1fr));
+  position: relative;
+  gap: 0;
+  margin-top: 10px;
 }
 
-.scaleLabels {
+.segmentedScale::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: calc(50% / var(--scale-count, 4));
+  right: calc(50% / var(--scale-count, 4));
+  height: 2px;
+  background: var(--line);
+}
+
+.scaleStop {
+  position: relative;
+  z-index: 1;
   display: flex;
-  justify-content: space-between;
-  gap: 5px;
-  margin-top: 6px;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  padding: 4px 2px;
+  background: transparent;
   color: var(--muted);
-  font-size: 11px;
+  font: inherit;
+  cursor: pointer;
 }
 
-.scaleLabels span {
-  flex: 1;
+.scaleDot {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: 0 0 0 4px var(--card);
+}
+
+.scaleStop.selected {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.scaleStop.selected .scaleDot {
+  border-color: var(--ink);
+  background: var(--ink);
+}
+
+.scaleStopLabel {
+  max-width: 100%;
   text-align: center;
+  font-size: 11px;
+  line-height: 1.2;
 }
 
 .scaleValue {
+  min-height: 20px;
   margin: 8px 0;
   text-align: center;
   font-weight: 800;
