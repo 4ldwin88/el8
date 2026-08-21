@@ -8,6 +8,7 @@ let selection = null;
 let value;
 let startedAt = Date.now();
 let recorded = false;
+let experimentCard = null;
 
 function normalizeOptions(options) {
   return (Array.isArray(options) ? options : []).map(option =>
@@ -15,8 +16,18 @@ function normalizeOptions(options) {
   );
 }
 
+function markAnswered() {
+  experimentCard?.classList.remove('question-missing');
+  if (errorBox?.dataset.source === 'experiment') {
+    errorBox.classList.add('hidden');
+    errorBox.textContent = '';
+    delete errorBox.dataset.source;
+  }
+}
+
 function renderChoiceQuestion(question) {
   const card = document.createElement('div');
+  experimentCard = card;
   card.className = 'el8-card';
   card.innerHTML = `<div class="tag">EL8 research</div><h2>One extra question</h2><p class="small">${question.prompt_template}</p><div class="choices"></div>`;
   const choices = card.querySelector('.choices');
@@ -29,6 +40,7 @@ function renderChoiceQuestion(question) {
       [...choices.children].forEach(x => x.classList.remove('selected'));
       button.classList.add('selected');
       value = option.value;
+      markAnswered();
     };
     choices.appendChild(button);
   });
@@ -40,8 +52,9 @@ function renderScaleQuestion(question) {
   const unsure = options.find(x => x.value === 'unsure');
   const ordered = options.filter(x => x.value !== 'unsure');
   const card = document.createElement('div');
+  experimentCard = card;
   card.className = 'el8-card';
-  card.innerHTML = `<div class="tag">EL8 research</div><h2>One extra question</h2><p class="small">${question.prompt_template}</p><div class="scale"><div class="scaleValue">Choose a response</div><input type="range" min="0" max="${Math.max(0, ordered.length - 1)}" step="1" value="${Math.floor(Math.max(0, ordered.length - 1) / 2)}"><div class="scaleLabels">${ordered.map(x => `<span>${x.label}</span>`).join('')}</div>${unsure ? '<button type="button" class="unsure">Unsure</button>' : ''}</div>`;
+  card.innerHTML = `<div class="tag">EL8 research</div><h2>One extra question</h2><p class="small">${question.prompt_template}</p><div class="scale"><div class="scaleValue">Choose a response</div><input type="range" min="0" max="${Math.max(0, ordered.length - 1)}" step="1" value="${Math.floor(Math.max(0, ordered.length - 1) / 2)}" aria-label="Choose a response"><div class="scaleLabels">${ordered.map(x => `<span>${x.label}</span>`).join('')}</div>${unsure ? '<button type="button" class="unsure">Unsure</button>' : ''}</div>`;
   const range = card.querySelector('input');
   const label = card.querySelector('.scaleValue');
   const unsureButton = card.querySelector('.unsure');
@@ -50,11 +63,13 @@ function renderScaleQuestion(question) {
     label.textContent = option.label;
     unsureButton?.classList.remove('selected');
     value = option.value;
+    markAnswered();
   };
   if (unsureButton) unsureButton.onclick = () => {
     unsureButton.classList.add('selected');
     label.textContent = 'Unsure';
     value = 'unsure';
+    markAnswered();
   };
   host.appendChild(card);
 }
@@ -91,8 +106,11 @@ try {
         if (value === undefined) {
           event.preventDefault();
           event.stopImmediatePropagation();
-          errorBox.textContent = 'Please answer the check-in questions. The final note is optional.';
+          experimentCard?.classList.add('question-missing');
+          errorBox.dataset.source = 'experiment';
+          errorBox.textContent = 'Please answer “One extra question” before submitting. The final note is optional.';
           errorBox.classList.remove('hidden');
+          experimentCard?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }, true);
 
