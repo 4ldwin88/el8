@@ -1,4 +1,5 @@
 import { supabase, getSessionOrRedirect, getMyProfile } from './el8-client.js';
+import { runCheckinShadow } from './intelligence/integration/checkin-shadow.js';
 
 const $ = id => document.getElementById(id);
 const answers = {};
@@ -158,6 +159,13 @@ try {
       scale($('manageability'), [['Too much', 'too_much'], ['Difficult', 'difficult'], ['Manageable', 'manageable'], ['Easy', 'easy'], ['Unsure', 'unsure']], v => answers.manageability = v);
     } else $('manageCard').classList.add('hidden');
 
+    let intelligenceShadow = null;
+    try {
+      intelligenceShadow = runCheckinShadow({ plan, load, activity, pending: pending || [], scheduled, focuses });
+    } catch (shadowError) {
+      console.warn('Adaptive check-in shadow calculation failed', shadowError);
+    }
+
     const started = new Date();
     $('save').onclick = async () => {
       const missingFollow = (pending || []).some(f => followAnswers[f.id] === undefined);
@@ -205,7 +213,7 @@ try {
         answers: allAnswers,
         scheduled_question_keys: scheduled.map(q => q.question_key),
         system_feedback: { friction },
-        adaptation_snapshot: { direction: load?.adaptation_direction || 'hold', recommended },
+        adaptation_snapshot: { direction: load?.adaptation_direction || 'hold', recommended, intelligence_shadow: intelligenceShadow },
         started_at: started.toISOString(),
         active_duration_seconds: Math.round((Date.now() - started) / 1000),
         interaction_count: Object.keys(allAnswers).length + Object.keys(followAnswers).length + (showManage ? 1 : 0)
