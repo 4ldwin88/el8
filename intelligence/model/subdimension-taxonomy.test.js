@@ -1,0 +1,2 @@
+import assert from'node:assert/strict';import{SUBDIMENSION_TAXONOMY,createSubdimensionState,aggregateDimensionState}from'./subdimension-taxonomy.js';
+assert.equal(Object.keys(SUBDIMENSION_TAXONOMY).length,8);const s=createSubdimensionState();assert.ok(Object.keys(s).length>=40);s['Financial.IncomeAdequacy']=.9;s['Financial.DebtBurden']=.8;const d=aggregateDimensionState(s);assert.ok(d.Financial>.12);assert.equal(d.Physical,.12);console.log('subdimension taxonomy tests passed');
