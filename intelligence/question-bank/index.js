@@ -1,9 +1,11 @@
 import { emotionalQuestions } from './emotional.js';
 import { financialQuestions } from './financial.js';
+import { clarificationQuestions } from './clarification.js';
 
 export const questionBank = [
   ...emotionalQuestions,
-  ...financialQuestions
+  ...financialQuestions,
+  ...clarificationQuestions
 ];
 
 export function questionsForDimension(dimension) {
