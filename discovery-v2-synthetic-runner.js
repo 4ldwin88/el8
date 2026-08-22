@@ -1,4 +1,5 @@
 import E from './discovery-v2-engine.js'; import {SCENARIOS as baseScenarios,GATES as gates} from './discovery-v2-qa-expanded.js'; import ADVERSARIAL_SCENARIOS from './discovery-v2-adversarial-additions.js';
+// Multi-Signal Resolution acceptance suite. Material member-raised signals may resolve by evidence, linkage, clearing, or explicit deferral; they may never disappear silently.
 const RESOLUTION_SCENARIOS=[
 {id:'human-regression-finance-energy',class:'signal-resolution',presentation:['money','energy'],truth:['money_pressure','low_energy'],requiredSignals:['money','energy']},
 {id:'multi-money-sleep',class:'signal-resolution',presentation:['money','sleep'],truth:['money_pressure','poor_sleep'],requiredSignals:['money','sleep']},
