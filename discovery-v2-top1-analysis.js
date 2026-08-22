@@ -6,4 +6,5 @@ const byClass={};for(const r of rows){const k=r.class||'unknown';byClass[k]??={t
 for(const v of Object.values(byClass)){v.top1Rate=+(v.top1/v.total).toFixed(3);v.top3Rate=+(v.top3/v.total).toFixed(3);}
 const summary={scenarioCount:rows.length,top1Rate:+(rows.filter(r=>r.truth.includes(r.top1)).length/rows.length).toFixed(3),top3Rate:out.metrics.trueDriverAnyTop3,missCount:misses.length,byClass,misses};
 console.log(JSON.stringify(summary,null,2));
+// Keep this report as the canonical diagnostic entry point for refinement CI runs.
 export {summary,misses,byClass}; export default summary;
