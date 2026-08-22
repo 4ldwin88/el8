@@ -13,7 +13,24 @@ const SCENARIOS = [
   {name:'Schedule disruption upstream of sleep',truth:'schedule_disruption',plan:{gateway:['sleep','work'],sleep_cause:'schedule',schedule_control:'yes',work_stability:'stable'}},
   {name:'Direction issue presented as motivation',truth:'lack_direction',plan:{gateway:['focus','direction'],direction_check:'no'}},
   {name:'Home instability presented as stress',truth:'home_instability',plan:{gateway:['stress','home'],stress_source:'general',home_check:'yes'}},
-  {name:'Warm start should not lock stale money hypothesis',truth:'relationship_strain',warm:{money_pressure:.8},plan:{gateway:['relationships'],relationship_effect:'yes',stress_source:'people'}}
+  {name:'Warm start should not lock stale money hypothesis',truth:'relationship_strain',warm:{money_pressure:.8},plan:{gateway:['relationships'],relationship_effect:'yes',stress_source:'people'}},
+
+  // Adversarial expansion: misleading gateways, contradictions, stale priors, ambiguity.
+  {name:'Money selected but explicitly denied',truth:'work_instability',plan:{gateway:['money','work'],money_effect:'none',work_stability:'unstable',schedule_control:'no',connected:'one'}},
+  {name:'Work selected but stable; schedule is actual driver',truth:'schedule_disruption',plan:{gateway:['work','sleep'],work_stability:'stable',schedule_control:'yes',sleep_cause:'schedule',connected:'one'}},
+  {name:'Relationships selected but denied; support is actual driver',truth:'low_support',plan:{gateway:['relationships','support'],relationship_effect:'no',support_check:'no',connected:'one'}},
+  {name:'Home selected but denied; money is actual driver',truth:'money_pressure',plan:{gateway:['home','money'],home_check:'no',money_effect:'major',connected:'one'}},
+  {name:'Direction selected but clear; work instability remains',truth:'work_instability',plan:{gateway:['direction','work'],direction_check:'yes',work_stability:'unstable',schedule_control:'no'}},
+  {name:'Stress source unsure with strong money evidence',truth:'money_pressure',plan:{gateway:['stress','money'],stress_source:'unsure',money_effect:'major',connected:'one'}},
+  {name:'Sleep complaint caused by environment',truth:'home_instability',plan:{gateway:['sleep','home'],sleep_cause:'environment',home_check:'yes',connected:'one'}},
+  {name:'Stale work prior contradicted by stable work',truth:'relationship_strain',warm:{work_instability:.9},plan:{gateway:['relationships','work'],work_stability:'stable',relationship_effect:'yes',stress_source:'people'}},
+  {name:'Stale relationship prior contradicted by no relationship burden',truth:'lack_direction',warm:{relationship_strain:.9},plan:{gateway:['relationships','direction'],relationship_effect:'no',direction_check:'no'}},
+  {name:'Broad noisy gateway resolves to home instability',truth:'home_instability',plan:{gateway:['money','work','stress','relationships','home'],connected:'one',stress_source:'general',money_effect:'none',work_stability:'stable',relationship_effect:'no',home_check:'yes'}},
+  {name:'Broad noisy gateway resolves to relationship strain',truth:'relationship_strain',plan:{gateway:['money','work','relationships','support'],connected:'one',money_effect:'none',work_stability:'stable',relationship_effect:'yes',support_check:'yes'}},
+  {name:'Unsure plus concrete direction signal',truth:'lack_direction',plan:{gateway:['unsure','direction'],direction_check:'no',healthy_verify:'yes'}},
+  {name:'Other plus concrete support signal',truth:'low_support',plan:{gateway:['other','support'],support_check:'no',connected:'one'}},
+  {name:'False schedule lead rejected; money remains',truth:'money_pressure',plan:{gateway:['sleep','money','work'],sleep_cause:'schedule',schedule_control:'no',work_stability:'stable',money_effect:'major',connected:'one'}},
+  {name:'False stress relationship lead rejected; home remains',truth:'home_instability',plan:{gateway:['stress','relationships','home'],stress_source:'people',relationship_effect:'no',home_check:'yes',connected:'one'}}
 ];
 
 function rankOf(trace,id){ if(!id) return null; const i=trace.drivers.findIndex(x=>x.id===id); return i<0?null:i+1; }
@@ -54,13 +71,44 @@ function answerSensitivityTest(){
   return {routeA:qa,routeB:qb,pass:qa!==qb};
 }
 
+function contradictionTests(){
+  const tests=[];
+  function test(name,setup,truth,rejected){
+    const s=D.newSession(setup.warm?{warmStartEvidence:setup.warm}:{});
+    for(const [q,a] of setup.answers) D.answer(s,q,a);
+    const t=D.trace(s), truthRank=rankOf(t,truth), rejectedScore=t.drivers.find(x=>x.id===rejected)?.score??0;
+    tests.push({name,truth,truthRank,rejected,rejectedScore,pass:truthRank!==null&&truthRank<=3&&rejectedScore<=.2});
+  }
+  test('Explicit money denial suppresses money hypothesis',{answers:[['gateway',['money','work']],['money_effect','none'],['work_stability','unstable']]},'work_instability','money_pressure');
+  test('Stable work suppresses stale work prior',{warm:{work_instability:.9},answers:[['gateway',['work','relationships']],['work_stability','stable'],['relationship_effect','yes']]},'relationship_strain','work_instability');
+  test('Relationship denial suppresses relationship hypothesis',{answers:[['gateway',['relationships','support']],['relationship_effect','no'],['support_check','no']]},'low_support','relationship_strain');
+  test('Home denial suppresses home hypothesis',{answers:[['gateway',['home','money']],['home_check','no'],['money_effect','major']]},'money_pressure','home_instability');
+  return {pass:tests.every(t=>t.pass),tests};
+}
+
+function releaseGates(output){
+  const m=output.suite.metrics;
+  const gates={
+    top3:m.trueDriverTop3Rate>=.85,
+    top1:m.trueDriverTop1Rate>=.60,
+    burden:m.averageQuestions<=6,
+    routeDiversity:m.averageRouteOverlap<=.40,
+    workspace:m.activeOverflowRate<=.10,
+    correction:output.correction.pass,
+    sensitivity:output.sensitivity.pass,
+    contradictions:output.contradictions.pass
+  };
+  return {pass:Object.values(gates).every(Boolean),gates};
+}
+
 function report(){
-  const suite=runAll(), correction=correctionTest(), sensitivity=answerSensitivityTest();
-  const output={generatedAt:new Date().toISOString(),suite,correction,sensitivity};
+  const suite=runAll(), correction=correctionTest(), sensitivity=answerSensitivityTest(), contradictions=contradictionTests();
+  const output={generatedAt:new Date().toISOString(),suite,correction,sensitivity,contradictions};
+  output.release=releaseGates(output);
   if(typeof console!=='undefined') console.table(suite.results.map(({trace,...r})=>r));
-  if(typeof console!=='undefined') console.log('Discovery v2 metrics',suite.metrics,'Correction',correction,'Sensitivity',sensitivity);
+  if(typeof console!=='undefined') console.log('Discovery v2 metrics',suite.metrics,'Correction',correction,'Sensitivity',sensitivity,'Contradictions',contradictions,'Release',output.release);
   return output;
 }
 
-if(typeof window!=='undefined') window.EL8DiscoveryV2QA={SCENARIOS,runAll,correctionTest,answerSensitivityTest,report};
-if(typeof module!=='undefined') module.exports={SCENARIOS,runAll,correctionTest,answerSensitivityTest,report};
+if(typeof window!=='undefined') window.EL8DiscoveryV2QA={SCENARIOS,runAll,correctionTest,answerSensitivityTest,contradictionTests,releaseGates,report};
+if(typeof module!=='undefined') module.exports={SCENARIOS,runAll,correctionTest,answerSensitivityTest,contradictionTests,releaseGates,report};
