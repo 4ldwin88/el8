@@ -23,7 +23,13 @@ function choose(q,sc,step){
     return q.options.some(o=>o.id==='other')?['other']:[];
   }
   if(sc.uncertainAt===step && optionExists(q,'unsure')) return 'unsure';
-  for(const t of sc.truth) for(const oid of driverOption[t]||[]) if(optionExists(q,oid)) return oid;
+  // Only let a truth driver answer a question that actually targets that driver.
+  // Without this guard, generic option ids such as "yes", "no" and "hard" can
+  // leak across domains and manufacture contradictions in the stress harness.
+  for(const t of sc.truth){
+    if(!(q.targets||[]).includes(t)) continue;
+    for(const oid of driverOption[t]||[]) if(optionExists(q,oid)) return oid;
+  }
   if(sc.healthy && optionExists(q,healthyByQuestion[q.id])) return healthyByQuestion[q.id];
   return q.options.find(o=>['well','okay','no','nothing','none','good'].includes(o.id))?.id || q.options.find(o=>o.id==='unsure')?.id || q.options[0]?.id;
 }
