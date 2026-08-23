@@ -1,5 +1,5 @@
 import Discovery from '../../discovery-v2-engine.js';
-import { buildPlan, respondToPlanItem, adaptPlan } from './plan-engine.js';
+import { buildPlan, respondToItem, adaptPlan } from './plan-engine.js';
 
 // Thin MVP orchestration layer:
 // Assessment/Discovery -> ranked candidates -> active plan + backlog -> member response -> adaptation.
@@ -45,7 +45,7 @@ export function respondToAssessmentPlan(result, itemId, response, context={}) {
   if(!result?.plan) return result;
   return {
     ...result,
-    plan: respondToPlanItem(result.plan, itemId, response, context)
+    plan: respondToItem(result.plan, itemId, response, context)
   };
 }
 
