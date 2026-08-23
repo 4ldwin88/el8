@@ -4,6 +4,20 @@
 
 export const ADVERSARIAL_SCENARIOS = [
   {
+    id:'low_capacity_low_adherence',
+    description:'Low capacity plus weak recent adherence should favor the lowest-friction useful sleep commitment.',
+    discovery:{ranked:[{id:'poor_sleep',confidence:.85,importance:5,urgency:4,readiness:2}]},
+    context:{capacity:'low',adherence:.3},
+    expect:{status:'active',maxActive:1,containsCandidate:'sleep_log'}
+  },
+  {
+    id:'low_capacity_high_adherence',
+    description:'Low capacity but strong demonstrated adherence can tolerate a somewhat higher-friction sleep intervention when evidence is strong.',
+    discovery:{ranked:[{id:'poor_sleep',confidence:.9,importance:5,urgency:4,readiness:4}]},
+    context:{capacity:'low',adherence:.95},
+    expect:{status:'active',maxActive:1,containsCandidate:'stabilize_sleep_window'}
+  },
+  {
     id:'low_capacity_many_problems',
     description:'Many plausible drivers but very low member capacity.',
     discovery:{ranked:[
@@ -12,28 +26,28 @@ export const ADVERSARIAL_SCENARIOS = [
       {id:'low_activity',confidence:.7,importance:3,urgency:2,readiness:2},
       {id:'stress',confidence:.75,importance:4,urgency:3,readiness:2}
     ]},
-    context:{capacity:'low'},
+    context:{capacity:'low',adherence:.45},
     expect:{status:'active',maxActive:1,requiresBacklog:true}
   },
   {
     id:'uncertain_driver_should_measure',
     description:'Low-confidence problem should favor low-burden evidence gathering over confident prescription.',
     discovery:{ranked:[{id:'low_energy',confidence:.42,importance:3,urgency:2,readiness:3}]},
-    context:{capacity:'medium'},
+    context:{capacity:'medium',adherence:.6},
     expect:{status:'active',activeType:'data'}
   },
   {
     id:'sleep_uncertain_data_first',
     description:'Poor sleep with only moderate confidence should keep a sleep log available as a sensible first move.',
     discovery:{ranked:[{id:'poor_sleep',confidence:.55,importance:4,urgency:3,readiness:4}]},
-    context:{capacity:'medium'},
+    context:{capacity:'medium',adherence:.5},
     expect:{status:'active',containsCandidate:'sleep_log'}
   },
   {
     id:'flexible_activity_cadence',
     description:'Physical activity should be a weekly frequency target rather than falsely scheduled every day.',
     discovery:{ranked:[{id:'low_activity',confidence:.9,importance:4,urgency:3,readiness:4}]},
-    context:{capacity:'medium'},
+    context:{capacity:'medium',adherence:.8},
     expect:{status:'active',cadenceType:'weekly_target'}
   },
   {
@@ -43,7 +57,7 @@ export const ADVERSARIAL_SCENARIOS = [
       {id:'low_activity',confidence:.9,importance:4,urgency:3,readiness:4},
       {id:'low_support',confidence:.75,importance:3,urgency:2,readiness:3}
     ]},
-    context:{capacity:'low'},
+    context:{capacity:'low',adherence:.6},
     interaction:{decision:'reject',reason:'not_for_me'},
     expect:{status:'active',replacement:true,rejectedNotActive:true}
   },
@@ -54,7 +68,7 @@ export const ADVERSARIAL_SCENARIOS = [
       {id:'stress',confidence:.85,importance:4,urgency:3,readiness:4},
       {id:'low_support',confidence:.7,importance:3,urgency:2,readiness:3}
     ]},
-    context:{capacity:'low'},
+    context:{capacity:'low',adherence:.6},
     interaction:{decision:'defer',reason:'bad_timing'},
     expect:{status:'active',deferredPreserved:true}
   },
@@ -76,7 +90,7 @@ export const ADVERSARIAL_SCENARIOS = [
     id:'safety_override',
     description:'Safety hold must override ordinary planning regardless of otherwise strong evidence.',
     discovery:{safetyHold:true,ranked:[{id:'low_activity',confidence:.99,importance:5,urgency:5,readiness:5}]},
-    context:{capacity:'high'},
+    context:{capacity:'high',adherence:.95},
     expect:{status:'escalate',maxActive:0}
   },
   {
