@@ -21,6 +21,10 @@ jobs:
         run: node discovery-v2-synthetic-runner.js | tee discovery-v2-qa-output.json
       - name: Enforce release gates
         run: node discovery-v2-synthetic-runner.js --enforce > /dev/null
+      - name: Run Discovery v2.7 contract QA
+        run: node discovery-v2-7-contract-qa.js
+      - name: Run permanent human-test regression
+        run: node discovery-v2-5-driver-closure-qa.js
       - name: Upload QA output
         if: always()
         uses: actions/upload-artifact@v4
