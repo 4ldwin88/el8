@@ -11,22 +11,42 @@ function normalizeEvidence(input={}) {
     : {rank:i+1, confidence:x.confidence ?? x.score ?? Math.max(.35,1-(i*.15)), ...x});
 }
 
+function adherenceEstimate(context={}) {
+  // Dynamic recent adherence, not a permanent member label. Neutral when unknown.
+  const raw=context.adherence ?? context.recentAdherence ?? context.adherenceScore;
+  return raw==null ? .6 : clamp(Number(raw),0,1);
+}
+
+function frictionBudget(context={}) {
+  const adherence=adherenceEstimate(context);
+  const capacityBase=context.capacity==='low' ? 1.6 : context.capacity==='high' ? 4.4 : 3;
+  // High demonstrated adherence earns some room for friction; low adherence narrows it.
+  return clamp(capacityBase + ((adherence-.6)*2.5),1,5);
+}
+
 function priorityScore(driver, action, context={}) {
   const confidence=clamp(Number(driver.confidence)||0,0,1);
   const importance=clamp(Number(driver.memberImportance ?? driver.importance ?? 3),1,5);
   const leverage=clamp(Number(driver.breadth ?? driver.downstreamCount ?? 1),1,5);
   const urgency=clamp(Number(driver.urgency ?? 3),1,5);
   const readiness=clamp(Number(driver.readiness ?? context.readiness ?? 3),1,5);
-  const feasibility=6-clamp(Number(action.effort),1,5);
-  const capacityPenalty=context.capacity==='low' ? action.effort : context.capacity==='high' ? 0 : action.effort*.35;
-  return +(urgency + importance + confidence*5 + leverage + readiness + feasibility - capacityPenalty).toFixed(3);
+  const effort=clamp(Number(action.effort),1,5);
+  const feasibility=6-effort;
+  const budget=frictionBudget(context);
+  const overBudget=Math.max(0,effort-budget);
+  const underBudget=Math.max(0,budget-effort);
+  const frictionPenalty=overBudget*2.25;
+  const adherenceFit=underBudget*.2;
+  const capacityPenalty=context.capacity==='low' ? effort*.35 : context.capacity==='high' ? 0 : effort*.15;
+  return +(urgency + importance + confidence*5 + leverage + readiness + feasibility + adherenceFit - frictionPenalty - capacityPenalty).toFixed(3);
 }
 
-function toBacklogItem(driver,action,priority) {
+function toBacklogItem(driver,action,priority,context={}) {
   return {...action,cadence:{...action.cadence},driver:driver.id,confidence:+Number(driver.confidence).toFixed(3),priority,status:'backlog',progress:0,
+    friction:{effort:clamp(Number(action.effort),1,5),budget:+frictionBudget(context).toFixed(2),recentAdherence:+adherenceEstimate(context).toFixed(2)},
     goal:driver.goal || `Improve the situation related to ${driver.id.replaceAll('_',' ')}`,
     barrierPlan:driver.barrierPlan || null,support:driver.support || null,
-    rationale:'Ranked using Discovery evidence, member context, feasibility and expected leverage. This is a working hypothesis, not a proven causal conclusion.'};
+    rationale:'Ranked using Discovery evidence, member context, demonstrated adherence, current capacity, feasibility and expected leverage. This is a working hypothesis, not a proven causal conclusion.'};
 }
 
 function activeLimit(context={}) { return context.capacity==='low' ? 1 : 2; }
@@ -34,7 +54,7 @@ function activeLimit(context={}) { return context.capacity==='low' ? 1 : 2; }
 function buildCandidates(evidence,context) {
   return evidence.flatMap(driver=>candidatesForDriver(driver.id).map(action=>({driver,action,priority:priorityScore(driver,action,context)})))
     .sort((a,b)=>b.priority-a.priority)
-    .map(x=>toBacklogItem(x.driver,x.action,x.priority));
+    .map(x=>toBacklogItem(x.driver,x.action,x.priority,context));
 }
 
 export function buildPlan(discovery={}, context={}) {
@@ -46,6 +66,7 @@ export function buildPlan(discovery={}, context={}) {
   const active=backlog.splice(0,activeLimit(context)).map(x=>({...x,status:'active'}));
   return {status:'active',reason:'evidence_informed_priority',active,backlog,history:[],actions:active,
     reviewDays:Math.min(...active.map(a=>a.reviewDays)),evidenceUsed:evidence.map(x=>({id:x.id,confidence:x.confidence})),
+    memberFit:{recentAdherence:+adherenceEstimate(context).toFixed(2),frictionBudget:+frictionBudget(context).toFixed(2),capacity:context.capacity||'medium'},
     uncertainty:'Plan choices are hypotheses to test through follow-up, not claims of optimality or causality.'};
 }
 
