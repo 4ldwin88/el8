@@ -4,6 +4,7 @@ on:
     branches:
       - 'discovery-v2-*'
       - 'discovery-gate-a-evidence'
+      - 'plan-engine-h1-fixes'
     paths:
       - 'discovery-v2-*.js'
       - 'intelligence/**'
