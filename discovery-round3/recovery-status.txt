@@ -1,0 +1,1 @@
+Recovery complete: Round 3 implementation restored on isolated branch; main unchanged.
