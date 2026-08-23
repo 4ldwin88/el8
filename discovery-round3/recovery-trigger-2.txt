@@ -1,0 +1,1 @@
+Trigger fresh Round 3 recovery validation after workflow registration.
