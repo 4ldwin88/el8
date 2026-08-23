@@ -1,0 +1,2 @@
+Round 3 recovery branch verified against main.
+This commit triggers fresh validation after safe tree recovery.
