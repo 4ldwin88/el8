@@ -1,6 +1,8 @@
 import { buildPlan, adaptPlan } from './plan-engine.js';
 import assert from 'node:assert/strict';
 
+// CI checkpoint: this file intentionally remains inside intelligence/** so PR QA
+// reruns whenever the validated Plan Engine regression set changes.
 const sleepCascade=buildPlan({ranked:[{id:'poor_sleep',confidence:.94,breadth:4,urgency:4},{id:'low_energy',confidence:.88,breadth:1,urgency:2},{id:'low_focus',confidence:.81,breadth:1,urgency:2}]},{capacity:'medium'});
 assert.equal(sleepCascade.status,'active');
 assert.equal(sleepCascade.actions[0].driver,'poor_sleep','root/leverage sleep driver should outrank symptoms');
