@@ -1,9 +1,12 @@
 // EL8 Plan Engine v1 — evidence-informed MVP challenger.
-// Rank useful commitments, surface a small active set, keep plausible alternatives in backlog.
+// Rank useful commitments, surface a small active set, keep credible alternatives in backlog.
 import { LIBRARY, candidatesForDriver } from './intervention-library.js';
 
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
-const MIN_EVIDENCE=.15;
+// Discovery spillover can create small positive scores without direct support. Those scores are
+// useful for hypothesis ranking, but should not create member-facing plan commitments.
+const MIN_EVIDENCE=.30;
+const BACKLOG_EVIDENCE=.30;
 
 function normalizeEvidence(input={}) {
   const ranked=input.ranked || input.drivers || [];
@@ -25,6 +28,7 @@ function frictionBudget(context={}) {
 
 function evidenceWeight(strength) { return strength==='supported' ? .5 : strength==='evidence_informed' ? .15 : 0; }
 function evidenceFloor(driver) { return clamp(Number(driver.confidence)||0,0,1)>=MIN_EVIDENCE; }
+function backlogEvidenceFloor(driver) { return clamp(Number(driver.confidence)||0,0,1)>=BACKLOG_EVIDENCE; }
 function isMeasurement(action) { return action.type==='data'; }
 
 function isEligible(driver,action,context={}) {
@@ -65,7 +69,7 @@ function toBacklogItem(driver,action,priority,context={},supportingDrivers=[driv
 function activeLimit(context={}) { return context.capacity==='low' ? 1 : 2; }
 
 function buildCandidates(evidence,context) {
-  const raw=evidence.filter(evidenceFloor).flatMap(driver=>candidatesForDriver(driver.id)
+  const raw=evidence.filter(backlogEvidenceFloor).flatMap(driver=>candidatesForDriver(driver.id)
     .filter(action=>isEligible(driver,action,context))
     .map(action=>({driver,action,priority:priorityScore(driver,action,context)})));
   const byAction=new Map();
