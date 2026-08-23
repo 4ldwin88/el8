@@ -18,24 +18,21 @@ function answer(s,qid,ids){const q=qBy[qid];if(!q)throw Error('Unknown question 
 function correct(s,id){if(id in s.beliefs){s.beliefs[id]=-1;s.direct[id]=-1;s.warmPrior[id]=0;s.corrections.push(id);for(const sig of Object.values(s.signals))if(sig.targets.includes(id)){sig.status='open';sig.scoped=true;sig.driverKnown=false;sig.resolutionType='reopened-by-correction';}workspace(s);}return s;}
 function recentSimilarity(q,s){const recent=s.asked.slice(-3).map(id=>qBy[id]).filter(Boolean);let p=0;for(const r of recent){if(r.role===q.role)p+=.12;if(q.targets?.some(t=>r.targets?.includes(t)))p+=.18;}return Math.min(.5,p);}
 function signalUtility(q,s){let u=0;for(const sig of openSignals(s)){const priority=priorityQuestion(sig);if(priority===q.id){u+=sig.id==='money'?3.2:3;continue;}if(!(q.targets||[]).some(t=>sig.targets.includes(t)))continue;const neglect=Math.min(1,.3*Math.max(0,s.asked.length-1-sig.touches));u+=1.15+Math.max(0,.45-sig.confidence)+neglect;}return u;}
-// Cross-domain questions need evidence that they can materially change an unresolved signal.
-// This prevents theoretical graph adjacency (for example work -> money) from feeling random.
-function relevanceGate(q,s){const opens=openSignals(s);if(!opens.length)return true;if(q.role==='opt-out'||q.role==='healthy-verification')return true;const prioritySignals=opens.filter(sig=>priorityQuestion(sig)===q.id);if(prioritySignals.length){
-    // A priority question may belong to a domain the member never raised (for example M3
-    // can be suggested by a work signal). In that case, require direct support in the
-    // question's own targets before allowing the cross-domain hop.
-    const ownsPriority=prioritySignals.some(sig=>s.signals[sig.id]);
-    const questionDomain=q.id?.[0]==='M'?'money':q.id?.[0]==='W'?'work':null;
-    if(questionDomain&&!s.signals[questionDomain]){
-      const ownSupport=(q.targets||[]).some(t=>Math.abs(s.direct[t]||0)>=.15||(s.beliefs[t]||0)>=.25);
-      if(!ownSupport)return false;
+function questionDomain(q){const c=q.id?.[0];return c==='M'?'money':c==='W'?'work':c==='R'?'relationships':c==='S'?'support':c==='H'?'home':c==='F'?'focus':c==='P'?'direction':c==='E'?'energy':c==='T'?'stress':null;}
+function relevanceGate(q,s){const opens=openSignals(s);if(!opens.length)return true;if(q.role==='opt-out'||q.role==='healthy-verification')return true;const prioritySignals=opens.filter(sig=>priorityQuestion(sig)===q.id);if(prioritySignals.length){const domain=questionDomain(q);if(domain&&!s.signals[domain]){
+      // Cross-domain priority hops are allowed only when evidence in the proposed domain
+      // is already material. Weak graph spillover must not create a seemingly random question.
+      const directSupport=(q.targets||[]).some(t=>Math.abs(s.direct[t]||0)>=.2);
+      const beliefSupport=(q.targets||[]).some(t=>(s.beliefs[t]||0)>=.35);
+      if(!directSupport&&!beliefSupport)return false;
     }
-    return ownsPriority;
+    return true;
   }
   const overlaps=opens.some(sig=>(q.targets||[]).some(t=>sig.targets.includes(t)));
   if(!overlaps)return false;
-  const supported=(q.targets||[]).some(t=>Math.abs(s.direct[t]||0)>=.15||(s.beliefs[t]||0)>=.25);
-  return supported;
+  const directSupport=(q.targets||[]).some(t=>Math.abs(s.direct[t]||0)>=.15);
+  const beliefSupport=(q.targets||[]).some(t=>(s.beliefs[t]||0)>=.3);
+  return directSupport||beliefSupport;
 }
 function uncertaintyRecovery(q,s){if(!s.uncertain&&!s.recoveryRequired)return 0;const last=s.answers[s.answers.length-1];if(last?.qid==='G1'&&last.ids.includes('unsure')){if(q.id==='D1')return 2.2;if(q.id==='D3')return 1.5;if(q.id==='D2')return 1.1;if(q.id==='D4')return .35;}if(s.uncertaintyStreak>=2||s.recoveryRequired){if(q.options?.some(o=>o.id==='unsure'))return-2;if(q.role==='confirmation'||q.role==='concern-scope')return 1.2;if(q.role==='discriminator')return .8;if(q.role==='driver-discriminator')return .35;if(q.role==='bridge')return-.2;}if(q.role==='discriminator'||q.role==='driver-discriminator')return .3;return 0;}
 function score(q,s){if(s.asked.includes(q.id))return-Infinity;if((s.uncertaintyStreak>=2||s.recoveryRequired)&&q.options?.some(o=>o.id==='unsure'))return-Infinity;if(!s.asked.length)return q.role==='gateway'?(s.mode==='cold'?3:2)-(q.burden||.2):q.role==='healthy-verification'?.3:-Infinity;if(q.role==='gateway')return-Infinity;if(q.role==='opt-out'&&s.asked.length<2)return-Infinity;if(!relevanceGate(q,s))return-Infinity;let v=signalUtility(q,s);for(const t of q.targets||[]){const d=s.direct[t]||0,b=s.beliefs[t]||0;v+=Math.abs(d)>=.2?(d>.12?.85+d*.5:.02):(b>.12?.32+b*.18:Math.max(.03,.18-Math.abs(b)*.12));}if(q.role==='concern-scope')v+=openSignals(s).some(x=>priorityQuestion(x)===q.id)?1.5:-.5;if(q.role==='driver-discriminator')v+=1;if(q.role==='discriminator')v+=s.active.length>1?.35:.06;if(q.role==='bridge')v+=(q.targets||[]).filter(t=>s.active.includes(t)).length>=2?.55:-.18;if(q.role==='confirmation')v+=(q.targets||[]).some(t=>(s.direct[t]||0)>.25)?.5:-.08;if(q.role==='healthy-verification')v+=s.active.length===0&&!s.uncertain?1.1:-.4;v+=uncertaintyRecovery(q,s);return v-(q.burden||.2)-recentSimilarity(q,s);}
