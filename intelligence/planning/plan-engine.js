@@ -20,8 +20,20 @@ function adherenceEstimate(context={}) {
 function frictionBudget(context={}) {
   const adherence=adherenceEstimate(context);
   const capacityBase=context.capacity==='low' ? 1.6 : context.capacity==='high' ? 4.4 : 3;
-  // High demonstrated adherence earns some room for friction; low adherence narrows it.
   return clamp(capacityBase + ((adherence-.6)*2.5),1,5);
+}
+
+function evidenceWeight(strength) {
+  // Deliberately modest: evidence quality breaks close calls but does not overwhelm member fit.
+  return strength==='supported' ? .5 : strength==='evidence_informed' ? .15 : 0;
+}
+
+function isEligible(driver,action,context={}) {
+  const readiness=clamp(Number(driver.readiness ?? context.readiness ?? 3),1,5);
+  const minReadiness=Number(action.eligibility?.minReadiness ?? 1);
+  if(readiness < minReadiness) return false;
+  const blocked=new Set([...(context.contraindications||[]), ...(driver.contraindications||[])]);
+  return !(action.contraindications||[]).some(x=>blocked.has(x));
 }
 
 function priorityScore(driver, action, context={}) {
@@ -38,23 +50,43 @@ function priorityScore(driver, action, context={}) {
   const frictionPenalty=overBudget*2.25;
   const adherenceFit=underBudget*.2;
   const capacityPenalty=context.capacity==='low' ? effort*.35 : context.capacity==='high' ? 0 : effort*.15;
-  return +(urgency + importance + confidence*5 + leverage + readiness + feasibility + adherenceFit - frictionPenalty - capacityPenalty).toFixed(3);
+  return +(urgency + importance + confidence*5 + leverage + readiness + feasibility + evidenceWeight(action.evidenceStrength) + adherenceFit - frictionPenalty - capacityPenalty).toFixed(3);
 }
 
-function toBacklogItem(driver,action,priority,context={}) {
-  return {...action,cadence:{...action.cadence},driver:driver.id,confidence:+Number(driver.confidence).toFixed(3),priority,status:'backlog',progress:0,
+function toBacklogItem(driver,action,priority,context={},supportingDrivers=[driver]) {
+  return {...action,cadence:{...action.cadence},driver:driver.id,
+    supportingDrivers:supportingDrivers.map(x=>({id:x.id,confidence:+Number(x.confidence).toFixed(3)})),
+    confidence:+Number(driver.confidence).toFixed(3),priority,status:'backlog',progress:0,
     friction:{effort:clamp(Number(action.effort),1,5),budget:+frictionBudget(context).toFixed(2),recentAdherence:+adherenceEstimate(context).toFixed(2)},
     goal:driver.goal || `Improve the situation related to ${driver.id.replaceAll('_',' ')}`,
     barrierPlan:driver.barrierPlan || null,support:driver.support || null,
-    rationale:'Ranked using Discovery evidence, member context, demonstrated adherence, current capacity, feasibility and expected leverage. This is a working hypothesis, not a proven causal conclusion.'};
+    rationale:'Ranked using Discovery evidence, member context, demonstrated adherence, current capacity, feasibility, evidence quality and expected leverage. This is a working hypothesis, not a proven causal conclusion.'};
 }
 
 function activeLimit(context={}) { return context.capacity==='low' ? 1 : 2; }
 
 function buildCandidates(evidence,context) {
-  return evidence.flatMap(driver=>candidatesForDriver(driver.id).map(action=>({driver,action,priority:priorityScore(driver,action,context)})))
-    .sort((a,b)=>b.priority-a.priority)
-    .map(x=>toBacklogItem(x.driver,x.action,x.priority,context));
+  const raw=evidence.flatMap(driver=>candidatesForDriver(driver.id)
+    .filter(action=>isEligible(driver,action,context))
+    .map(action=>({driver,action,priority:priorityScore(driver,action,context)})));
+
+  // One action may eventually be supported by multiple Discovery drivers. Keep one candidate
+  // while preserving provenance from every supporting driver.
+  const byAction=new Map();
+  for(const candidate of raw) {
+    const existing=byAction.get(candidate.action.id);
+    if(!existing) byAction.set(candidate.action.id,{...candidate,supportingDrivers:[candidate.driver]});
+    else {
+      existing.supportingDrivers.push(candidate.driver);
+      if(candidate.priority>existing.priority) {
+        existing.driver=candidate.driver;
+        existing.action=candidate.action;
+        existing.priority=candidate.priority;
+      }
+    }
+  }
+  return [...byAction.values()].sort((a,b)=>b.priority-a.priority)
+    .map(x=>toBacklogItem(x.driver,x.action,x.priority,context,x.supportingDrivers));
 }
 
 export function buildPlan(discovery={}, context={}) {
@@ -62,7 +94,7 @@ export function buildPlan(discovery={}, context={}) {
   const evidence=normalizeEvidence(discovery);
   if(!evidence.length) return {status:'observe',reason:'insufficient_evidence',active:[],backlog:[],history:[],reviewDays:7};
   const backlog=buildCandidates(evidence,context);
-  if(!backlog.length) return {status:'observe',reason:'no_authorized_action',active:[],backlog:[],history:[],reviewDays:7};
+  if(!backlog.length) return {status:'observe',reason:'no_eligible_authorized_action',active:[],backlog:[],history:[],reviewDays:7};
   const active=backlog.splice(0,activeLimit(context)).map(x=>({...x,status:'active'}));
   return {status:'active',reason:'evidence_informed_priority',active,backlog,history:[],actions:active,
     reviewDays:Math.min(...active.map(a=>a.reviewDays)),evidenceUsed:evidence.map(x=>({id:x.id,confidence:x.confidence})),
