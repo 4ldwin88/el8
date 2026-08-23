@@ -20,11 +20,17 @@ function recentSimilarity(q,s){const recent=s.asked.slice(-3).map(id=>qBy[id]).f
 function signalUtility(q,s){let u=0;for(const sig of openSignals(s)){const priority=priorityQuestion(sig);if(priority===q.id){u+=sig.id==='money'?3.2:3;continue;}if(!(q.targets||[]).some(t=>sig.targets.includes(t)))continue;const neglect=Math.min(1,.3*Math.max(0,s.asked.length-1-sig.touches));u+=1.15+Math.max(0,.45-sig.confidence)+neglect;}return u;}
 // Cross-domain questions need evidence that they can materially change an unresolved signal.
 // This prevents theoretical graph adjacency (for example work -> money) from feeling random.
-function relevanceGate(q,s){const opens=openSignals(s);if(!opens.length)return true;if(q.role==='opt-out'||q.role==='healthy-verification')return true;const priority=opens.some(sig=>priorityQuestion(sig)===q.id);if(priority){
-    // Money is a special adjacent-domain discriminator: require an actual money cue or a
-    // sufficiently strong unresolved work/income hypothesis before spending member burden.
-    if(q.id==='M3'&&!s.signals.money){const work=Math.max(s.direct.work_instability||0,s.beliefs.work_instability||0);const money=Math.max(s.direct.money_pressure||0,s.beliefs.money_pressure||0);return money>=.15||work>=.7;}
-    return true;
+function relevanceGate(q,s){const opens=openSignals(s);if(!opens.length)return true;if(q.role==='opt-out'||q.role==='healthy-verification')return true;const prioritySignals=opens.filter(sig=>priorityQuestion(sig)===q.id);if(prioritySignals.length){
+    // A priority question may belong to a domain the member never raised (for example M3
+    // can be suggested by a work signal). In that case, require direct support in the
+    // question's own targets before allowing the cross-domain hop.
+    const ownsPriority=prioritySignals.some(sig=>s.signals[sig.id]);
+    const questionDomain=q.id?.[0]==='M'?'money':q.id?.[0]==='W'?'work':null;
+    if(questionDomain&&!s.signals[questionDomain]){
+      const ownSupport=(q.targets||[]).some(t=>Math.abs(s.direct[t]||0)>=.15||(s.beliefs[t]||0)>=.25);
+      if(!ownSupport)return false;
+    }
+    return ownsPriority;
   }
   const overlaps=opens.some(sig=>(q.targets||[]).some(t=>sig.targets.includes(t)));
   if(!overlaps)return false;
