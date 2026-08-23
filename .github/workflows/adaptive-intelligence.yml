@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - refactor/adaptive-question-bank
+      - plan-engine-v1
     paths:
       - 'intelligence/**'
       - 'package.json'
