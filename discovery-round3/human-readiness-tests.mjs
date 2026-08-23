@@ -27,5 +27,5 @@ const few=Discovery.session({concernIds:['sleep','home']});
 const n=Discovery.next(few);
 assert.notEqual(n.type,'triage');
 
-// This suite is a release gate for the interactive Round 3 harness.
+// Readiness gate marker: this suite is intentionally part of the PR validation workflow.
 console.log('Round 3 human readiness tests passed');
