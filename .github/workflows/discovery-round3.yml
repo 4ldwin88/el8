@@ -1,0 +1,20 @@
+name: Discovery Round 3 Regression
+on:
+  push:
+    branches: [feature/discovery-round-3]
+  pull_request:
+    paths:
+      - 'discovery-round3/**'
+      - 'discovery-v2-6-question-bank.js'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Architecture regressions
+        run: node discovery-round3/regression-tests.mjs
+      - name: Adversarial end-to-end scenarios
+        run: node discovery-round3/end-to-end-tests.mjs
