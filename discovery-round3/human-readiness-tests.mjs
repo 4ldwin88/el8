@@ -27,4 +27,5 @@ const few=Discovery.session({concernIds:['sleep','home']});
 const n=Discovery.next(few);
 assert.notEqual(n.type,'triage');
 
+// This suite is a release gate for the interactive Round 3 harness.
 console.log('Round 3 human readiness tests passed');
