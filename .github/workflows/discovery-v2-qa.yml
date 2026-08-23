@@ -35,6 +35,9 @@ jobs:
       - name: Run permanent human-test regression
         if: always()
         run: node discovery-v2-5-driver-closure-qa.js
+      - name: Run 5000-case adversarial stress simulation
+        if: always()
+        run: node discovery-v2-large-adversarial.js --enforce | tee discovery-v2-large-adversarial-output.json
       - name: Upload Gate A evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -43,4 +46,5 @@ jobs:
           path: |
             gate-a-evidence-output.txt
             discovery-v2-qa-output.json
+            discovery-v2-large-adversarial-output.json
           retention-days: 90
