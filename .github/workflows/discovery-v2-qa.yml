@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - 'discovery-v2-*'
-      - 'discovery-gate-a-evidence'
+      - 'discovery-gate-*'
       - 'plan-engine-h1-fixes'
     paths:
       - 'discovery-v2-*.js'
@@ -11,7 +11,7 @@ on:
       - 'package.json'
       - '.github/workflows/discovery-v2-qa.yml'
   pull_request:
-    branches: [main]
+    branches: [main, plan-engine-h1-fixes]
   workflow_dispatch:
 jobs:
   gate-a-evidence:
