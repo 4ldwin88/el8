@@ -21,3 +21,5 @@ jobs:
         run: node discovery-round3/regression-tests.mjs
       - name: Adversarial end-to-end scenarios
         run: node discovery-round3/end-to-end-tests.mjs
+      - name: Human harness readiness
+        run: node discovery-round3/human-readiness-tests.mjs
