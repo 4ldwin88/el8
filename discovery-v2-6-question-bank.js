@@ -16,8 +16,7 @@ const BANK=BASE.map(q=>{
    {id:'home',label:'Home or surroundings',effects:{home_instability:.6}},
    {id:'focus',label:'Focus or motivation',effects:{low_focus:.35,low_activation:.25}},
    {id:'direction',label:'Direction or purpose',effects:{lack_direction:.6}},
-   {id:'other',label:'Something else',effects:{}},
-   {id:'unsure',label:'Not sure',effects:{}}
+   {id:'happy',label:'I’m happy with where I am',effects:{}}
   ]
  };
  if(q.id==='PH0')return{...q,text:'Which physical-health areas feel relevant? Select any that fit.',targets:['physical_condition'],mode:'multi',options:[
