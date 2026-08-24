@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import S from './shadow-session.js';
+let n=0;const t=f=>{f();n++;};
+t(()=>{const s=S.session();const q=S.next(s);assert.equal(q.id,'G1');});
+t(()=>{const s=S.session();const q=S.next(s);const r=S.answer(s,q.id,['money']);assert.equal(r.accepted,true);assert.equal(r.legacy.asked.length,1);assert.equal(r.eev1.responseCount,1);});
+t(()=>{const s=S.session();const r=S.answer(s,'G1',['not-real']);assert.equal(r.accepted,false);assert.equal(S.trace(s).legacy.asked.length,0);});
+t(()=>{const s=S.session();S.answer(s,'G1',['unsure']);const tr=S.trace(s);assert.equal(tr.eev1.concerns.length,0);assert.equal(tr.shadowLog.length,1);});
+t(()=>{const s=S.session();S.answer(s,'G1',['money']);const q=S.next(s);S.answer(s,q.id,q.options[0].id);const tr=S.trace(s);assert.equal(tr.legacy.asked.length,2);assert.equal(tr.eev1.responseCount,2);});
+t(()=>{const s=S.session();S.answer(s,'G1',['money']);const tr=S.trace(s);assert.deepEqual(tr.shadowLog[0].legacyActive,S.trace(s).legacy.active);});
+console.log(`Discovery v0.12 live shadow session: PASS (${n} checks)`);
