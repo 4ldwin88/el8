@@ -1,6 +1,6 @@
 import LEGACY_BANK from '../discovery-v2-6-question-bank.js';
 import {makeObservation} from './contracts.js';
-const CONCERN_ALIAS=Object.freeze({money_pressure:'money',work_instability:'work',poor_sleep:'sleep',low_energy:'energy',low_activity:'energy',physical_condition:'energy',low_activation:'energy',stress:'stress',relationship_strain:'relationships',low_support:'support',lonely:'support',home_instability:'home',low_focus:'focus',lack_direction:'direction',schedule_disruption:'work'});
+const CONCERN_ALIAS=Object.freeze({money_pressure:'money',work_instability:'work',poor_sleep:'sleep',low_energy:'energy',low_activity:'energy',physical_condition:'health',low_activation:'energy',stress:'stress',relationship_strain:'relationships',low_support:'support',lonely:'support',home_instability:'home',low_focus:'focus',lack_direction:'direction',schedule_disruption:'work'});
 const WEAK_IDS=new Set(['other','unsure','not_sure','none','none_fit','unknown']);
 function concernForTarget(target){return CONCERN_ALIAS[target]??target}
 function specificityForRole(role){return role==='gateway'?0:role==='concern-scope'?1:role==='confirmation'?2:role==='discriminator'?2:role==='driver-discriminator'?3:role==='bridge'?2:1}
