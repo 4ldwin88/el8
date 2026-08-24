@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import BANK from '../discovery-v2-6-question-bank.js';
+import {createDecisionState,processResponse,decisionSnapshot} from './decision-path.js';
+let n=0;const t=f=>{f();n++;};const q=id=>BANK.find(x=>x.id===id);
+t(()=>{const s=createDecisionState(),r=processResponse(s,q('G1'),['money']);assert.equal(r.accepted,true);assert.ok(r.effectsCreated>0);});
+t(()=>{const s=createDecisionState();processResponse(s,q('G1'),['unsure']);const snap=decisionSnapshot(s);assert.equal(snap.concerns.length,0);});
+t(()=>{const s=createDecisionState(),r=processResponse(s,q('G1'),['not-real']);assert.equal(r.accepted,false);assert.equal(s.invalidResponses.length,1);});
+t(()=>{const s=createDecisionState();processResponse(s,q('G1'),['money']);const snap=decisionSnapshot(s);assert.ok(snap.concerns.some(c=>c.id==='money_pressure'));});
+t(()=>{const s=createDecisionState();processResponse(s,q('G1'),['money']);processResponse(s,q('M1'),'well');const snap=decisionSnapshot(s);assert.equal(snap.responseCount,2);});
+t(()=>{const s=createDecisionState();processResponse(s,q('G1'),['money']);const snap=decisionSnapshot(s);assert.equal(Object.isFrozen(snap),true);});
+console.log(`Discovery v0.12 direct EEV1 decision path: PASS (${n} checks)`);
