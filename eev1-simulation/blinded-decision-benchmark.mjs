@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { classifyConcern, focusEligibility, evaluateDriverHypothesis } from './evidence-engine.js';
-import { actionEligibility, decisionSufficiency } from './decision-policy.js';
+import { actionEligibility, decisionSufficiency, applyAgencyGate } from './decision-policy.js';
 const E=(polarity,strength,extra={})=>({type:'evidence',polarity,strength,sourceType:'direct',certainty:'graded',temporality:'current',...extra});
 const S=(n,x={})=>E('supports',n,x), C=(n,x={})=>E('contradicts',n,x), D=(n,x={})=>S(n,{scope:'driver',...x});
 const cases=[
@@ -16,17 +16,12 @@ const cases=[
  {id:'correction-clears',effects:[S(1,{observationId:'a'}),C(1,{certainty:'definitive',observationId:'b',supersedes:'a'})],state:'CLEARED',focus:false},
  {id:'correction-restores',effects:[C(1,{observationId:'a'}),S(1,{observationId:'b',supersedes:'a'})],driverEffects:[D(1)],state:'SUPPORTED',focus:true,driver:true},
  {id:'many-historical-still-not-current',effects:Array.from({length:12},(_,i)=>S(1,{temporality:'historical',observationId:`h${i}`})),state:'CANDIDATE',focus:false},
- // Health and Energy are independent evidence channels. One cannot establish or clear the other.
  {id:'health-current-supported',effects:[S(.9,{concernId:'health'})],state:'SUPPORTED',focus:true,driver:false},
  {id:'energy-current-supported',effects:[S(.9,{concernId:'energy'})],state:'SUPPORTED',focus:true,driver:false},
- // A concern may be valid even when a plausible upstream explanation is unresolved.
  {id:'energy-valid-sleep-driver-unresolved',effects:[S(.9)],driverEffects:[D(.55),C(.45,{scope:'driver'})],state:'SUPPORTED',focus:true,driver:false,intents:{learn:true,stabilize:true,resolve:false,build:false}},
  {id:'stress-valid-work-driver-unresolved',effects:[S(.9)],driverEffects:[D(.5),C(.5,{scope:'driver'})],state:'SUPPORTED',focus:true,driver:false,intents:{learn:true,stabilize:true,resolve:false,build:false}},
- // Strong concern evidence must not leak into driver establishment without driver scope.
  {id:'very-strong-concern-not-cause',effects:[S(1),S(1,{observationId:'independent'})],state:'SUPPORTED',focus:true,driver:false,intents:{learn:true,stabilize:true,resolve:false,build:false}},
- // Explicitly scoped, corroborating driver evidence can establish a driver.
  {id:'corroborated-driver',effects:[S(.9)],driverEffects:[D(.8,{observationId:'d1'}),D(.8,{observationId:'d2'})],state:'SUPPORTED',focus:true,driver:true,intents:{learn:true,stabilize:true,resolve:true,build:true}},
- // A contradicted driver cannot authorize mechanism-dependent actions even with a supported concern.
  {id:'driver-contradicted',effects:[S(1)],driverEffects:[C(1,{scope:'driver',certainty:'definitive'})],state:'SUPPORTED',focus:true,driver:false,intents:{learn:true,stabilize:true,resolve:false,build:false}}
 ];
 let assertions=0;
@@ -38,18 +33,29 @@ const decisionCases=[
  {id:'budget-no-focus',input:{concernEffects:{energy:[S(.2)]},questionsAsked:18},next:'NO_FOCUS_YET',sufficient:true},
  {id:'budget-focus-with-conflict',input:{concernEffects:{money:[S(1)],energy:[S(.8),C(.8)]},questionsAsked:18},next:'AGENCY_GATE_WITH_UNCERTAINTY',sufficient:true},
  {id:'safety-overrides',input:{concernEffects:{money:[S(1)]},questionsAsked:2,safetyEscalationLevel:2},next:'SAFETY_REVIEW',sufficient:true},
- // Money and Work may both be real; overlap alone must not manufacture a causal relationship.
  {id:'money-work-both-supported',input:{concernEffects:{money:[S(1)],work:[S(.9)]},questionsAsked:6},next:'AGENCY_GATE',sufficient:true},
- // Health and Energy may both be supported as distinct concerns.
  {id:'health-energy-both-supported',input:{concernEffects:{health:[S(.9)],energy:[S(.9)]},questionsAsked:6},next:'AGENCY_GATE',sufficient:true},
- // One clear focus plus another unresolved concern requires more discrimination while budget remains.
  {id:'clear-plus-unresolved',input:{concernEffects:{money:[S(1)],work:[S(.7),C(.7)]},questionsAsked:8},next:'DISCRIMINATE_CONFLICT',sufficient:false},
- // Weak alternatives do not block a decision-useful supported focus.
  {id:'clear-plus-weak-alternative',input:{concernEffects:{money:[S(1)],work:[S(.15)]},questionsAsked:8},next:'AGENCY_GATE',sufficient:true},
- // At budget ceiling, unresolved ambiguity is surfaced rather than silently erased.
  {id:'budget-supported-plus-unresolved',input:{concernEffects:{health:[S(.9)],energy:[S(.8),C(.8)]},questionsAsked:18},next:'AGENCY_GATE_WITH_UNCERTAINTY',sufficient:true},
- // Safety dominates even when several concerns are otherwise decision sufficient.
  {id:'safety-overrides-multiple-focuses',input:{concernEffects:{money:[S(1)],work:[S(1)],health:[S(1)]},questionsAsked:10,safetyEscalationLevel:3},next:'SAFETY_REVIEW',sufficient:true}
 ];
 for(const tc of decisionCases){const r=decisionSufficiency(tc.input);assert.equal(r.next,tc.next,`${tc.id}: next`);assert.equal(r.sufficient,tc.sufficient,`${tc.id}: sufficient`);assertions+=2;}
-console.log(`EEV1 blinded decision benchmark: PASS (${cases.length+decisionCases.length} predefined cases, ${assertions} assertions)`);
+
+const agencyEvidence={money:[S(1)],work:[S(.9)],health:[S(.9)],energy:[S(.2)],spiritual:[S(.1)]};
+const agencyCases=[
+ {id:'accept-proposal',input:{proposedFocuses:['money','work'],concernEffects:agencyEvidence,operation:'ACCEPT'},accepted:true,focuses:['money','work'],next:'PLAN'},
+ {id:'decline-one',input:{proposedFocuses:['money','work'],concernEffects:agencyEvidence,operation:'DECLINE',targetFocus:'work'},accepted:true,focuses:['money'],next:'PLAN'},
+ {id:'decline-all',input:{proposedFocuses:['money','work'],concernEffects:agencyEvidence,operation:'DECLINE'},accepted:true,focuses:[],next:'PLAN'},
+ {id:'replace-with-supported-health',input:{proposedFocuses:['money','work'],concernEffects:agencyEvidence,operation:'REPLACE',targetFocus:'work',replacementFocus:'health'},accepted:true,focuses:['money','health'],next:'PLAN'},
+ {id:'reject-unsupported-energy-replacement',input:{proposedFocuses:['money','work'],concernEffects:agencyEvidence,operation:'REPLACE',targetFocus:'work',replacementFocus:'energy'},accepted:false,focuses:['money','work'],next:'AGENCY_GATE'},
+ {id:'reject-unsupported-spiritual-add',input:{proposedFocuses:['money'],concernEffects:agencyEvidence,operation:'ADD',replacementFocus:'spiritual'},accepted:false,focuses:['money'],next:'AGENCY_GATE'},
+ {id:'add-supported-health',input:{proposedFocuses:['money'],concernEffects:agencyEvidence,operation:'ADD',replacementFocus:'health'},accepted:true,focuses:['money','health'],next:'PLAN'},
+ {id:'respect-three-focus-cap',input:{proposedFocuses:['money','work','health'],concernEffects:agencyEvidence,operation:'ADD',replacementFocus:'health'},accepted:true,focuses:['money','work','health'],next:'PLAN'},
+ {id:'reject-fourth-supported-focus',input:{proposedFocuses:['money','work','health'],concernEffects:{...agencyEvidence,relationships:[S(.9)]},operation:'ADD',replacementFocus:'relationships'},accepted:false,focuses:['money','work','health'],next:'AGENCY_GATE'},
+ {id:'reject-replace-missing-target',input:{proposedFocuses:['money','work'],concernEffects:agencyEvidence,operation:'REPLACE',targetFocus:'energy',replacementFocus:'health'},accepted:false,focuses:['money','work'],next:'AGENCY_GATE'},
+ {id:'safety-overrides-accept',input:{proposedFocuses:['money','work'],concernEffects:agencyEvidence,operation:'ACCEPT',safetyEscalationLevel:2},accepted:false,focuses:[],next:'SAFETY_REVIEW'},
+ {id:'safety-overrides-replace',input:{proposedFocuses:['money','work'],concernEffects:agencyEvidence,operation:'REPLACE',targetFocus:'work',replacementFocus:'health',safetyEscalationLevel:3},accepted:false,focuses:[],next:'SAFETY_REVIEW'}
+];
+for(const tc of agencyCases){const r=applyAgencyGate(tc.input);assert.equal(r.accepted,tc.accepted,`${tc.id}: accepted`);assert.deepEqual(r.focuses,tc.focuses,`${tc.id}: focuses`);assert.equal(r.next,tc.next,`${tc.id}: next`);assertions+=3;}
+console.log(`EEV1 blinded decision benchmark: PASS (${cases.length+decisionCases.length+agencyCases.length} predefined cases, ${assertions} assertions)`);
