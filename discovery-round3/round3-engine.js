@@ -10,7 +10,7 @@ export function prioritize(s,concernIds=[]){s.priorityChoices=[...new Set(concer
 export function resolve(s,concernId,resolutionState,opts={}){return setResolution(s,concernId,resolutionState,opts)}
 function planStates(s){const states=deriveStates(s),chosen=s.priorityChoices??[];return chosen.length?states.map(x=>({...x,memberPrioritySelected:chosen.includes(x.concernId)})):states}
 export function memberPlan(s){return buildMemberPlan(planStates(s))}
-export function chooseActions(s,actionIds=[]){s.selectedActions=[...new Set(actionIds)];return s}
+export function chooseActions(s,actionIds=[]){s.selectedActions=[...new Set(actionIds)].slice(0,2);return s}
 export function complete(s){if(!s.assessmentCompleted)s.assessmentCompleted=Date.now();return s}
 export function trace(s){const end=s.assessmentCompleted??Date.now(),duration=Math.max(0,(end-s.assessmentStart)/1000);return{version:s.version,phase:s.phase,questionsAsked:s.questionsAsked,asked:[...s.asked],timing:{assessmentStart:new Date(s.assessmentStart).toISOString(),assessmentCompleted:s.assessmentCompleted?new Date(s.assessmentCompleted).toISOString():null,totalDurationSeconds:duration,questionCount:s.questionsAsked,averageSecondsPerQuestion:s.questionTimings.length?s.questionTimings.reduce((a,x)=>a+x.durationSeconds,0)/s.questionTimings.length:null,questionTimings:[...s.questionTimings]},activeConcerns:[...s.concernIds],triaged:s.triaged,incomplete:s.incomplete,priorityChoices:[...(s.priorityChoices??[])],selectedActions:[...(s.selectedActions??[])],states:planStates(s),plan:buildPlan(s),memberPlan:memberPlan(s),observations:[...s.observationLog]}}
 export {BANK};export default{BANK,session,next,answer,triage,prioritize,resolve,memberPlan,recordQuestionTiming,chooseActions,complete,trace};
