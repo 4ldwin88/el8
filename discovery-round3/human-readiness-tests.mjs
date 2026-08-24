@@ -16,6 +16,22 @@ Discovery.answer(s,first.question,supported);
 assert.ok(s.concernIds.length>0);
 assert.ok(s.concernIds.length<=supported.length*4,'Gateway should scope rather than activate entire ontology');
 
+// Positive entry must never be treated as a concern or dead-end fallback.
+const positive=Discovery.session();
+const positiveGateway=Discovery.next(positive);
+assert.ok(positiveGateway.question.options.some(o=>o.id==='happy'),'Gateway must offer a positive-entry answer');
+assert.ok(!positiveGateway.question.options.some(o=>o.id==='unsure'||o.id==='other'),'Gateway must not expose dead-end fallback answers');
+Discovery.answer(positive,positiveGateway.question,['happy']);
+assert.equal(positive.entryMode,'positive');
+assert.deepEqual(positive.concernIds,[],'Positive entry must not manufacture concern evidence');
+const positiveStep=Discovery.next(positive);
+assert.equal(positiveStep.type,'positive-entry');
+assert.equal(positiveStep.question.id,'POSITIVE_ENTRY');
+assert.ok(positiveStep.question.options.length>=5,'Positive entry must offer useful EL8 capabilities');
+Discovery.choosePositiveCapabilities(positive,['maintain','explore']);
+assert.deepEqual(positive.positiveEntry.capabilityIds,['maintain','explore']);
+assert.notEqual(Discovery.next(positive).type,'positive-entry','Capability selection must exit the positive-entry screen');
+
 // More than three active concerns should triage only those active concerns.
 const many=Discovery.session({concernIds:['money','sleep','home','support','direction']});
 const t=Discovery.next(many);
