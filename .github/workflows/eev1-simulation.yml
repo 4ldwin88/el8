@@ -1,0 +1,33 @@
+name: EEV1 Simulation QA
+
+on:
+  push:
+    branches: [eev1-sim]
+    paths:
+      - 'eev1-simulation/**'
+      - 'package.json'
+      - '.github/workflows/eev1-simulation.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'eev1-simulation/**'
+      - 'package.json'
+      - '.github/workflows/eev1-simulation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  eev1-simulation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run isolated EEV1 simulation suite
+        run: npm run test:eev1
