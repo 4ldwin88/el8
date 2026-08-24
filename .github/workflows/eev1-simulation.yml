@@ -8,7 +8,7 @@ on:
       - 'package.json'
       - '.github/workflows/eev1-simulation.yml'
   pull_request:
-    branches: [main]
+    branches: [main, eev1-sim]
     paths:
       - 'eev1-simulation/**'
       - 'package.json'
