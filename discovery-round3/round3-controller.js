@@ -23,7 +23,7 @@ export function nextRound3Step(session) {
  let candidates=eligibleQuestions(session.questionBank.filter(q=>q.role!=='gateway'&&!session.asked.includes(q.id)),states,session.observationLog).map(q=>({...q,eligible:true}));let recovery=false;
  if(!candidates.length){const pr=priorityResolution(session,states,'dead-end-priority-resolution');if(pr)return pr;candidates=recoveryCandidates(session,states).map(q=>({...q,eligible:true}));recovery=Boolean(candidates.length);}
  if(!candidates.length){session.incomplete=true;return{type:'finish',stop:{reason:'question-bank-exhausted',incomplete:true},states};}
- const decision=selectNextQuestion({candidates,states});if(decision.type==='question'){session.asked=[...session.asked,decision.question.id];session.questionsAsked++;return{...decision,reason:recovery?'specificity-recovery':decision.reason,states};}
+ const recentQuestions=session.asked.map(id=>session.questionBank.find(q=>q.id===id)).filter(Boolean);const decision=selectNextQuestion({candidates,states,recentQuestions});if(decision.type==='question'){session.asked=[...session.asked,decision.question.id];session.questionsAsked++;return{...decision,reason:recovery?'specificity-recovery':decision.reason,states};}
  session.incomplete=true;return{type:'finish',stop:{reason:'scheduler-exhausted',incomplete:true},states};
 }
 export function markTriaged(session){session.triaged=true;return session;}
