@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {synthesizeDimensions,memberFacingSynthesis,canMergeIntoSharedAction} from './cross-dimensional-synthesis.js';
+const S=(n=1,extra={})=>({type:'evidence',polarity:'supports',strength:n,sourceType:'direct',certainty:'graded',temporality:'current',...extra});
+let n=0;const t=f=>{f();n++;};
+const concerns=[{id:'money',effects:[S(1)]},{id:'work',effects:[S(.9)]},{id:'energy',effects:[S(.1)]}];
+t(()=>assert.deepEqual(synthesizeDimensions({concerns}).supportedConcerns,['money','work']));
+t(()=>{const s=synthesizeDimensions({concerns,relations:[{from:'money',to:'work',type:'CO_OCCURS'}]});assert.equal(s.links[0].causalEstablished,false);});
+t(()=>{const s=synthesizeDimensions({concerns,relations:[{from:'money',to:'work',type:'POSSIBLE_DRIVER',driverEffects:[S(.5,{scope:'driver'})]}]});assert.equal(s.links[0].residualUncertainty,true);});
+t(()=>{const s=synthesizeDimensions({concerns,relations:[{from:'money',to:'work',type:'POSSIBLE_DRIVER',driverEffects:[S(1,{scope:'driver'})]}]});assert.equal(s.links[0].causalEstablished,true);});
+t(()=>{const s=synthesizeDimensions({concerns,relations:[{from:'money',to:'energy',type:'CO_OCCURS'}]});assert.equal(s.links.length,0);});
+t(()=>{const s=synthesizeDimensions({concerns});const m=memberFacingSynthesis(s);assert.equal(m.kind,'COMPOUND_CONTEXT');assert.equal(m.claimsCausation,false);});
+t(()=>{const s=synthesizeDimensions({concerns:[{id:'money',effects:[S(1)]}]});assert.equal(memberFacingSynthesis(s).kind,'SINGLE_CONCERN');});
+t(()=>{const s=synthesizeDimensions({concerns,relations:[{from:'money',to:'work',type:'POSSIBLE_DRIVER',driverEffects:[S(1,{scope:'driver'})]}]});assert.equal(memberFacingSynthesis(s).claimsCausation,false);});
+t(()=>assert.equal(canMergeIntoSharedAction({focusIds:['money','work'],actionSupports:['money','work']}).allowed,true));
+t(()=>assert.equal(canMergeIntoSharedAction({focusIds:['money','work'],actionSupports:['money']}).allowed,false));
+t(()=>assert.equal(canMergeIntoSharedAction({focusIds:['money','work'],actionSupports:['money','work'],mechanismRequiresCausation:true,establishedRelation:false}).reason,'CAUSAL_RELATION_UNRESOLVED'));
+t(()=>assert.equal(canMergeIntoSharedAction({focusIds:['money','work'],actionSupports:['money','work'],mechanismRequiresCausation:true,establishedRelation:true}).allowed,true));
+console.log(`EEV1 cross-dimensional synthesis: PASS (${n} checks)`);
