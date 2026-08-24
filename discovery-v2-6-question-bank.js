@@ -23,9 +23,12 @@ const BANK=BASE.map(q=>{
  if(q.id==='PH0')return{...q,text:'Which physical-health areas feel relevant? Select any that fit.',targets:['physical_condition'],mode:'multi',options:[
   {id:'body',label:'Weight, fitness, or physical condition',effects:{physical_condition:.55}},
   {id:'activity',label:'Physical activity',effects:{physical_condition:.25,low_activity:.35}},
-  {id:'symptoms',label:'Physical symptoms or discomfort',effects:{physical_condition:.5}},
+  {id:'nutrition',label:'Eating or nutrition',effects:{physical_condition:.35}},
+  {id:'symptoms',label:'Physical symptoms, pain, or discomfort',effects:{physical_condition:.5}},
+  {id:'care',label:'Medication, treatment, appointments, or ongoing care',effects:{physical_condition:.4}},
   {id:'other',label:'Something else',effects:{}},{id:'unsure',label:'Not sure',effects:{}}
  ]};
+ if(q.id==='SL2')return{...q,text:'What seems to interfere with sleep most?',options:(q.options??[]).map(o=>o.id==='stress'?{...o,label:'Stress or racing thoughts'}:o)};
  if(q.id==='M3')return{...q,text:'What is contributing to the money pressure? Select all that fit.',mode:'multi',burden:.24,options:[
   {id:'no_income',label:'I do not currently have a job or income',effects:{work_instability:.7,money_pressure:.55}},
   {id:'low_income',label:'My income is too low',effects:{work_instability:.3,money_pressure:.5}},
