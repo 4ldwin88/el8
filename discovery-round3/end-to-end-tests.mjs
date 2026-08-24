@@ -1,64 +1,42 @@
 import assert from 'node:assert/strict';
-import {session,triage} from './round3-engine.js';
+import {session,triage,chooseActions,complete,trace} from './round3-engine.js';
 import {makeObservation} from './contracts.js';
 import {deriveConcernState} from './concern-projection.js';
 import {selectNextQuestion} from './question-scheduler.js';
 import {selectPlanConcerns} from './plan-priority.js';
 import {stoppingDecision} from './sufficiency.js';
-import {selectIntervention,HOME_INTERVENTIONS} from './intervention-selector.js';
-
+import {selectIntervention,rankInterventionCandidates,deriveInterventionEvidenceQuality,HOME_INTERVENTIONS} from './intervention-selector.js';
+import {adaptQuestion,normalizeAnswerIds,observationsForAnswer} from './question-bank-adapter.js';
+import {selectActivePlanConcerns,buildMemberPlan} from './member-plan.js';
+import LIBRARY from './intervention-library.js';
+import {makeInterventionOutcome,InterventionOutcomeLog,evaluateInterventionOutcome} from './intervention-effectiveness.js';
 const obs=(id,concern,effects,specificityLevel=1)=>makeObservation({id,questionId:id,concernId:concern,answerValue:id,specificityLevel,effects});
-const ev=(target,polarity,strength,certainty='graded')=>({type:'evidence',target,polarity,strength,certainty,sourceType:'direct',temporality:'current'});
-const imp=(target,value)=>({type:'importance',target,value,sourceType:'direct',temporality:'current'});
-const imm=(target,value)=>({type:'immediacy',target,value,sourceType:'direct',temporality:'current'});
-const safe=(target,level)=>({type:'safety',target,level,sourceType:'direct',temporality:'current'});
-
-// A: many concerns -> dynamic triage, exact concerns preserved.
-const a=session({concernIds:['money','sleep','energy','home','support','direction']});
-const aStep=(await import('./round3-controller.js')).nextRound3Step(a);
-assert.equal(aStep.type,'triage');
-assert.deepEqual(aStep.question.concerns.map(x=>x.id),['money','sleep','energy','home','support','direction']);
-triage(a,{money:'moderate',sleep:'high',energy:'low',home:'very-high',support:'moderate',direction:'high'});
-assert.equal(deriveConcernState(a.observationLog,'home').memberImportance,'very-high');
-
-// B: latest explicit importance wins after re-triage.
-const b=[obs('b1','direction',[imp('direction','low')]),obs('b2','direction',[imp('direction','very-high')])];
-assert.equal(deriveConcernState(b,'direction').memberImportance,'very-high');
-
-// C: contradiction is represented, not silently overwritten.
-const c=[obs('c1','sleep',[ev('sleep','supports',.8)]),obs('c2','sleep',[ev('sleep','contradicts',.6)])];
-const cs=deriveConcernState(c,'sleep');
-assert.ok(cs.rawEvidenceScore>0 && cs.rawEvidenceScore<.8);
-
-// D: definitive contradiction excludes a concern.
-const d=[obs('d1','money',[ev('money','supports',.7)]),obs('d2','money',[ev('money','contradicts',1,'definitive')])];
-assert.equal(deriveConcernState(d,'money').excluded,true);
-assert.equal(deriveConcernState(d,'money').evidenceConfidence,0);
-
-// E: safety cannot be outscored by ordinary utility.
-const safetyPick=selectNextQuestion({states:[{concernId:'home',safetyEscalationLevel:2,resolutionState:'narrowing'},{concernId:'direction',safetyEscalationLevel:0,memberImportanceRank:4}],candidates:[{id:'home-safety',concernId:'home',eligible:true,safetyPriority:1},{id:'career',concernId:'direction',eligible:true,expectedUncertaintyReduction:1e9}]});
-assert.equal(safetyPick.question.id,'home-safety');
-
-// F: stated importance outranks stronger evidence when safety is equal.
-const fp=selectPlanConcerns([{concernId:'money',resolutionState:'sufficient',memberImportance:'moderate',evidenceConfidence:1,safetyEscalationLevel:0},{concernId:'direction',resolutionState:'sufficient',memberImportance:'very-high',evidenceConfidence:.4,safetyEscalationLevel:0}],2);
-assert.equal(fp.selected[0].concernId,'direction');
-
-// G: time-sensitive housing gets specific housing action, not generic environment advice.
-const gs={concernId:'home_instability',resolutionState:'sufficient',immediacyClass:'time-sensitive',safetyEscalationLevel:0};
-assert.equal(selectIntervention(gs,HOME_INTERVENTIONS).intervention.id,'home_time_sensitive_step');
-
-// H: eight is benchmark only; outer guardrail terminates incomplete work.
-const unresolved=[{concernId:'sleep',resolutionState:'narrowing',safetyEscalationLevel:0}];
-assert.equal(stoppingDecision({states:unresolved,questionsAsked:8}).stop,false);
-assert.equal(stoppingDecision({states:unresolved,questionsAsked:14}).incomplete,true);
-
-// I: unresolved safety overrides outer guardrail.
-const unsafe=[{concernId:'home',resolutionState:'narrowing',safetyEscalationLevel:2}];
-assert.equal(stoppingDecision({states:unsafe,questionsAsked:14}).stop,false);
-
-// J: semantic fields remain independent: evidence, importance, immediacy, safety.
-const j=[obs('j1','home',[ev('home','supports',.7),imp('home','high'),imm('home','acute'),safe('home',0)])];
-const js=deriveConcernState(j,'home');
-assert.equal(js.memberImportance,'high'); assert.equal(js.immediacyClass,'acute'); assert.equal(js.safetyEscalationLevel,0); assert.equal(js.evidenceConfidence,.7);
-
-console.log('Round 3 adversarial end-to-end scenarios passed');
+const ev=(target,polarity,strength,certainty='graded')=>({type:'evidence',target,polarity,strength,certainty,sourceType:'direct',temporality:'current'});const imp=(target,value)=>({type:'importance',target,value,sourceType:'direct',temporality:'current'});const imm=(target,value)=>({type:'immediacy',target,value,sourceType:'direct',temporality:'current'});const safe=(target,level)=>({type:'safety',target,level,sourceType:'direct',temporality:'current'});
+const a=session({concernIds:['money','sleep','energy','home','support','direction']});const aStep=(await import('./round3-controller.js')).nextRound3Step(a);assert.equal(aStep.type,'triage');assert.deepEqual(aStep.question.concerns.map(x=>x.id),['money','sleep','energy','home','support','direction']);triage(a,{money:'moderate',sleep:'high',energy:'low',home:'very-high',support:'moderate',direction:'high'});assert.equal(deriveConcernState(a.observationLog,'home').memberImportance,'very-high');
+const b=[obs('b1','direction',[imp('direction','low')]),obs('b2','direction',[imp('direction','very-high')])];assert.equal(deriveConcernState(b,'direction').memberImportance,'very-high');
+const c=[obs('c1','sleep',[ev('sleep','supports',.8)]),obs('c2','sleep',[ev('sleep','contradicts',.6)])];const cs=deriveConcernState(c,'sleep');assert.ok(cs.rawEvidenceScore>0&&cs.rawEvidenceScore<.8);
+const d=[obs('d1','money',[ev('money','supports',.7)]),obs('d2','money',[ev('money','contradicts',1,'definitive')])];assert.equal(deriveConcernState(d,'money').excluded,true);assert.equal(deriveConcernState(d,'money').evidenceConfidence,0);
+const safetyPick=selectNextQuestion({states:[{concernId:'home',safetyEscalationLevel:2,resolutionState:'narrowing'},{concernId:'direction',safetyEscalationLevel:0,memberImportanceRank:4}],candidates:[{id:'home-safety',concernId:'home',eligible:true,safetyPriority:1},{id:'career',concernId:'direction',eligible:true,expectedUncertaintyReduction:1e9}]});assert.equal(safetyPick.question.id,'home-safety');
+const fp=selectPlanConcerns([{concernId:'money',resolutionState:'sufficient',memberImportance:'moderate',evidenceConfidence:1,safetyEscalationLevel:0},{concernId:'direction',resolutionState:'sufficient',memberImportance:'very-high',evidenceConfidence:.4,safetyEscalationLevel:0}],2);assert.equal(fp.selected[0].concernId,'direction');
+const gs={concernId:'home_instability',resolutionState:'sufficient',immediacyClass:'time-sensitive',safetyEscalationLevel:0};assert.equal(selectIntervention(gs,HOME_INTERVENTIONS).intervention.id,'home_time_sensitive_step');
+assert.equal(stoppingDecision({states:[{concernId:'sleep',resolutionState:'narrowing',safetyEscalationLevel:0}],questionsAsked:8}).stop,false);assert.equal(stoppingDecision({states:[{concernId:'sleep',resolutionState:'narrowing',safetyEscalationLevel:0}],questionsAsked:14}).incomplete,true);assert.equal(stoppingDecision({states:[{concernId:'home',resolutionState:'narrowing',safetyEscalationLevel:2}],questionsAsked:14}).stop,false);
+const j=[obs('j1','home',[ev('home','supports',.7),imp('home','high'),imm('home','acute'),safe('home',0)])];const js=deriveConcernState(j,'home');assert.equal(js.memberImportance,'high');assert.equal(js.immediacyClass,'acute');assert.equal(js.safetyEscalationLevel,0);assert.equal(js.evidenceConfidence,.7);
+// K: importance tier is hard unless configured unresolved-uncertainty margin is exceeded.
+let pick=selectNextQuestion({states:[{concernId:'money',memberImportanceRank:4},{concernId:'stress',memberImportanceRank:2,driverKnown:false}],candidates:[{id:'m',concernId:'money',expectedUncertaintyReduction:.4},{id:'s',concernId:'stress',expectedUncertaintyReduction:.7}]});assert.equal(pick.question.id,'m');pick=selectNextQuestion({states:[{concernId:'money',memberImportanceRank:4},{concernId:'stress',memberImportanceRank:2,driverKnown:false}],candidates:[{id:'m',concernId:'money',expectedUncertaintyReduction:.1},{id:'s',concernId:'stress',expectedUncertaintyReduction:.8}]});assert.equal(pick.question.id,'s');assert.equal(pick.reason,'cross-tier-unresolved-uncertainty-override');
+// L: exhausted depth budget cannot win.
+pick=selectNextQuestion({states:[{concernId:'money',memberImportanceRank:4},{concernId:'stress',memberImportanceRank:3}],candidates:[{id:'m',concernId:'money',expectedUncertaintyReduction:9,depthBudgetExhausted:true},{id:'s',concernId:'stress',expectedUncertaintyReduction:.1}]});assert.equal(pick.question.id,'s');
+// M: explicit focus excludes unrelated high-evidence concern; direct edge permits inclusion.
+const planStates=[{concernId:'money',memberPrioritySelected:true,evidenceConfidence:.6,safetyEscalationLevel:0},{concernId:'relationships',memberPrioritySelected:false,evidenceConfidence:1,safetyEscalationLevel:0}];assert.deepEqual(selectActivePlanConcerns(planStates).map(x=>x.concernId),['money']);assert.deepEqual(selectActivePlanConcerns(planStates,{relationships:[{from:'relationships',to:'money',relationship:'driver'}]}).map(x=>x.concernId),['money','relationships']);
+// N: exclusive multi choice wins; weak answer cannot boost confidence.
+const q=adaptQuestion({id:'Q',mode:'multi',targets:['money_pressure'],options:[{id:'rent',effects:{money_pressure:.7}},{id:'unsure',effects:{money_pressure:.7}}]});assert.deepEqual(normalizeAnswerIds(q,['rent','unsure']),['unsure']);const weak=observationsForAnswer(q,['unsure']);assert.equal(weak[0].effects[0].strength,0);assert.equal(weak[0].effects[0].polarity,'neutral');
+// O: candidate ranking is diverse and evidence quality is derived live.
+const energy={concernId:'energy',evidenceConfidence:.73,safetyEscalationLevel:0,immediacyClass:'routine',readiness:null};const ranked=rankInterventionCandidates(energy,LIBRARY);assert.ok(ranked.candidates.length>=2&&ranked.candidates.length<=4);assert.ok(new Set(ranked.candidates.map(x=>x.intent)).size>=2);assert.equal(deriveInterventionEvidenceQuality(ranked.candidates[0],energy),.73);
+// P: readiness and safety filters can make an action ineligible.
+const custom=[{id:'blocked',concernId:'energy',intent:'build',readinessPrerequisite:'ready',title:'x'},{id:'unsafe',concernId:'energy',intent:'resolve',safetyAllowed:false,title:'y'},{id:'ok',concernId:'energy',intent:'learn',title:'z'}];assert.deepEqual(rankInterventionCandidates({...energy,readiness:'not-ready'},custom).candidates.map(x=>x.id),['ok']);
+// Q: outcome logging is separate data and does not mutate concern evidence.
+const before=deriveConcernState([obs('q1','energy',[ev('energy','supports',.5)])],'energy');const log=new InterventionOutcomeLog();const outcome=makeInterventionOutcome({id:'out1',interventionId:'energy_build_movement',concernId:'energy',intent:'build',completed:true,intendedOutcomeAttained:true});log.append(outcome);assert.equal(evaluateInterventionOutcome({intent:'build'},outcome).successful,true);const after=deriveConcernState([obs('q1','energy',[ev('energy','supports',.5)])],'energy');assert.equal(after.evidenceConfidence,before.evidenceConfidence);
+// R: member plan exposes semantic action metadata and action choice is capped at two.
+const mp=buildMemberPlan([{...energy,memberPrioritySelected:true,resolutionState:'triaged',driverKnown:false,excluded:false,memberImportanceRank:3}]);assert.ok(mp.focus[0].actions.length>=2);assert.ok(mp.focus[0].actions.every(x=>x.intent&&x.why&&x.mechanism&&x.measurement));const rs=session({concernIds:['energy']});chooseActions(rs,['a','b','c']);assert.deepEqual(rs.selectedActions,['a','b']);
+// S: timing contract is present and completes deterministically.
+rs.questionsAsked=2;rs.questionTimings=[{questionId:'x',durationSeconds:3},{questionId:'y',durationSeconds:5}];complete(rs);const rt=trace(rs);assert.ok(rt.timing.assessmentStart);assert.ok(rt.timing.assessmentCompleted);assert.equal(rt.timing.questionCount,2);assert.equal(rt.timing.averageSecondsPerQuestion,4);
+console.log('Round 3 expanded adversarial regression scenarios passed');
