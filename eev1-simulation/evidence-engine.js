@@ -27,17 +27,33 @@ function weightEffect(effect) {
   return strength * source * certainty * temporality;
 }
 
+function normalizeEvidence(effects = []) {
+  const evidence = effects.filter(e => e?.type === 'evidence');
+  const superseded = new Set(evidence.map(e => e.supersedes).filter(Boolean));
+  const seenObservationIds = new Set();
+  const normalized = [];
+
+  for (const effect of evidence) {
+    if (effect.observationId && superseded.has(effect.observationId)) continue;
+    if (effect.observationId) {
+      if (seenObservationIds.has(effect.observationId)) continue;
+      seenObservationIds.add(effect.observationId);
+    }
+    normalized.push(effect);
+  }
+  return normalized;
+}
+
 export function aggregateEvidence(effects = []) {
   let support = 0;
   let contradiction = 0;
   let actionableSupport = 0;
   let definitiveContradiction = false;
 
-  for (const effect of effects.filter(e => e?.type === 'evidence')) {
+  for (const effect of normalizeEvidence(effects)) {
     const weighted = weightEffect(effect);
     if (effect.polarity === 'supports') {
       support += weighted;
-      // Historical/resolved evidence is context, not independent proof of a current actionable concern.
       if (effect.temporality === 'current' || effect.temporality === 'recurring') actionableSupport += weighted;
     }
     if (effect.polarity === 'contradicts') contradiction += weighted;
