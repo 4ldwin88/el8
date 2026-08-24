@@ -36,8 +36,9 @@ export function classifyCompatibility(legacyRun,adapted){
  const legacyTop=new Set((legacyRun.top3??[]));
  const hardened=new Set(adapted.eligibleFocusIds??[]);
  const overlap=[...legacyTop].filter(x=>hardened.has(x));
+ const hardenedSubsetOfLegacy=[...hardened].every(x=>legacyTop.has(x));
  if(legacyTop.size===0&&hardened.size===0)return Object.freeze({classification:'EQUIVALENT',reason:'both-no-supported-focus'});
  if(legacyTop.size>0&&overlap.length===legacyTop.size)return Object.freeze({classification:'EQUIVALENT',reason:'legacy-supported-focus-preserved'});
- if(hardened.size<legacyTop.size)return Object.freeze({classification:'INTENTIONAL_HARDENING',reason:'eev1-evidence-floor-reduced-legacy-focus-set'});
- return Object.freeze({classification:'REGRESSION',reason:'unexplained-focus-divergence'});
+ if(hardened.size<legacyTop.size&&hardenedSubsetOfLegacy)return Object.freeze({classification:'INTENTIONAL_HARDENING',reason:'eev1-evidence-floor-reduced-legacy-focus-set'});
+ return Object.freeze({classification:'REGRESSION',reason:hardened.size<legacyTop.size?'smaller-set-introduced-unsupported-focus':'unexplained-focus-divergence'});
 }
