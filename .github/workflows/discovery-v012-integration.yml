@@ -1,0 +1,15 @@
+name: Discovery v0.12 Integration
+on:
+  push:
+    branches: [a4-v0.12-compatibility, discovery-v0.12]
+  pull_request:
+    branches: [discovery-v0.12, main]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run test:v0.12
