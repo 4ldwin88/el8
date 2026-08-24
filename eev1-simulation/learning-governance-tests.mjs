@@ -21,7 +21,7 @@ const protectedDraft=createPolicyCandidate({candidateId:'c2',basePolicyVersion:'
 t(()=>assert.equal(containsProtectedChange(protectedDraft),true));
 const ps=advanceCandidate(protectedDraft,{toStage:'SHADOW'});const ph=advanceCandidate(ps,{toStage:'HELD_OUT_VALIDATED',shadowResult:{passed:true}});const pa=advanceCandidate(ph,{toStage:'APPROVED',heldOutResult:{passed:true},approval:{approverId:'r',timestamp:'x'}});
 t(()=>assert.throws(()=>advanceCandidate(pa,{toStage:'DEPLOYED',monitoringPlan:{metric:'x'}}),/protected-change-approval-required/));
-const pa2=Object.freeze({...pa,approval:{...pa.approval,protectedChangeApproved:true}});const pd=advanceCandidate(pa2,{toStage:'DEPLOYED',monitoringPlan:{metric:'x'}});
+const pd=advanceCandidate(pa,{toStage:'DEPLOYED',monitoringPlan:{metric:'x'},approval:{...pa.approval,protectedChangeApproved:true}});
 t(()=>assert.equal(pd.stage,'DEPLOYED'));
 t(()=>assert.throws(()=>rollbackDeployment(approved,{reason:'x',timestamp:'x'}),/only-deployed-can-rollback/));
 const rolled=rollbackDeployment(deployed,{reason:'regression',timestamp:'2026-08-24T02:00:00Z'});
