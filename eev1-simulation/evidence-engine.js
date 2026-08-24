@@ -10,6 +10,7 @@ export const POLICY = Object.freeze({
   conflictBand: 0.30,
   focusConfidenceFloor: 0.60,
   driverConfidenceFloor: 0.80,
+  currentSupportFloor: 0.25,
   maxEvidenceScore: 1,
   sourceWeight: Object.freeze({ direct: 1, derived: 0.75, inferred: 0.5 }),
   certaintyWeight: Object.freeze({ definitive: 1, graded: 0.8 }),
@@ -29,11 +30,16 @@ function weightEffect(effect) {
 export function aggregateEvidence(effects = []) {
   let support = 0;
   let contradiction = 0;
+  let actionableSupport = 0;
   let definitiveContradiction = false;
 
   for (const effect of effects.filter(e => e?.type === 'evidence')) {
     const weighted = weightEffect(effect);
-    if (effect.polarity === 'supports') support += weighted;
+    if (effect.polarity === 'supports') {
+      support += weighted;
+      // Historical/resolved evidence is context, not independent proof of a current actionable concern.
+      if (effect.temporality === 'current' || effect.temporality === 'recurring') actionableSupport += weighted;
+    }
     if (effect.polarity === 'contradicts') contradiction += weighted;
     if (effect.polarity === 'contradicts' && effect.certainty === 'definitive') definitiveContradiction = true;
   }
@@ -43,7 +49,7 @@ export function aggregateEvidence(effects = []) {
   const confidence = clamp(total);
   const conflict = total === 0 ? 0 : Math.min(support, contradiction) / Math.max(support, contradiction, 0.0001);
 
-  return Object.freeze({ support, contradiction, net, confidence, conflict, definitiveContradiction });
+  return Object.freeze({ support, contradiction, actionableSupport, net, confidence, conflict, definitiveContradiction });
 }
 
 export function classifyConcern(effects = []) {
@@ -52,7 +58,7 @@ export function classifyConcern(effects = []) {
 
   if (evidence.definitiveContradiction && evidence.support < POLICY.candidateScore) state = 'CLEARED';
   else if (evidence.conflict >= POLICY.conflictBand && evidence.support >= POLICY.candidateScore && evidence.contradiction >= POLICY.candidateScore) state = 'UNRESOLVED';
-  else if (evidence.net >= POLICY.supportedScore && evidence.confidence >= POLICY.focusConfidenceFloor) state = 'SUPPORTED';
+  else if (evidence.net >= POLICY.supportedScore && evidence.confidence >= POLICY.focusConfidenceFloor && evidence.actionableSupport >= POLICY.currentSupportFloor) state = 'SUPPORTED';
   else if (evidence.support >= POLICY.candidateScore) state = 'CANDIDATE';
   else if (evidence.contradiction >= POLICY.supportedScore) state = 'CLEARED';
 
@@ -61,7 +67,7 @@ export function classifyConcern(effects = []) {
 
 export function evaluateDriverHypothesis(effects = []) {
   const result = classifyConcern(effects);
-  const established = result.state === 'SUPPORTED' && result.confidence >= POLICY.driverConfidenceFloor && result.conflict < POLICY.conflictBand;
+  const established = result.state === 'SUPPORTED' && result.confidence >= POLICY.driverConfidenceFloor && result.actionableSupport >= POLICY.currentSupportFloor && result.conflict < POLICY.conflictBand;
   return Object.freeze({
     ...result,
     established,
@@ -72,9 +78,10 @@ export function evaluateDriverHypothesis(effects = []) {
 
 export function focusEligibility(effects = []) {
   const result = classifyConcern(effects);
+  const eligible = result.state === 'SUPPORTED' && result.confidence >= POLICY.focusConfidenceFloor && result.actionableSupport >= POLICY.currentSupportFloor;
   return Object.freeze({
     ...result,
-    eligible: result.state === 'SUPPORTED' && result.confidence >= POLICY.focusConfidenceFloor,
-    reason: result.state === 'SUPPORTED' && result.confidence >= POLICY.focusConfidenceFloor ? 'supported-above-floor' : 'insufficient-evidence'
+    eligible,
+    reason: eligible ? 'supported-current-or-recurring-above-floor' : 'insufficient-current-evidence'
   });
 }
