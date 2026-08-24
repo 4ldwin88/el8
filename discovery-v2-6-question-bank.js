@@ -1,7 +1,8 @@
 import BASE from './discovery-v2-question-bank.js';
 // v2.6+ targeted overrides retained by Round 3.
 // M3: causes can coexist, so collecting a forced single 'main' cause loses valid evidence.
-// B1: work/money can both be present without one causing the other; preserve dissatisfaction/fit as a useful upstream answer.
+// B1: bridge copy must not presume money pressure merely because work was inferred indirectly.
+// ST2/SC1: human-test wording/options clarified after v0.7.
 const BANK=BASE.map(q=>{
  if(q.id==='M3')return{
   ...q,
@@ -21,17 +22,24 @@ const BANK=BASE.map(q=>{
  };
  if(q.id==='B1')return{
   ...q,
-  text:'Which best describes how work and money are connected right now?',
+  text:'Which best describes what is happening with work right now?',
   burden:.22,
   options:[
-   {id:'work',label:'Work problems are driving money pressure',effects:{work_instability:.35,money_pressure:.15}},
-   {id:'money',label:'Money pressure is affecting my work choices',effects:{money_pressure:.35}},
-   {id:'fit',label:'My work is stable enough, but it does not feel meaningful or like a good fit',effects:{work_instability:-.15,lack_direction:.45}},
-   {id:'separate',label:'They feel mostly separate',effects:{}},
+   {id:'money',label:'Money or income pressure is affecting my work choices',effects:{money_pressure:.25,work_instability:.15}},
+   {id:'stability',label:'My work, hours, or income feel unstable',effects:{work_instability:.4}},
+   {id:'fit',label:'My work is stable enough, but I am not happy with it or it does not feel like a good fit',effects:{work_instability:-.15,lack_direction:.45}},
+   {id:'separate',label:'Work is not a major problem for me right now',effects:{work_instability:-.35}},
    {id:'other',label:'Something else',effects:{}},
    {id:'unsure',label:'Not sure',effects:{}}
   ]
  };
+ if(q.id==='ST2')return{...q,options:(q.options??[]).map(o=>o.id==='internal'?{...o,label:'The stress is still there even when nothing specific is going wrong'}:o)};
+ if(q.id==='SC1')return{...q,options:[
+  {id:'good',label:'A lot',effects:{schedule_disruption:-.55}},
+  {id:'some',label:'Some',effects:{schedule_disruption:.15}},
+  {id:'little',label:'A little',effects:{schedule_disruption:.4}},
+  {id:'very_little',label:'Very little',effects:{schedule_disruption:.6}}
+ ]};
  return q;
 });
 export {BANK};export default BANK;
