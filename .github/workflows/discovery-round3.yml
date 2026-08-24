@@ -1,22 +1,19 @@
-name: Discovery Round 3 Validation
+name: Discovery Round 3 Regression
 on:
+  push:
+    branches: [feature/discovery-round-3]
   pull_request:
-    branches: [main]
     paths:
       - 'discovery-round3/**'
       - 'discovery-v2-6-question-bank.js'
-      - '.github/workflows/discovery-round3-validation.yml'
-  workflow_dispatch:
 jobs:
-  round3-validation:
-    if: github.head_ref == 'feature/discovery-round-3' || github.event_name == 'workflow_dispatch'
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: 22
       - name: Architecture regressions
         run: node discovery-round3/regression-tests.mjs
       - name: Adversarial end-to-end scenarios
