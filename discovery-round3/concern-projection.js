@@ -1,5 +1,5 @@
 import { clampConfidence } from './contracts.js';
-const importanceRank=Object.freeze({low:1,moderate:2,high:3,'very-high':4});
+const importanceRank=Object.freeze({low:1,moderate:2,high:3,'very-high':4,1:1,2:2,3:3,4:4});
 function latest(effects,predicate){return[...effects].reverse().find(predicate)}
 export function deriveConcernState(observationLog,concernId){
  const observations=observationLog.filter(o=>o.concernId===concernId||o.effects?.some(e=>e.target===concernId));const effects=observations.flatMap(o=>o.effects??[]);const evidence=effects.filter(e=>e.type==='evidence'&&e.target===concernId);let rawEvidenceScore=0,excluded=false;
