@@ -5,7 +5,15 @@ import ADV from '../discovery-v2-adversarial-additions.js';
 import SHADOW from './shadow-session.js';
 
 function choose(q,scenario){
- if(q.role==='gateway')return scenario.presentation;
+ if(q.role==='gateway'){
+  const valid=new Set(q.options.map(o=>o.id));
+  const selected=scenario.presentation.filter(x=>valid.has(x));
+  // Legacy synthetic fixtures use "other" as a routing sentinel even though it is
+  // not a member-selectable G1 option. Do not inject that sentinel into the typed
+  // v0.12 response contract. If it was the only fixture token, use UNSURE so the
+  // hardened path creates no evidence while legacy routing can continue safely.
+  return selected.length?selected:['unsure'];
+ }
  let best=q.options[0],score=-Infinity;
  for(const o of q.options){let s=0;for(const [k,v] of Object.entries(o.effects??{})){if(scenario.truth.includes(k))s+=v*2;if(k==='__opt_out')s-=3;}if(s>score){score=s;best=o;}}
  return best.id;
