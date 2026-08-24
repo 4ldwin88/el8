@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {OPERATING_LOOP_AUTHORITY,validateAuthorityContract,validateAICallRecord,applyAISafetySuggestion} from './authority-boundary.js';
+let checks=0;
+const c=f=>{f();checks++;};
+c(()=>assert.equal(validateAuthorityContract().valid,true));
+c(()=>{for(const spec of Object.values(OPERATING_LOOP_AUTHORITY))if(spec.material)assert.equal(spec.authority,'DETERMINISTIC');});
+c(()=>assert.equal(OPERATING_LOOP_AUTHORITY.memberFacingExplanation.mustNotAlterDecision,true));
+c(()=>assert.equal(OPERATING_LOOP_AUTHORITY.actionCandidateGeneration.requiresEligibilityGate,true));
+c(()=>assert.equal(OPERATING_LOOP_AUTHORITY.historicalPatternSuggestion.requiresEligibilityGate,true));
+c(()=>assert.equal(OPERATING_LOOP_AUTHORITY.aiSafetySignalSuggestion.mayDowngrade,false));
+c(()=>assert.deepEqual(applyAISafetySuggestion({deterministicLevel:2,aiSuggestedLevel:1}),{effectiveLevel:2,deterministicLevel:2,aiSuggestedLevel:1,aiDowngradeBlocked:true}));
+c(()=>assert.equal(applyAISafetySuggestion({deterministicLevel:1,aiSuggestedLevel:3}).effectiveLevel,3));
+c(()=>assert.equal(applyAISafetySuggestion({deterministicLevel:3,aiSuggestedLevel:0}).effectiveLevel,3));
+const good={callId:'c1',purpose:'free-text-structuring',modelId:'model-x',promptVersion:'p1',policyVersion:'eev1',timestamp:'2026-08-24T00:00:00Z',rawOutput:'{}'};
+c(()=>assert.equal(validateAICallRecord(good).valid,true));
+c(()=>{const bad={...good};delete bad.promptVersion;assert.deepEqual(validateAICallRecord(bad).missing,['promptVersion']);});
+c(()=>{const altered={...OPERATING_LOOP_AUTHORITY,priorityOrdering:{authority:'AI_MEDIATED',material:true}};assert.equal(validateAuthorityContract(altered).valid,false);});
+console.log(`EEV1 authority boundary validation: PASS (${checks} checks)`);
