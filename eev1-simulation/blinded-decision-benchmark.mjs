@@ -15,17 +15,11 @@ const cases=[
  {id:'resolved-only',effects:[S(1,{temporality:'resolved'})],state:'UNKNOWN',focus:false},
  {id:'correction-clears',effects:[S(1,{observationId:'a'}),C(1,{certainty:'definitive',observationId:'b',supersedes:'a'})],state:'CLEARED',focus:false},
  {id:'correction-restores',effects:[C(1,{observationId:'a'}),S(1,{observationId:'b',supersedes:'a'})],driverEffects:[D(1)],state:'SUPPORTED',focus:true,driver:true},
- {id:'many-historical-still-not-current',effects:Array.from({length:12},(_,i)=>S(1,{temporality:'historical',observationId:`h${i}`})),state:'SUPPORTED',focus:false}
+ // Historical evidence may justify a candidate hypothesis, but never a current supported state without actionable current/recurring support.
+ {id:'many-historical-still-not-current',effects:Array.from({length:12},(_,i)=>S(1,{temporality:'historical',observationId:`h${i}`})),state:'CANDIDATE',focus:false}
 ];
 let assertions=0;
-for(const tc of cases){
- const driverEffects=tc.driverEffects??tc.effects;
- const state=classifyConcern(tc.effects),focus=focusEligibility(tc.effects),driver=evaluateDriverHypothesis(driverEffects);
- assert.equal(state.state,tc.state,`${tc.id}: state`);assertions++;
- assert.equal(focus.eligible,tc.focus,`${tc.id}: focus`);assertions++;
- if(tc.driver!==undefined){assert.equal(driver.established,tc.driver,`${tc.id}: driver`);assertions++;}
- if(tc.intents)for(const [intent,expected] of Object.entries(tc.intents)){const r=actionEligibility({concernEffects:tc.effects,driverEffects,actionIntent:intent});assert.equal(r.eligible,expected,`${tc.id}: ${intent}`);assertions++;}
-}
+for(const tc of cases){const driverEffects=tc.driverEffects??tc.effects;const state=classifyConcern(tc.effects),focus=focusEligibility(tc.effects),driver=evaluateDriverHypothesis(driverEffects);assert.equal(state.state,tc.state,`${tc.id}: state`);assertions++;assert.equal(focus.eligible,tc.focus,`${tc.id}: focus`);assertions++;if(tc.driver!==undefined){assert.equal(driver.established,tc.driver,`${tc.id}: driver`);assertions++;}if(tc.intents)for(const [intent,expected] of Object.entries(tc.intents)){const r=actionEligibility({concernEffects:tc.effects,driverEffects,actionIntent:intent});assert.equal(r.eligible,expected,`${tc.id}: ${intent}`);assertions++;}}
 const decisionCases=[
  {id:'one-clear-focus',input:{concernEffects:{money:[S(1)]},questionsAsked:4},next:'AGENCY_GATE',sufficient:true},
  {id:'conflict-needs-discrimination',input:{concernEffects:{money:[S(.8),C(.8)]},questionsAsked:4},next:'DISCRIMINATE_CONFLICT',sufficient:false},
