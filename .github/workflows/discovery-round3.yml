@@ -20,6 +20,8 @@ jobs:
         run: node development/discovery/questions/behavior-tests.mjs
       - name: Evidence contracts
         run: node development/discovery/evidence-contract-tests.mjs
+      - name: State contracts
+        run: node development/discovery/state-contract-tests.mjs
       - name: Architecture regressions
         run: node development/discovery/regression-tests.mjs
       - name: Adversarial end-to-end scenarios
