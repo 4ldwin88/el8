@@ -5,7 +5,11 @@ const DEFAULT_BURDEN_BUDGET = 12;
 const clamp01 = value => Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
 
 function questionTargets(question) {
-  return new Set((question.effects ?? []).filter(effect => effect.type === 'evidence').map(effect => effect.target));
+  const canonicalTargets = Array.isArray(question.targets) ? question.targets : [];
+  const evidenceTargets = (question.effects ?? [])
+    .filter(effect => effect.type === 'evidence')
+    .map(effect => effect.target);
+  return new Set([...canonicalTargets, ...evidenceTargets].filter(Boolean));
 }
 
 function unanswered(question, answeredQuestionIds) {
