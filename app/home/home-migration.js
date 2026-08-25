@@ -21,7 +21,7 @@ export async function mountMigratedHome({ member, plan } = {}) {
     quickLogs,
     routes: {
       home: 'home.html',
-      plan: 'mvp-shell.html#plan',
+      plan: 'plan.html',
       insights: 'insights.html',
       explore: 'explore.html',
       profile: 'profile.html'
