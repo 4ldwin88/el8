@@ -1,11 +1,11 @@
-// Canonical Home migration module.
-// Reads the existing Active Plan contract without introducing a second plan store.
+// Canonical Home member-surface module.
+// Reads the accepted Active Plan contract without introducing a second plan store.
 
 import { mountAppShell } from '../shell/app-shell.js';
 import { mountTrackSheet } from '../track/track-sheet.js';
 
 export async function mountHome({ member, plan, quickLogs = [], routes = {} } = {}) {
-  const trackSheet = mountTrackSheet({ quickLogs, legacyTrackUrl: '../../track.html' });
+  const trackSheet = mountTrackSheet({ quickLogs });
   const shell = mountAppShell({
     active: 'home',
     routes,
@@ -19,8 +19,8 @@ export async function mountHome({ member, plan, quickLogs = [], routes = {} } = 
 }
 
 // Home Quick Logs intentionally remain separate presentation from Track Quick Logs.
-// Home may show daily cumulative progress and richer controls; both must ultimately
-// use the same evidence definitions/persistence contracts.
+// Home may show daily cumulative progress and richer controls; both use the same
+// evidence definitions/persistence contracts.
 export function homeQuickLogModel(definition, today = {}) {
   return {
     ...definition,
