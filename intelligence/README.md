@@ -4,49 +4,47 @@
 
 The Intelligence Engine is the broader decision and coordination layer for EL8. Discovery is one subsystem of the Intelligence Engine, not a synonym for the whole engine.
 
-The Intelligence Engine ultimately owns the pipeline from understanding a member through deciding what EL8 should do next and learning from the result.
+The Intelligence Engine owns the decision lifecycle from understanding a member through deciding what EL8 should do next and learning from the result.
 
-## Target architecture
+## Canonical architecture
 
 1. **Discovery** — understand the member, identify concerns and drivers, resolve uncertainty, and gather sufficient evidence.
 2. **State** — maintain traceable member/concern state derived from evidence rather than opaque scores.
 3. **Prioritization** — determine what deserves attention now, including member priority, urgency, dependencies, burden, and safety.
 4. **Planning** — convert prioritized concerns into a focused member plan.
 5. **Intervention** — select appropriate actions/interventions and manage their lifecycle.
-6. **Learning** — use outcomes and history to improve future decisions without silently changing canonical meaning.
+6. **Outcomes / Learning** — evaluate results and improve future decisions without silently changing canonical meaning.
 7. **Safety / escalation** — override ordinary routing when explicit safety conditions require it.
+8. **Orchestration / validation** — coordinate lifecycle execution and prove canonical behavior without becoming a second domain model.
 
 ## Current repository boundary
 
-`development/discovery/**` is the canonical implementation of the current Discovery subsystem while reconstruction is underway.
+`intelligence/discovery/**` is the canonical Discovery implementation.
 
-Existing code under `intelligence/**` predates that reconstruction and is migration source material unless explicitly promoted into the canonical architecture. Do not treat historical APIs, scores, filenames, constants, or object shapes as authoritative merely because they exist here.
+Shared contracts live under `intelligence/contracts/**`; canonical Member State and taxonomy live under `intelligence/state/**`. Prioritization, Planning, Interventions, and Outcomes consume those canonical boundaries.
 
-Useful behavior should be migrated into clean canonical modules and covered by canonical tests before its legacy implementation is retired.
+The former `development/discovery/**` promotion copy and the superseded legacy `intelligence/model/**`, `selection/**`, `simulation/**`, and routing/scoring integration implementations have been removed after semantic reconciliation and mandatory QA validation.
 
-## Migration order
-
-Migrate in dependency order to minimize rework:
-
-1. evidence and state/model behavior
-2. question selection and routing
-3. prioritization and planning
-4. interventions
-5. learning/adaptation
-6. simulation and integration harnesses
-7. retire superseded legacy modules and tests
+Historical repository files outside the canonical subsystem folders may still exist for product, migration, or earlier prototype purposes. Their presence does not make their APIs, scores, constants, or object shapes authoritative Intelligence contracts.
 
 ## Design rules
 
 - Discovery gathers and resolves evidence; it does not own the entire Intelligence Engine.
 - Evidence retains provenance.
 - Derived state remains traceable to evidence.
-- Ambiguity remains explicit until resolved; do not hide uncertainty inside arbitrary scores.
+- Ambiguity remains explicit until resolved; do not hide uncertainty inside arbitrary wellness scores.
 - Member-facing plans remain focused rather than forcing all eight dimensions into active work.
 - Safety escalation may override normal burden and prioritization rules when explicitly triggered.
-- Historical tests are evidence of useful behavior, not automatic architecture requirements.
-- New canonical files should be cohesive and reasonably sized; split responsibilities before files become difficult to review or prone to truncated edits.
+- Internal ranking calculations may support decisions but are not Member State or member wellness scores.
+- Tests and simulations validate canonical behavior; they do not define member truth.
+- Canonical files should be cohesive and reasonably sized.
 - Stable and development environments should consume the same canonical engine contracts while remaining independently deployable and independently authenticated.
+
+## Canonical validation
+
+The repository-level `npm test` gate exercises shared contracts, Member State, Discovery, Prioritization, Planning, Interventions, and Outcomes. Discovery also has its dedicated regression workflow rooted at `intelligence/discovery/**`.
+
+Legacy behavior is not kept merely for compatibility. A behavior survives only when it is required, semantically valid, rebuilt against canonical contracts where necessary, and covered by canonical QA.
 
 ## Naming
 
