@@ -1,5 +1,5 @@
 import {createDiscoveryPort} from './discovery-port.js';
-import * as discovery from '../../discovery/round3-engine.js';
+import * as discovery from '../../../intelligence/discovery/round3-engine.js';
 
 const adapter={
   createSession:options=>discovery.session(options),
