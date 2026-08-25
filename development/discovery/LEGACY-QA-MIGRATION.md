@@ -102,29 +102,92 @@ Candidate requirement:
 
 Status: the canonical `end-to-end-tests.mjs` is the preferred replacement surface. Add missing scenario classes there rather than reviving the old simulation architecture.
 
-### Root Discovery v2 QA
+## Root Discovery v2 QA — classified
 
-Historical suites:
-- `discovery-v2-synthetic-runner.js --enforce`
-- `discovery-v2-7-contract-qa.js`
-- `discovery-v2-5-driver-closure-qa.js`
-- `discovery-v2-persistent-uncertainty-regression.js`
+### `discovery-v2-7-contract-qa.js`
 
-Migration rule:
-- extract still-valid acceptance criteria from these suites
-- represent those criteria inside `development/discovery/**`
-- do not make canonical code import or depend on root `discovery-v2-*` implementation files
-- once every still-valid criterion has a canonical equivalent, retire the corresponding root QA dependency from the Discovery development gate
+Historical assertions:
+- terminal signal states are exactly `resolved`, `linked`, `cleared`, `deferred`
+- hard question ceiling is exactly 8
+- evidence precedence is exactly `member-correction > current-direct > current-derived > warm-start`
+- exit reasons are exactly `resolved`, `healthy`, `opt-out`, `budget`
+- every material signal must be terminal before a resolved exit
+- open/unknown/null signals cannot silently count as resolved/accounted
+
+Classification:
+- **CURRENT PRINCIPLE:** no material concern may disappear silently; unresolved/unknown concerns cannot be treated as resolved.
+- **CURRENT PRINCIPLE:** member correction and current direct evidence must outrank weaker historical/derived evidence. Exact legacy array/API is not authoritative.
+- **SUPERSEDED IMPLEMENTATION DETAIL:** exact terminal-state vocabulary. Round 3 uses its own resolution-state model.
+- **SUPERSEDED IMPLEMENTATION DETAIL:** exact four exit-reason strings.
+- **SUPERSEDED IMPLEMENTATION DETAIL:** exact 8-question ceiling. The reconstructed controller currently uses an explicit configurable outer guardrail and priority-resolution fallback rather than inheriting the old constant.
+
+Migration target: canonical tests must enforce concern accountability and precedence semantics without importing the v2.7 contract object.
+
+### `discovery-v2-5-driver-closure-qa.js`
+
+Historical regression:
+- money + sleep + energy can all be raised simultaneously
+- a scope answer may narrow a concern but must not be mistaken for driver proof
+- evidence for one concern/bridge must not falsely resolve unrelated open concerns
+- known money-driver evidence should be retained as such
+- Discovery must continue asking a useful discriminator while material driver uncertainty remains
+- it must not emit a false resolved exit after only partial closure
+
+Classification:
+- **CURRENT:** all six behavioral requirements remain valid.
+- **SUPERSEDED IMPLEMENTATION DETAIL:** exact answer IDs, direct-score thresholds, `driverEvidence` field shape, and requirement that the next question be specifically `E2` or `SL2`.
+
+Migration target: add a canonical multi-concern partial-closure regression using Round 3 state/evidence contracts.
+
+### `discovery-v2-persistent-uncertainty-regression.js`
+
+Historical regression:
+- repeated `Not sure` answers must change question strategy
+- Discovery must not end merely because uncertainty persists
+- after repeated uncertainty it should offer a more concrete/observable recovery question rather than another equally uncertain prompt
+- once a recovery question resolves the concern, no redundant recovery question is required
+
+Classification:
+- **CURRENT PRINCIPLE:** persistent uncertainty requires a strategy change/recovery path and cannot silently become certainty.
+- **CURRENT PRINCIPLE:** avoid redundant recovery once sufficient evidence is obtained.
+- **SUPERSEDED IMPLEMENTATION DETAIL:** exactly two uncertain answers, exact `uncertaintyStreak` field, and blanket requirement that the recovery question contain no `unsure` option. Round 3 recovery is concern/state-driven rather than a global streak counter.
+
+Migration target: canonical regression should verify recovery/specificity escalation after weak evidence without requiring the old global state fields.
+
+### `discovery-v2-synthetic-runner.js --enforce`
+
+Historical acceptance metrics:
+- true driver appears in top three often enough
+- healthy cases exit early
+- member corrections recover correctly
+- uncertain cases recover useful signal
+- all required member-raised signals are accounted for
+- silent abandonment rate is zero
+- budget exhaustion remains bounded
+- routes should not collapse into nearly identical question sequences across scenario classes
+
+Classification:
+- **CURRENT:** member-raised concern accountability and zero silent abandonment.
+- **CURRENT:** correction recovery.
+- **CURRENT:** healthy/low-need paths should avoid unnecessary questioning.
+- **CURRENT:** uncertainty should have a useful recovery path.
+- **CURRENT:** adversarial multi-concern scenarios belong in canonical system-level tests.
+- **REVIEW/RECALIBRATE:** driver top-three metric. Round 3 is evidence/state/plan oriented and should not inherit ranking thresholds blindly.
+- **REVIEW/RECALIBRATE:** budget-exhaustion percentage. Retain bounded burden/guardrail behavior, but establish a threshold from the reconstructed design.
+- **REVIEW/RECALIBRATE:** route-overlap metric. Diversity is useful only when driven by member evidence; route diversity is not itself a product goal.
+
+Migration target: use `development/discovery/end-to-end-tests.mjs` as the canonical scenario surface. Add missing accountability, healthy-exit, correction, uncertainty-recovery and multi-concern partial-closure scenarios there. Do not port the old synthetic runner wholesale.
 
 ## Retirement criteria for legacy Discovery files
 
 A legacy Discovery implementation/test file is safe to retire only when all of the following are true:
 
-1. Its intended behavioral requirement has been classified as current, superseded, or obsolete.
+1. Its intended behavioral requirement has been classified as current, superseded, obsolete, or review/recalibrate.
 2. Every current requirement has an equivalent canonical test under `development/discovery/**`.
-3. The canonical test passes independently of root Discovery implementation files.
-4. No production/prototype entry point still imports the legacy file.
-5. Removing it does not remove unique test coverage that remains part of the approved Discovery specification.
+3. Every review/recalibrate requirement has an explicit decision recorded before retirement.
+4. The canonical test passes independently of root Discovery implementation files.
+5. No production/prototype entry point still imports the legacy file.
+6. Removing it does not remove unique test coverage that remains part of the approved Discovery specification.
 
 ## CI policy during reconstruction
 
@@ -135,8 +198,8 @@ A legacy Discovery implementation/test file is safe to retire only when all of t
 
 ## Next migration pass
 
-1. Inspect the four root `discovery-v2-*` suites and extract their acceptance criteria.
-2. Compare each criterion against current canonical regression/end-to-end coverage.
-3. Add only missing current requirements to canonical tests.
-4. Repeat for evidence and integration suites.
+1. Add canonical regressions for multi-concern partial closure and persistent-uncertainty recovery.
+2. Add/confirm canonical accountability, healthy-path and correction scenarios in end-to-end coverage.
+3. Review evidence/learning legacy suites against the Round 3 observation/projection model.
+4. Review integration suites after the reconstructed Discovery output contract is locked.
 5. Search repository imports/references before deleting or archiving legacy Discovery files.
