@@ -4,14 +4,12 @@ on:
     paths:
       - 'development/discovery/**'
       - 'development/app/onboarding/discovery-*.js'
-      - 'experiments/discovery/candidate/**'
       - 'package.json'
       - '.github/workflows/discovery-round3.yml'
   pull_request:
     paths:
       - 'development/discovery/**'
       - 'development/app/onboarding/discovery-*.js'
-      - 'experiments/discovery/candidate/**'
       - 'package.json'
       - '.github/workflows/discovery-round3.yml'
 jobs:
@@ -22,7 +20,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Promoted Discovery runtime and onboarding boundary
-        run: npm run test:discovery:promoted
-      - name: Candidate behavioral regression during migration
-        run: npm run test:discovery:candidate
+      - name: Discovery runtime and onboarding boundary
+        run: npm run test:discovery
