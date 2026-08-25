@@ -1,0 +1,2 @@
+Round 3 validation trigger. This file has no runtime role.
+Conflict resolved against current main; trigger pull_request validation.
