@@ -9,9 +9,9 @@ Rules: classify capabilities, not filenames. No deletion during classification. 
 | `selection/adaptive-discovery-v1*` | RETIRE LATER | Legacy Discovery implementation; replacement is being proven under `development/discovery/**`. Keep until promotion and dependency checks. |
 | `selection/discovery-question-bank-v1.js` | RETIRE LATER | Legacy question bank superseded by canonical Discovery question assets; retain until Discovery promotion. |
 | `selection/question-selector*` | RETIRE LATER | Required adaptive-selection semantics have been rebuilt in canonical Discovery and are now mandatory-QA covered. Legacy files remain only until caller/dependency checks and Discovery promotion. |
-| `selection/adversarial-scenarios.js` | KEEP NONCANONICAL | Validation fixture/scenario capability belongs with validation/simulation support, not runtime Intelligence. |
-| `selection/discovery-comparison-harness*` | KEEP NONCANONICAL | Migration/regression comparison tooling; useful until canonical Discovery is promoted. |
-| `selection/member-zero-simulation.js` | KEEP NONCANONICAL | Test/simulation fixture, not canonical runtime architecture. |
+| `selection/adversarial-scenarios.js` | RETIRE LATER | Useful scenario intents (high friction, financial pressure, ambiguity/ties, stable-low-uncertainty, stale evidence) are covered by canonical adversarial/synthetic QA. Legacy fixture depends on signal IDs/triggers and the retired selector. |
+| `selection/discovery-comparison-harness*` | RETIRE LATER | One-off v0.13 control-vs-v1 challenger migration harness. Both compared implementations are legacy; canonical mandatory QA now validates the replacement directly. |
+| `selection/member-zero-simulation.js` | RETIRE LATER | Historical deterministic QA snapshot tied to legacy signals/triggers and selector. Canonical synthetic fixtures provide reproducible validation without embedding a real-member-derived snapshot in runtime code. |
 | `model/dimension-hypothesis-state*` | RETIRE LATER | Useful lifecycle semantics are already represented more precisely at canonical concern level. Legacy dimension-level confidence/positive/negative accumulation and numeric priority formulas are obsolete. |
 | `model/hierarchical-state*` | RETIRE LATER | Semantic reconciliation complete. Canonical Member State already preserves hierarchical dimension/topic/concern structure, evidence references, observation timing, concern status/sufficiency, and evidence confidence without deriving numeric dimension wellness values. Legacy weighted/peak dimension aggregation is intentionally obsolete. |
 | `model/subdimension-taxonomy*` | RETIRE LATER | Valid legacy vocabulary has been reconciled into `intelligence/state/taxonomy.js`; legacy numeric subdimension state/averaging is intentionally obsolete. |
@@ -38,12 +38,19 @@ Rules: classify capabilities, not filenames. No deletion during classification. 
 9. `simulation/synthetic-members.js` + `simulation/run-simulation.js`: validation purpose preserved by `development/discovery/canonical-simulation.test.mjs`, now mandatory in `test:discovery`. The simulation exposed and helped correct canonical target-schema handling; both required CI workflows pass after the correction.
 10. `integration/matrix-qa-selector.js`: coverage-first exploration, anti-tunneling, redundancy control, burden sensitivity, and cross-dimensional probing were reviewed. Canonical selector/tests preserve the valid principles without legacy dimension severity/signal scoring.
 11. `integration/blind-qa-policy.js`: broad evidence coverage and conservative stopping intent were reviewed. These remain validation requirements rather than a separate runtime policy engine; legacy numeric belief/uncertainty thresholds are not migrated.
+12. `selection/adversarial-scenarios.js`: scenario intent reviewed against canonical adversarial and synthetic suites; no unique runtime capability remains.
+13. `selection/discovery-comparison-harness*`: confirmed as migration-era comparison instrumentation between two superseded selector implementations, not durable validation architecture.
+14. `selection/member-zero-simulation.js`: confirmed as a historical, real-member-derived QA snapshot tied to legacy signals. No canonical migration is required; generic synthetic fixtures are the durable replacement.
 
 ## Immediate migration queue
 
 1. Run final repository dependency searches across all RETIRE LATER legacy Discovery/model/integration/simulation entry points.
-2. Inspect remaining KEEP NONCANONICAL selection fixtures/harnesses and determine whether canonical QA fully supersedes them or whether any should be rewritten under validation.
-3. Confirm the canonical Discovery promotion gate and promotion path before deleting legacy runtime files.
+2. Confirm the canonical Discovery promotion gate and promotion path (`development/discovery/**` -> `intelligence/discovery/**`) before deleting legacy runtime files.
+3. Promote canonical Discovery, rerun mandatory QA, then delete only dependency-free RETIRE LATER files in bounded batches with QA after each batch.
+
+## Selection fixture conclusion
+
+There are no remaining KEEP NONCANONICAL selection fixtures. The adversarial scenario set is superseded by canonical adversarial/synthetic tests; the comparison harness only compares legacy implementations; and the Member Zero fixture is a historical snapshot coupled to legacy signal semantics. Durable validation should use fictional canonical fixtures and production-shaped contracts.
 
 ## Validation reconciliation conclusion
 
