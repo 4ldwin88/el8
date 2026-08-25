@@ -1,24 +1,32 @@
 # EL8 Intelligence Engine — Canonical Architecture
 
-Status: **canonical target architecture**
+Status: **canonical target architecture and migration strategy**
 
-This document defines the target architecture of the EL8 Intelligence Engine. It is the reference used to decide whether historical intelligence code should be migrated, redesigned, temporarily retained, or retired.
+This document defines the target architecture of the EL8 Intelligence Engine and the controlled reconstruction/migration strategy used to reach it. Historical implementations are evidence of prior behavior and domain knowledge; they are not authoritative merely because they exist.
 
-The architecture is intentionally defined before further aggressive legacy cleanup. Historical implementations are evidence of prior ideas; they are not authoritative merely because they exist.
+Further broad legacy deletion is paused until the relevant capability has been classified and the canonical replacement boundary has been proven.
 
 ## 1. Mission
 
 The Intelligence Engine is EL8's decision and coordination system. It converts member observations into traceable understanding, determines what deserves attention, produces a manageable plan, selects interventions, evaluates outcomes, learns over time, and escalates explicit safety conditions.
 
-The engine must optimize for useful decisions rather than maximum measurement. It should ask only what it needs, preserve uncertainty when evidence is insufficient, keep member-facing work focused, and remain auditable from source observation to downstream action.
+The engine optimizes for useful decisions rather than maximum measurement. It should ask only what it needs, preserve uncertainty when evidence is insufficient, keep member-facing work focused, and remain auditable from source observation to downstream action.
 
-## 2. Canonical pipeline
+## 2. Canonical system model
 
-`Observations → Discovery → Evidence → Member State → Prioritization → Planning → Intervention → Outcomes → Learning`
+The primary decision flow is:
 
-Safety/escalation and orchestration are cross-cutting controls over the full pipeline.
+`Observations → Discovery → Evidence/State → Prioritization → Planning → Intervention → Outcomes → Learning`
 
-Validation, simulation, telemetry, and observability verify the pipeline but do not define member truth.
+This is a decision-flow diagram, not a claim that every component is a one-way pipeline stage.
+
+**Member State is a shared substrate.** Discovery derives/updates it from traceable evidence; Prioritization, Planning, Intervention review, Learning, and Orchestration may read it through canonical contracts. State access must not be reinvented independently inside each subsystem.
+
+**Safety/Escalation is cross-cutting.** Its interface is defined early so Discovery, Prioritization, Planning, and Interventions can raise and consume safety signals consistently. Full safety implementation may mature later.
+
+**Orchestration is cross-cutting coordination.** It schedules/coordinates component execution but should contain minimal domain logic.
+
+Validation, simulation, telemetry, and observability verify the system but do not define member truth.
 
 ## 3. Core components
 
@@ -75,7 +83,7 @@ Evidence is not the same as Member State. Evidence is the traceable basis from w
 
 ### 3.4 Member State / Model
 
-Purpose: maintain EL8's current, traceable understanding of the member.
+Purpose: maintain EL8's current, traceable understanding of the member as a shared Intelligence substrate.
 
 State should support:
 - eight dimensions and approved subdimensions/concerns
@@ -92,22 +100,13 @@ Rules:
 - do not inherit obsolete quantitative wellness scoring merely for compatibility
 - taxonomy is canonical domain vocabulary and should be maintained separately from transient question IDs
 - state changes should be explainable
+- consumers use shared contracts rather than private reinterpretations of state
 
 ### 3.5 Prioritization
 
 Purpose: decide what deserves attention now.
 
-Inputs may include:
-- member-stated importance
-- urgency/immediacy
-- safety
-- severity/materiality
-- leverage/shared-driver potential
-- dependencies
-- readiness/capacity
-- expected benefit
-- burden/cost
-- recency and confidence
+Inputs may include member-stated importance, urgency/immediacy, safety, severity/materiality, leverage/shared-driver potential, dependencies, readiness/capacity, expected benefit, burden/cost, recency, and confidence.
 
 Outputs:
 - ranked candidate concerns/drivers
@@ -130,7 +129,7 @@ Responsibilities:
 - adapt plan load to member capacity
 - preserve deferred priorities for later review
 
-Planning consumes Intelligence state; it should not independently reinvent Discovery.
+Planning consumes Intelligence state and prioritization output; it should not independently reinvent Discovery.
 
 ### 3.7 Intervention
 
@@ -163,7 +162,7 @@ Responsibilities:
 Rules:
 - learned behavior must be bounded and auditable
 - canonical question/evidence meaning is not silently changed by empirical frequency
-- member-specific adaptation and global/system learning must remain distinguishable
+- member-specific adaptation and global/system learning remain distinguishable
 - sufficient evidence is required before empirical behavior influences authored defaults
 
 ### 3.9 Safety & Escalation
@@ -171,13 +170,14 @@ Rules:
 Purpose: provide explicit override behavior for conditions that should not follow ordinary wellness optimization routing.
 
 Responsibilities:
+- define a shared safety signal/interface early in reconstruction
 - detect approved safety/escalation signals
 - interrupt normal question-budget or prioritization rules where required
 - produce explicit escalation state/action
 - maintain provenance and auditability
 - avoid diagnosing beyond EL8's approved scope
 
-Safety is cross-cutting and may override Discovery, prioritization, planning, or intervention behavior.
+Safety is cross-cutting and may override Discovery, Prioritization, Planning, or Intervention behavior.
 
 ### 3.10 Orchestration / Lifecycle
 
@@ -204,7 +204,7 @@ Includes:
 - regression suites
 - adversarial scenarios
 - synthetic-member simulations
-- end-to-end scenarios
+- vertical-slice and end-to-end scenarios
 - release gates
 - telemetry and structured decision traces
 - performance/burden metrics
@@ -212,7 +212,25 @@ Includes:
 
 Tests validate canonical behavior; historical tests are migration evidence, not permanent architecture requirements.
 
-## 4. Canonical boundaries
+## 4. Shared contracts
+
+Create/maintain a small `intelligence/contracts/` surface only for genuinely cross-boundary concepts. Do not turn it into a generic dumping ground.
+
+Likely shared contracts include:
+- observation envelope/reference
+- evidence/effect envelope/reference
+- Member State identifiers/references and versioning
+- safety/escalation signal and disposition
+- Discovery handoff/result envelope
+- prioritization result/reference
+- outcome/reference
+- common IDs, timestamps, provenance, schema versions, and decision-trace metadata where shared
+
+Subsystem-private types/contracts remain with their owning subsystem.
+
+Cross-subsystem contracts should be versionable and testable so stable/development/experimental environments can consume the same canonical semantics.
+
+## 5. Canonical boundaries
 
 ### Discovery owns
 - asking/choosing investigative questions
@@ -229,15 +247,17 @@ Tests validate canonical behavior; historical tests are migration evidence, not 
 - persistence infrastructure
 
 ### Intelligence owns
-The complete decision lifecycle from observations through learning, including the contracts between its subsystems.
+The complete decision lifecycle from observations through learning, including contracts between its subsystems.
 
 ### Product/app owns
 Presentation, navigation, interaction surfaces, authentication UX, and rendering of Intelligence outputs.
 
 ### Data/platform owns
-Persistence, identity, authorization, environment isolation, migrations, backups, and infrastructure concerns. Intelligence defines data contracts but should not own platform implementation.
+Persistence, identity, authorization, environment isolation, migrations, backups, and infrastructure concerns. Intelligence defines data contracts but does not own platform implementation.
 
-## 5. Canonical repository target
+Multi-account stable/development session isolation is therefore a platform/auth requirement, not an Intelligence implementation responsibility.
+
+## 6. Canonical repository target
 
 Target conceptual structure:
 
@@ -245,6 +265,7 @@ Target conceptual structure:
 intelligence/
   README.md
   ARCHITECTURE.md
+  contracts/
   observations/
   discovery/
   evidence/
@@ -258,21 +279,41 @@ intelligence/
   validation/
 ```
 
-During reconstruction, `development/discovery/**` remains the canonical current Discovery implementation. It should eventually be promoted/moved into the canonical Intelligence structure once the subsystem is stable and the environment pipeline is ready for that promotion.
+During reconstruction, `development/discovery/**` remains the canonical current Discovery implementation.
 
-Historical folders under `intelligence/**` remain migration source material until individually classified.
+### Discovery promotion gate
 
-## 6. Environment contract
+Promote/move `development/discovery/**` into `intelligence/discovery/**` after all of the following are true:
+1. taxonomy/Member State and required shared contracts are locked for the current milestone
+2. the Safety/Escalation interface required by Discovery is defined
+3. the Discovery/Evidence contracts pass canonical contract/regression tests
+4. a thin canonical vertical slice reaches an Outcome without importing legacy Intelligence implementations as hidden dependencies
+5. required adversarial vertical-slice cases pass
+6. remaining legacy Discovery dependencies are explicitly classified
 
-The engine must support the repository's separated environments without creating separate divergent engines.
+Promotion should happen promptly after this gate so temporary paths do not become permanent dependencies.
 
-- stable and development consume versioned canonical Intelligence contracts
+Historical folders under `intelligence/**` remain migration source material until classified.
+
+## 7. Environment contract
+
+The engine supports separated environments without creating divergent engines.
+
 - experimental work is isolated until validated/promoted
+- development integrates validated work
+- stable consumes promoted, release-gated work
+- environments consume the same versioned canonical Intelligence contracts
 - stable and development deployments remain independently usable
-- authentication/session configuration must permit a user to be signed into a stable account and a development account simultaneously without session collision
-- environment-specific configuration must not leak into domain logic
+- authentication/session configuration permits a user to be signed into stable and development accounts simultaneously without session collision
+- environment-specific configuration does not leak into domain logic
 
-## 7. Architecture invariants
+Conceptual promotion direction:
+
+`experimental → development → stable`
+
+Branching/deployment mechanics and authentication isolation belong to repository/platform configuration, not Intelligence domain modules.
+
+## 8. Architecture invariants
 
 1. Every important downstream decision is explainable from traceable evidence/state.
 2. Uncertainty is represented, not fabricated away.
@@ -280,28 +321,45 @@ The engine must support the repository's separated environments without creating
 4. Safety overrides ordinary optimization when explicitly triggered.
 5. Discovery minimizes unnecessary questioning.
 6. Member-facing plans remain manageable and focused.
-7. The eight dimensions remain available to the system without requiring simultaneous intervention in all eight.
+7. The eight dimensions remain available without requiring simultaneous intervention in all eight.
 8. Question IDs and implementation filenames are not domain taxonomy.
 9. Learning may calibrate behavior but may not silently redefine canonical semantics.
 10. Orchestration coordinates domain modules instead of accumulating their business logic.
-11. Stable/development/experimental environments share architecture and contracts rather than becoming separate products.
-12. Canonical modules should be cohesive and reasonably sized to reduce truncated edits and review risk.
+11. Stable/development/experimental environments share architecture/contracts rather than becoming separate products.
+12. Canonical modules are cohesive and reasonably sized to reduce truncated edits and review risk.
 13. Legacy code is retired only after unique approved behavior is migrated or explicitly rejected.
+14. Member State is a shared substrate accessed through canonical contracts, not a one-time pipeline payload.
+15. Cross-boundary contracts have explicit ownership/versioning and contract tests.
+16. A complete thin vertical slice must validate boundaries before full downstream subsystem build-out.
 
-## 8. Migration classification
+## 9. Legacy migration classification
 
-Every legacy component must receive one of four dispositions:
+Every legacy capability eventually receives one of four dispositions:
 
 - **MIGRATE** — behavior is necessary and should be rebuilt on canonical contracts.
 - **REDESIGN** — concept is necessary but implementation/semantics are unsuitable.
-- **TEMPORARY** — still needed during migration but not part of the target architecture.
+- **TEMPORARY** — retained during migration but not part of the target architecture.
 - **RETIRE** — obsolete, duplicated, broken, or contrary to canonical architecture.
 
-No further broad deletion should occur without recording the relevant capability/disposition in the migration inventory.
+### Classification strategy
 
-## 9. Current legacy map
+Do not perform exhaustive archaeology before the architecture has been pressure-tested.
 
-Repository inventory currently shows historical components under:
+Before the vertical slice:
+- perform a shallow capability inventory sufficient to avoid omitting obvious unique behavior
+- default ambiguous material to **TEMPORARY**
+- do not broadly delete ambiguous legacy modules
+
+After the vertical slice validates the contracts:
+- perform detailed classification informed by the working canonical system
+- migrate/redesign unique approved behavior
+- retire confirmed-obsolete implementations
+
+This prevents the migration matrix from becoming open-ended process work or being repeatedly redone as contracts change.
+
+## 10. Current legacy map
+
+Historical components currently include:
 - `intelligence/model/**` — hypothesis state, hierarchical state, subdimension taxonomy, question/subdimension mapping
 - `intelligence/question-bank/**` — older question schema/content and clarification logic
 - `intelligence/selection/**` — adaptive Discovery, selector, adversarial scenarios, comparison harnesses
@@ -310,28 +368,68 @@ Repository inventory currently shows historical components under:
 - `intelligence/integration/**` — routing and integration-era logic/tests
 - `intelligence/simulation/**` — synthetic member/simulation infrastructure
 
-The legacy `intelligence/evidence/**` quantitative implementation has been retired after comparison with the reconstructed observation/effect contracts. Useful evidence principles are preserved in this architecture and the canonical Discovery migration inventory.
+The legacy `intelligence/evidence/**` quantitative implementation has been retired after comparison with the reconstructed observation/effect contracts. Useful evidence principles are preserved in this architecture and canonical Discovery tests/migration documentation.
 
-## 10. Migration order
+No additional legacy directory should be removed wholesale merely because current Discovery does not import it.
 
-To minimize rework:
+## 11. Canonical vertical slice
 
-1. lock taxonomy and state contracts
-2. finish Discovery/evidence contracts
-3. migrate adaptive selection and burden policy
-4. define Discovery → Prioritization handoff
-5. build prioritization
-6. migrate/redesign planning
-7. migrate/redesign interventions
-8. add bounded learning/adaptation
-9. consolidate safety/escalation
-10. build orchestration contracts
-11. rebuild simulation/validation around canonical modules
-12. retire remaining legacy implementations
-13. promote stable Discovery/Intelligence modules out of reconstruction paths
+Before full downstream build-out, prove one thin complete decision cycle:
 
-## 11. Change control
+`Observation → Discovery → Evidence/Member State → Prioritization → Plan → Intervention → Outcome`
 
-Changes to the major component boundaries, canonical pipeline, or architecture invariants should update this document first or in the same commit as the implementation change.
+Prioritization, Planning, and Intervention may initially be deliberately thin implementations/stubs. Their purpose at this stage is to validate contracts and information flow, not to implement the final decision sophistication.
+
+Minimum adversarial cases:
+1. contradiction/correction
+2. explicit safety/escalation trigger
+3. low-evidence/unresolved concern
+4. cross-dimensional/shared-driver evidence
+5. healthy/low-need path that avoids unnecessary work
+
+The slice must demonstrate:
+- traceability from outcome/decision back to evidence/observation
+- uncertainty survives where unresolved
+- safety signals propagate through the shared interface
+- Member State can be consumed by multiple subsystems without private reinterpretation
+- no hidden dependency on retired/legacy implementation is required to complete the cycle
+
+If the slice exposes a bad contract, fix the contract before full subsystem build-out.
+
+## 12. Revised reconstruction and cleanup sequence
+
+1. **Lock taxonomy + Member State schema/contracts.**
+2. **Define the minimal shared `intelligence/contracts/` surface and Safety/Escalation interface.**
+3. **Finish the minimum Discovery/Evidence contracts required for a complete vertical slice, including Discovery → Prioritization handoff.**
+4. **Perform a shallow legacy capability inventory.** Ambiguous items default to TEMPORARY; do not spend unbounded time adjudicating them.
+5. **Build thin Prioritization, Planning, Intervention, and Outcome plumbing.**
+6. **Run the canonical vertical slice and minimum adversarial cases.**
+7. **Correct/freeze the milestone contracts based on the spike.**
+8. **Promote `development/discovery/**` to `intelligence/discovery/**` once the promotion gate passes.**
+9. **Build out Prioritization and Planning, then Interventions, against proven contracts.**
+10. **Add bounded Learning/Adaptation and complete the Safety implementation.**
+11. **Build/consolidate Orchestration and the full Validation/Simulation/Observability harness around stable modules.**
+12. **Return to the legacy tree for detailed classification using the working canonical architecture as evidence.**
+13. **Migrate/redesign remaining unique approved behavior and retire confirmed-obsolete legacy.**
+14. **Validate the complete Intelligence Engine and promote through experimental → development → stable.**
+
+## 13. Cleanup rules
+
+Repository cleanliness is an outcome of successful migration, not the primary objective.
+
+Hard rules:
+- do not delete legacy code solely because it is old or currently unused by Discovery
+- do not preserve old APIs, filenames, object shapes, or numeric scoring merely for compatibility
+- preserve useful behavior/domain knowledge, then implement it cleanly against canonical contracts
+- do not let TEMPORARY mean permanent; revisit temporary material after vertical-slice validation
+- do not build full downstream subsystems before the thin vertical slice validates their boundaries
+- do not let environment/deployment concerns leak into Intelligence domain modules
+- prefer one canonical implementation over compatibility layers once migration is complete
+
+A legacy component is safe to retire when its useful capability has been migrated, explicitly rejected, or proven unnecessary against a working canonical replacement and no required entry point depends on it.
+
+## 14. Change control
+
+Changes to major component boundaries, shared contracts, architecture invariants, promotion gates, or migration sequence update this document first or in the same commit as implementation changes.
 
 Implementation details may evolve without changing this specification when they preserve the stated contracts and invariants.
