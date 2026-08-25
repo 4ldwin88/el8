@@ -2,10 +2,10 @@ name: Discovery Development Regression
 on:
   push:
     paths:
-      - 'development/discovery/**'
+      - 'intelligence/discovery/**'
   pull_request:
     paths:
-      - 'development/discovery/**'
+      - 'intelligence/discovery/**'
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -15,14 +15,14 @@ jobs:
         with:
           node-version: 22
       - name: Question-bank structure
-        run: node development/discovery/questions/validate.mjs
+        run: node intelligence/discovery/questions/validate.mjs
       - name: Question-bank behavior
-        run: node development/discovery/questions/behavior-tests.mjs
+        run: node intelligence/discovery/questions/behavior-tests.mjs
       - name: Evidence contracts
-        run: node development/discovery/evidence-contract-tests.mjs
+        run: node intelligence/discovery/evidence-contract-tests.mjs
       - name: State contracts
-        run: node development/discovery/state-contract-tests.mjs
+        run: node intelligence/discovery/state-contract-tests.mjs
       - name: Architecture regressions
-        run: node development/discovery/regression-tests.mjs
+        run: node intelligence/discovery/regression-tests.mjs
       - name: Adversarial end-to-end scenarios
-        run: node development/discovery/end-to-end-tests.mjs
+        run: node intelligence/discovery/end-to-end-tests.mjs
