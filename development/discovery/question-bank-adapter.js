@@ -1,4 +1,4 @@
-import LEGACY_BANK from '../discovery-v2-6-question-bank.js';
+import LEGACY_BANK from '../../discovery-v2-6-question-bank.js';
 import {makeObservation} from './contracts.js';
 const CONCERN_ALIAS=Object.freeze({money_pressure:'money',work_instability:'work',poor_sleep:'sleep',low_energy:'energy',low_activity:'energy',physical_condition:'health',low_activation:'energy',stress:'stress',relationship_strain:'relationships',low_support:'support',lonely:'support',home_instability:'home',low_focus:'focus',lack_direction:'direction',schedule_disruption:'work'});
 const WEAK_IDS=new Set(['other','unsure','not_sure','none','none_fit','unknown']);
