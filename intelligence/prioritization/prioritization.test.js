@@ -30,6 +30,24 @@ function stateWith(concerns) {
   assert.equal(result.priorityItems[0].rank, 1);
   assert.equal(result.priorityItems[1].rank, 2);
   assert.equal('score' in result.priorityItems[0], false);
+  assert.ok(result.priorityItems[0].decisionFactors);
+}
+
+{
+  const result = prioritizeMemberState(stateWith([
+    { concernId: 'stress', status: 'candidate', sufficiency: 'sufficient' },
+    { concernId: 'poor_sleep', status: 'candidate', sufficiency: 'sufficient' },
+  ]), {
+    now,
+    decisionFactors: {
+      stress: { urgency: 0.2, memberImportance: 0.4, burden: 0.2 },
+      poor_sleep: { urgency: 0.9, memberImportance: 0.8, burden: 0.3 },
+    },
+  });
+  assert.deepEqual(result.priorityItems.map(item => item.concernId), ['poor_sleep', 'stress']);
+  assert.ok(result.priorityItems[0].rationaleCodes.includes('high_urgency'));
+  assert.ok(result.priorityItems[0].rationaleCodes.includes('member_importance'));
+  assert.equal('score' in result.priorityItems[0], false);
 }
 
 {
@@ -50,4 +68,4 @@ function stateWith(concerns) {
   assert.deepEqual(result.unresolvedConcernIds, ['low_energy']);
 }
 
-console.log('thin canonical Prioritization tests passed');
+console.log('canonical Prioritization tests passed');
