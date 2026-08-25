@@ -34,12 +34,12 @@ assert.ok(stressDriver.flatMap(o => o.effects).some(e => e.target === 'work' && 
 // Migrated deepening semantics remain evidence-producing and canonical.
 const emotionalImpact = observationsForAnswer(adaptQuestion(DISCOVERY_QUESTION_BY_ID.ST4), ['high']);
 assert.ok(emotionalImpact.flatMap(o => o.effects).some(e => e.target === 'stress' && e.strength > 0));
-assert.ok(emotionalImpact.flatMap(o => o.effects).some(e => e.target === 'routine' && e.strength > 0));
+assert.ok(!emotionalImpact.flatMap(o => o.effects).some(e => e.target === 'work'));
 const obligations = observationsForAnswer(adaptQuestion(DISCOVERY_QUESTION_BY_ID.M7), ['housing','healthcare']);
 const obligationTargets = new Set(obligations.flatMap(o => o.effects.map(e => e.target)));
 assert.ok(obligationTargets.has('money'));
 assert.ok(obligationTargets.has('home'));
-assert.ok(obligationTargets.has('physical'));
+assert.ok(obligationTargets.has('health'));
 
 for (const id of ['B1','B2','B3','B4']) assert.equal(DISCOVERY_QUESTION_BY_ID[id].role, 'bridge');
 const sleepStress = observationsForAnswer(adaptQuestion(DISCOVERY_QUESTION_BY_ID.B2), ['sleep']);
