@@ -1,41 +1,41 @@
 # EL8 Repository Target Architecture
 
-Status: Target-state organization plan
+Status: Target-state domain architecture
 Reconciled: 2026-08-24
 
-This document reconciles the earlier EL8 repository-organization proposal with the frozen MVP architecture and the current repository classification map. It defines the destination structure; `docs/repository-classification.md` defines how current files are classified before migration.
+This document defines the internal domain structure of the EL8 repository. It is subordinate to `docs/REPOSITORY-GOVERNANCE.md` for lifecycle/environment boundaries, promotion rules, Test Freeze, and cleanup policy. `docs/repository-classification.md` defines how current files are classified before migration.
 
-## 1. Governing principle
+## 1. Governing model
 
-Organize by product/domain responsibility first, not by the accidental collection of HTML pages currently in the repository.
+Repository placement is decided in two steps:
 
-The earlier proposal correctly separated Discovery/intelligence concerns into engine/policy/question/schema/evaluation/telemetry/UI responsibilities. That proposal was provisional, not a locked literal folder tree. The current repository already contains a substantial `intelligence/` domain structure, so cleanup should preserve useful existing boundaries rather than rename working code solely to match an old sketch.
+1. **Environment/lifecycle first** — is the artifact Active, Development, Tests/Validation, Archive, Delete Candidate, or under Test Freeze?
+2. **Domain responsibility second** — within that lifecycle state, what product/domain responsibility owns it?
 
-The frozen MVP adds a second requirement: member-facing UI must converge on Home, Plan, Insights and Explore, with Profile through the avatar and Track as a global action.
+This prevents experimental implementations from sitting beside accepted product code as though both were equally canonical, while preserving useful domain boundaries inside each environment.
+
+The frozen MVP requires the accepted member experience to converge on Home, Plan, Insights and Explore, with Profile through the avatar and Track as a global action.
 
 ## 2. Target top-level structure
 
 ```text
 /
 ├── README.md
-├── index.html                         # GitHub Pages/member app entry
+├── index.html                         # GitHub Pages/member entry when required
 ├── .github/
-│   └── workflows/                     # CI/validation workflows
-├── assets/
-│   ├── brand/
-│   ├── icons/
-│   ├── images/
-│   └── styles/
-├── app/
-│   ├── shell/                         # shared member shell/navigation
+│   └── workflows/                     # CI, validation and promotion gates
+│
+├── app/                               # ACTIVE member-facing product
+│   ├── shell/
 │   ├── home/
 │   ├── plan/
 │   ├── insights/
 │   ├── explore/
 │   ├── profile/
 │   ├── track/
-│   └── workflows/                     # onboarding, assessments, check-ins, history, safety, account states
-├── intelligence/
+│   └── workflows/
+│
+├── intelligence/                      # ACTIVE reusable intelligence/domain layer
 │   ├── evidence/
 │   ├── integration/
 │   ├── model/
@@ -44,182 +44,227 @@ The frozen MVP adds a second requirement: member-facing UI must converge on Home
 │   ├── question-bank/
 │   ├── selection/
 │   └── simulation/
-├── discovery/                         # eventual consolidated Discovery domain
-│   ├── engine/
-│   ├── policies/
-│   ├── questions/
-│   ├── schemas/
-│   ├── telemetry/
-│   └── ui/
-├── tests/
+│
+├── assets/                            # ACTIVE shared presentation assets
+│   ├── brand/
+│   ├── icons/
+│   ├── images/
+│   └── styles/
+│
+├── development/                       # ISOLATED candidate implementations
+│   ├── discovery/
+│   ├── assessments/
+│   ├── check-ins/
+│   ├── interventions/
+│   ├── experiments/
+│   └── qa/
+│
+├── tests/                             # ACCEPTANCE + REGRESSION validation
 │   ├── evals/
 │   ├── cases/
 │   ├── regressions/
 │   ├── integration/
 │   └── qa/
-├── admin/                             # restricted/internal surfaces
-├── docs/
-│   ├── repository-classification.md
-│   ├── repository-target-architecture.md
-│   └── technical/                     # technical implementation/validation docs
-└── archive/                           # only where retained history is genuinely useful
+│
+├── admin/                             # restricted/internal accepted surfaces
+├── supabase/                          # backend schema/functions/configuration
+├── docs/                              # repository governance + technical docs
+└── archive/                           # retained retired material
+    ├── prototypes/
+    ├── superseded/
+    ├── experiments/
+    └── legacy/
 ```
 
-This is a target map, not permission for a bulk move. Active paths may remain where they are until dependencies and CI references are migrated safely.
+This is a target map, not permission for a bulk move. Active dependencies, CI references, deployment constraints and Test Freeze take precedence.
 
-## 3. Member app architecture
+## 3. Active member app architecture
 
-`app/` owns member-facing presentation and interaction, not EL8's core intelligence rules.
+`app/` owns accepted member-facing presentation and interaction, not EL8's core intelligence rules.
 
 ### `app/shell/`
-
-Shared header, four-destination bottom navigation, avatar Profile entry, global Track action, routing and shared app-layout primitives.
+Shared header, four-destination bottom navigation, avatar Profile entry, global Track action, routing and shared layout primitives.
 
 ### `app/home/`
-
 Today's execution surface: next actions, EL8-requested evidence/check-ins, daily progress and richer expandable Home Quick Logs.
 
 ### `app/plan/`
-
 Active Plan, intervention/action details, rationale, cadence, calendar/schedule and review state.
 
 ### `app/insights/`
-
 Baseline-versus-Current presentation, qualitative condition, trends, longitudinal graphs, dimension details and evidence interpretation.
 
 ### `app/explore/`
-
 For You, Learn, Experts and Saved.
 
 ### `app/profile/`
-
 Account/member record, priorities/constraints, history, achievements, assessments, connections, membership, notifications, privacy/data and settings.
 
 ### `app/track/`
-
-Global member-initiated capture UI. Quick Logs are plan-derived and speed-first; text/photo/file/audio are universal fallbacks. Home and Track must call the same evidence/logging contracts.
+Global member-initiated capture UI. Quick Logs are plan-derived and speed-first; text/photo/file/audio are universal fallbacks. Home and Track call the same accepted evidence/logging contracts.
 
 ### `app/workflows/`
-
 Secondary flows that should not become primary destinations: onboarding, Universal Baseline, reassessment, check-ins, plan review/history, safety/escalation, privacy/data, account hold and similar focused states.
 
-## 4. Intelligence architecture
+## 4. Active intelligence architecture
 
-Preserve the current `intelligence/` directory as the primary reusable intelligence/domain layer. Its existing boundaries—evidence, integration, model, planning, policy, question-bank, selection and simulation—are closer to the desired architecture than the current root-page sprawl.
+`intelligence/` is the accepted reusable intelligence/domain layer. Preserve useful boundaries such as evidence, integration, model, planning, policy, question-bank, selection and simulation.
 
 Do not duplicate intelligence logic inside `app/` page folders. UI calls domain contracts; domain rules remain independently testable.
 
-Large question banks should remain modular by domain/concern rather than return to one giant file. Generated artifacts should be distinguishable from human-authored source when generation is introduced.
+Large question banks should remain modular by domain/concern. Generated artifacts should be distinguishable from human-authored source when generation is introduced.
 
-## 5. Discovery architecture
+## 5. Development architecture
 
-The earlier architecture proposal envisioned a coherent Discovery domain containing engine, policies, questions/domain modules, schemas, evaluations/cases/regressions, telemetry and UI.
+`development/` contains candidate implementations that have not passed the promotion gate. Organize them by initiative rather than by accidental file type.
 
-That conceptual separation remains valid, but the current active `discovery-round3/`, related root files and GitHub workflows must not be physically reorganized during active validation merely to achieve cosmetic cleanliness.
+### `development/discovery/`
+Target internal structure after the current Discovery Test Freeze closes:
 
-Target after Discovery stabilization:
+```text
+development/discovery/
+├── engine/
+├── policies/
+├── questions/
+├── schemas/
+├── telemetry/
+└── ui/
+```
 
-- `discovery/engine/` — orchestration, projection/resolution and adaptive flow logic.
-- `discovery/policies/` — bounded decision/safety/routing policies specific to Discovery.
-- `discovery/questions/` — Discovery question/domain source modules.
-- `discovery/schemas/` — contracts and data schemas.
-- `discovery/telemetry/` — Discovery-specific observability definitions where needed.
-- `discovery/ui/` — external/internal Discovery test surfaces that are not canonical member-app screens.
+Discovery-specific experimental behavior remains here until accepted. Cross-product intelligence that becomes accepted should be promoted into the relevant `intelligence/` domain rather than creating a permanent duplicate Discovery intelligence stack.
 
-Cross-product intelligence that is not Discovery-specific remains under `intelligence/` rather than being duplicated into `discovery/`.
+### `development/assessments/`
+Candidate assessment flows, content, selection behavior or UI that has not been accepted.
+
+### `development/check-ins/`
+Candidate daily/weekly/adaptive check-in behavior.
+
+### `development/interventions/`
+Candidate intervention, review and adaptation behavior.
+
+### `development/experiments/`
+Bounded experiments without a mature product-domain home. Successful experiments must graduate into a named domain; failed experiments are retired.
+
+### `development/qa/`
+Temporary development-specific harnesses, review pages and investigation tools. Long-term acceptance/regression assets move to `tests/`.
 
 ## 6. Tests and validation
 
-The earlier proposal's `evals/`, `cases/` and `regressions/` concepts should become a coherent `tests/` hierarchy rather than remaining scattered at root.
-
-Target:
+`tests/` is the durable validation layer for promotion and accepted product behavior.
 
 - `tests/evals/` — evaluation runners and scoring/acceptance logic.
 - `tests/cases/` — canonical synthetic/human-readable cases and fixtures.
 - `tests/regressions/` — locked failures that must never recur.
 - `tests/integration/` — cross-domain/persistence/contract tests.
-- `tests/qa/` — UI/readiness/shadow/segmented-scale and other QA harnesses.
+- `tests/qa/` — stable UI/readiness/system QA harnesses.
 
-GitHub Actions remain under `.github/workflows/` and should be updated only in the same change that relocates their referenced paths.
+Initiative-specific exploratory testing may remain inside Development while behavior is unsettled. Promote durable tests with accepted functionality.
 
-## 7. Telemetry
+GitHub Actions remain under `.github/workflows/` and should be updated only in the same change that relocates referenced paths.
 
-Do not create a top-level `telemetry/` folder merely because the earlier provisional tree named one. Telemetry should live close to the domain that owns its meaning unless a genuinely shared observability layer emerges. Discovery-specific telemetry can live under `discovery/telemetry/`; shared product telemetry can later justify a common infrastructure location.
+## 7. Promotion mapping
 
-## 8. Schemas and contracts
+Promotion does not mean moving an entire Development folder into Active. Accepted pieces are mapped to their permanent product domains.
 
-Do not create a generic top-level `schemas/` dumping ground. Keep contracts close to their governing domain:
+Examples:
 
-- Discovery contracts/schemas → `discovery/schemas/`
-- intelligence/evidence models → relevant `intelligence/` domain
-- member-app view/input contracts → relevant `app/` feature or shared app contracts
+- accepted Discovery reasoning/policies → relevant `intelligence/` domains;
+- accepted Discovery member assessment UI → `app/workflows/` or relevant member feature;
+- accepted intervention presentation → `app/plan/`;
+- accepted evidence capture → `app/track/` + `intelligence/evidence/` as appropriate;
+- accepted regression cases → `tests/regressions/`;
+- temporary review/test UI → retire unless it has continuing operational value.
 
-This preserves ownership and reduces cross-domain ambiguity.
+This rule is intended to minimize rework: experimental scaffolding can change freely without forcing the stable product architecture to change with it.
 
-## 9. Assets
+## 8. Test Freeze and current Discovery paths
 
-`assets/` should become presentation-only shared material. Target subfolders include brand, icons, images and shared styles. Feature-specific scripts/business logic should not accumulate there.
+The current `discovery-round3/`, related root files and GitHub workflows are protected while the distributed human-test round remains active. Their physical location is therefore a temporary exception to the target architecture.
 
-## 10. Documentation
+Do not move them into `development/discovery/` until the freeze closes. When it closes, migrate dependencies and workflows atomically, verify public routes, then continue validation/promotion from the new structure.
 
-`docs/` owns repository/technical implementation documentation. Product authority remains in the governed EL8 Drive; GitHub documentation should explain how the repository implements that authority rather than silently becoming a competing product-spec system.
+## 9. Telemetry
 
-Current key repository docs:
+Do not create a generic top-level telemetry dumping ground. Telemetry belongs close to the domain that owns its meaning. Experimental Discovery telemetry belongs with `development/discovery/`; accepted shared observability may later justify a common infrastructure location.
 
-- `docs/repository-classification.md` — current-state classification and migration safety rules.
-- `docs/repository-target-architecture.md` — destination architecture and reconciliation with the earlier organization plan.
+## 10. Schemas and contracts
 
-## 11. Admin
+Keep contracts close to their governing domain:
 
-Restricted administrative surfaces should converge under `admin/` and remain explicitly separate from the normal member app. Moving them requires dependency/authorization checks first.
+- experimental Discovery schemas → `development/discovery/schemas/`;
+- accepted intelligence/evidence models → relevant `intelligence/` domain;
+- member-app view/input contracts → relevant `app/` feature or shared app contracts.
 
-## 12. Archive policy
+Avoid a generic top-level `schemas/` folder unless a genuinely shared schema layer emerges.
 
-Prefer Git history over a large permanent archive. Use `archive/` only when a historical artifact needs to remain directly runnable/viewable or is still referenced during a transition. Otherwise, once dependencies are removed and accepted behavior/tests are migrated, obsolete files may be deleted because Git preserves history.
+## 11. Assets
 
-## 13. Migration sequence
+`assets/` is for accepted shared presentation material: brand, icons, images and shared styles. Feature-specific scripts/business logic do not belong there.
 
-Phase 0 — Freeze and classify: COMPLETE.
+Experimental assets that exist solely for a Development initiative should remain with that initiative until accepted.
 
-Phase 1 — Dependency map:
-- map root Home/Track/Plan files and shared navigation/evidence dependencies;
-- map Insights/dimension/history;
-- map Explore/content/saved;
-- map Profile/account/settings;
-- map assessment/check-in workflows;
-- protect Discovery/QA/CI references.
+## 12. Documentation
 
-Phase 2 — Create canonical app shell:
-- establish `app/shell/` and canonical member routing/navigation primitives;
-- do not break existing public test URLs during migration.
+`docs/` owns repository governance and technical implementation documentation. Product authority remains in the governed EL8 Drive; GitHub documentation explains how the repository implements that authority rather than becoming a competing product-spec system.
 
-Phase 3 — Migrate Home + Track together:
-- one evidence model;
-- Home progress-aware expandable Quick Logs;
-- Track speed-first plan-derived Quick Logs plus universal capture.
+Key repository docs:
 
-Phase 4 — Migrate Plan.
+- `docs/REPOSITORY-GOVERNANCE.md` — authoritative lifecycle/environment and promotion policy.
+- `docs/repository-target-architecture.md` — internal domain destination architecture.
+- `docs/repository-classification.md` — current-state classification and migration map.
 
-Phase 5 — Migrate Insights.
+## 13. Admin
 
-Phase 6 — Migrate Explore.
+Restricted administrative surfaces converge under `admin/` and remain explicitly separate from the normal member app. Moving them requires dependency and authorization checks first.
 
-Phase 7 — Migrate Profile and supporting workflows.
+## 14. Archive policy
 
-Phase 8 — Consolidate QA/tests and root experiments after dependency checks.
+Prefer Git history over a large permanent archive. Use `archive/` only when a historical artifact needs to remain directly runnable/viewable or has continuing traceability value. Otherwise, once dependencies are removed and accepted behavior/tests are preserved, obsolete files may be deleted.
 
-Phase 9 — Consolidate Discovery only after active Discovery validation is stable and its workflows can be changed atomically.
+## 15. Migration sequence
 
-Phase 10 — Retire superseded root pages, navigation helpers and the temporary MVP shell after the canonical implementation is validated.
+Phase 0 — Freeze and classify current repository state.
 
-## 14. Decision rule for current files
+Phase 1 — Reconcile environment + domain destination for every retained artifact.
 
-For every existing file, assign one of five actions before moving it:
+Phase 2 — Dependency map root member files, shared navigation/evidence, workflows, intelligence, CI and public routes.
 
-1. KEEP — already in an appropriate stable domain/path.
-2. MIGRATE — functionality remains valid but belongs in the new structure.
+Phase 3 — Protect all Test Freeze material and explicitly defer its physical migration.
+
+Phase 4 — Consolidate canonical Active app shell and Home + Track.
+
+Phase 5 — Consolidate Active Plan.
+
+Phase 6 — Consolidate Active Insights.
+
+Phase 7 — Consolidate Active Explore.
+
+Phase 8 — Consolidate Active Profile and supporting workflows.
+
+Phase 9 — Consolidate durable acceptance/regression assets under `tests/`; move temporary candidate tooling into the appropriate Development initiative.
+
+Phase 10 — After Discovery Test Freeze closes, migrate Discovery into `development/discovery/`, complete validation, and promote only accepted behavior into Active domains.
+
+Phase 11 — Retire superseded root pages, navigation helpers and temporary prototypes after canonical behavior is validated.
+
+Phase 12 — Verify deployment/CI and review stale branches after the file tree is stable.
+
+## 16. Decision rule for current files
+
+For every existing file, assign both an action and lifecycle destination before moving it.
+
+Action:
+1. KEEP — already in an appropriate stable path.
+2. MIGRATE — retained behavior belongs elsewhere.
 3. MERGE — useful behavior should be absorbed into another canonical module.
-4. HOLD — active validation/dependency makes movement premature.
+4. HOLD — dependency or Test Freeze makes movement premature.
 5. RETIRE — superseded and dependency-free after accepted behavior/test coverage is preserved.
 
-No mass rename/move should occur without this action map.
+Lifecycle destination:
+- Active
+- Development
+- Tests/Validation
+- Archive
+- Delete
+
+No mass rename/move should occur without this map.
