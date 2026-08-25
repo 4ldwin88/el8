@@ -12,7 +12,7 @@ Rules: classify capabilities, not filenames. No deletion during classification. 
 | `selection/adversarial-scenarios.js` | KEEP NONCANONICAL | Validation fixture/scenario capability belongs with validation/simulation support, not runtime Intelligence. |
 | `selection/discovery-comparison-harness*` | KEEP NONCANONICAL | Migration/regression comparison tooling; useful until canonical Discovery is promoted. |
 | `selection/member-zero-simulation.js` | KEEP NONCANONICAL | Test/simulation fixture, not canonical runtime architecture. |
-| `model/dimension-hypothesis-state*` | RETAIN TEMPORARILY | State-like capability may contain semantics worth reconciling, but canonical Member State is authoritative. Do not delete before semantic comparison. |
+| `model/dimension-hypothesis-state*` | RETIRE LATER | Useful lifecycle semantics (`unknown`/candidate/confirmed-or-active/cleared-or-excluded and confirmation need) are already represented more precisely at canonical concern level. Legacy dimension-level confidence/positive/negative accumulation and numeric priority formulas are obsolete. |
 | `model/hierarchical-state*` | RETIRE LATER | Canonical Member State now owns hierarchical member state. Retain until dependency checks and any useful semantics are reconciled. |
 | `model/subdimension-taxonomy*` | RETIRE LATER | Valid legacy vocabulary has been reconciled into `intelligence/state/taxonomy.js`; legacy numeric subdimension state/averaging is intentionally obsolete. |
 | `model/question-subdimension-map.js` | RETIRE LATER | Legacy `question -> signal -> subdimension` mapping is superseded by canonical Discovery questions that express semantic effects directly against concerns. |
@@ -30,13 +30,14 @@ Rules: classify capabilities, not filenames. No deletion during classification. 
 1. `model/subdimension-taxonomy.js`: missing valid vocabulary migrated without the legacy numeric state/averaging model.
 2. `model/question-subdimension-map.js`: legacy mapping mechanism determined obsolete because canonical questions carry direct semantic effects.
 3. `selection/question-selector.js`: useful dependency/trigger gating, uncertainty need, redundancy control, burden/capacity handling, deterministic ranking, Safety-critical override, and information-value behavior rebuilt against canonical concerns/effects in `development/discovery/question-selector.js`; adversarial tests are part of mandatory Discovery QA.
+4. `model/dimension-hypothesis-state.js`: semantic comparison completed. Its useful state lifecycle is already represented by canonical concern `status`, `sufficiency`, evidence provenance, and unresolved reasons; its numeric confidence accumulation and dimension-priority formula are not migrated.
 
 ## Immediate migration queue
 
-1. Inspect `model/dimension-hypothesis-state*` for still-valid nonnumeric state semantics.
+1. Inspect `model/hierarchical-state*` for any unique semantics not already represented by canonical Member State.
 2. Inspect callers of `integration/routing-screen*`, `integration/experience-router*`, and `integration/checkin-shadow.js` before assigning ownership.
 3. Update simulation/QA tooling to consume canonical contracts after reconciliation.
-4. Before deleting legacy selector files, verify no required runtime caller remains and canonical Discovery has reached its promotion gate.
+4. Before deleting legacy selector/model files, verify no required runtime caller remains and canonical Discovery has reached its promotion gate.
 
 ## Selector migration guardrails
 
