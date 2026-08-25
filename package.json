@@ -6,9 +6,10 @@
     "test:contracts": "node intelligence/contracts/contracts.test.js",
     "test:state": "node intelligence/state/state-contract.test.js",
     "test:prioritization": "node intelligence/prioritization/prioritization.test.js",
+    "test:planning": "node intelligence/planning/planning.test.js",
     "test:discovery": "node development/discovery/questions/validate.mjs && node development/discovery/questions/behavior-tests.mjs && node development/discovery/evidence-contract-tests.mjs && node development/discovery/canonical-evidence-tests.mjs && node development/discovery/state-contract-tests.mjs && node development/discovery/member-state-projection-tests.mjs && node development/discovery/canonical-handoff-tests.mjs && node development/discovery/canonical-vertical-slice-tests.mjs && node development/discovery/canonical-adversarial-tests.mjs && node development/discovery/regression-tests.mjs && node development/discovery/end-to-end-tests.mjs",
     "test:legacy-intelligence": "node intelligence/selection/question-selector.test.js && node intelligence/selection/adaptive-discovery-v1.test.js && node intelligence/selection/discovery-comparison-harness.test.js && node intelligence/selection/adaptive-discovery-adversarial.test.js && node intelligence/model/subdimension-taxonomy.test.js && node intelligence/model/hierarchical-state.test.js && node intelligence/integration/routing-screen.test.js && node intelligence/integration/matrix-qa-selector.test.js && node intelligence/integration/blind-qa-policy.test.js",
     "test:legacy-simulation": "node intelligence/simulation/run-simulation.js",
-    "test": "npm run test:contracts && npm run test:state && npm run test:discovery && npm run test:prioritization"
+    "test": "npm run test:contracts && npm run test:state && npm run test:discovery && npm run test:prioritization && npm run test:planning"
   }
 }
