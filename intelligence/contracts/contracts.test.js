@@ -7,6 +7,7 @@ import {
   highestSafetyLevel,
   requiresOrdinaryFlowPause,
 } from './safety.js';
+import { createHandoff, validateHandoff } from './handoffs.js';
 
 const observationRef = createContractRef({
   id: 'obs-1',
@@ -14,6 +15,12 @@ const observationRef = createContractRef({
   schemaVersion: '1.0.0',
 });
 assert.equal(observationRef.type, 'observation');
+
+const memberStateRef = createContractRef({
+  id: 'state-1',
+  type: 'member_state',
+  schemaVersion: '1.1.0',
+});
 
 const provenance = createProvenance({ sourceType: 'assessment', sourceId: 'assessment-1', observationId: 'obs-1' });
 assert.equal(provenance.observationId, 'obs-1');
@@ -27,13 +34,26 @@ const signal = createSafetySignal({
 });
 assert.equal(highestSafetyLevel([signal]), SAFETY_LEVEL.ESCALATE);
 
+const signalRef = createContractRef({ id: signal.signalId, type: 'safety_signal', schemaVersion: signal.schemaVersion });
 const disposition = createSafetyDisposition({
   dispositionId: 'disp-1',
-  signalRefs: [createContractRef({ id: signal.signalId, type: 'safety_signal', schemaVersion: signal.schemaVersion })],
+  signalRefs: [signalRef],
   disposition: 'pause_ordinary_flow',
   rationaleCodes: ['safety_override'],
 });
 assert.equal(requiresOrdinaryFlowPause(disposition), true);
+
+const handoff = createHandoff({
+  handoffId: 'handoff-1',
+  type: 'discovery_to_prioritization',
+  memberStateRef,
+  inputRefs: [observationRef],
+  safetySignalRefs: [signalRef],
+  unresolvedRefs: [createContractRef({ id: 'concern-1', type: 'concern', schemaVersion: '1.0.0' })],
+});
+assert.equal(validateHandoff(handoff).length, 0);
+assert.equal(handoff.safetySignalRefs.length, 1);
+assert.equal(handoff.unresolvedRefs.length, 1);
 
 const trace = createDecisionTrace({
   decisionId: 'decision-1',
@@ -47,5 +67,6 @@ assert.equal(trace.inputRefs.length, 1);
 
 assert.throws(() => createSafetySignal({ signalId: 'bad', level: 0, code: 'bad', sourceComponent: 'discovery' }));
 assert.throws(() => createSafetyDisposition({ dispositionId: 'bad', signalRefs: [], disposition: 'continue' }));
+assert.throws(() => createHandoff({ handoffId: 'bad', type: 'unknown', memberStateRef }));
 
 console.log('shared Intelligence contract tests passed');
