@@ -20,8 +20,8 @@ export const EMOTIONAL_QUESTIONS = Object.freeze([
   ], 0.12),
   Q('ST4', 'impact-probe', 'How much is this interfering with ordinary daily functioning?', ['stress'], [
     ['mild', 'Noticeable but manageable', { stress: 0.2 }],
-    ['moderate', 'Disrupting some routines', { stress: 0.45, schedule_disruption: 0.2 }],
-    ['high', 'Disrupting several important routines', { stress: 0.7, schedule_disruption: 0.4 }],
+    ['moderate', 'Disrupting some routines', { stress: 0.45 }],
+    ['high', 'Disrupting several important routines', { stress: 0.7 }],
   ], 0.14),
   Q('ST5', 'support-probe', 'What tends to help, even a little?', ['stress'], [
     ['rest', 'Rest or recovery time', {}],
