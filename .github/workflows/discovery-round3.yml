@@ -2,13 +2,15 @@ name: Discovery Regression
 on:
   push:
     paths:
-      - 'development/discovery/**'
+      - 'intelligence/discovery/**'
+      - 'app/onboarding/discovery-*.js'
       - 'development/app/onboarding/discovery-*.js'
       - 'package.json'
       - '.github/workflows/discovery-round3.yml'
   pull_request:
     paths:
-      - 'development/discovery/**'
+      - 'intelligence/discovery/**'
+      - 'app/onboarding/discovery-*.js'
       - 'development/app/onboarding/discovery-*.js'
       - 'package.json'
       - '.github/workflows/discovery-round3.yml'
@@ -20,5 +22,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Discovery runtime and onboarding boundary
+      - name: Canonical Discovery runtime and onboarding boundary
         run: npm run test:discovery
