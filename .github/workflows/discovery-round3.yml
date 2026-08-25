@@ -1,11 +1,11 @@
 name: Discovery Development Regression
 on:
   push:
-    branches: [feature/discovery-round-3]
+    paths:
+      - 'development/discovery/**'
   pull_request:
     paths:
       - 'development/discovery/**'
-      - 'discovery-v2-6-question-bank.js'
 jobs:
   test:
     runs-on: ubuntu-latest
