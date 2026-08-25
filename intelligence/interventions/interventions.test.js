@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createInterventionCandidates } from './interventions.js';
+import { createInterventionCandidates, selectResponseMode } from './interventions.js';
 
 const now = '2026-01-01T00:00:00.000Z';
 
@@ -17,10 +17,21 @@ const now = '2026-01-01T00:00:00.000Z';
   assert.equal(result.interventionCandidates.length, 1);
   assert.equal(result.interventionCandidates[0].interventionId, 'intervention:money_pressure');
   assert.equal(result.interventionCandidates[0].planItemId, 'plan:money_pressure');
+  assert.equal(result.interventionCandidates[0].responseMode, 'action');
   assert.deepEqual(result.interventionCandidates[0].evidenceRefs, ['ev-money']);
   assert.deepEqual(result.interventionCandidates[0].observationRefs, ['obs-money']);
   assert.deepEqual(result.unresolvedConcernIds, ['stress']);
   assert.equal('score' in result.interventionCandidates[0], false);
+}
+
+{
+  const item = { concernId: 'stress' };
+  assert.equal(selectResponseMode(item, { stress: { uncertainty: 0.8 } }).mode, 'deeper_assessment');
+  assert.equal(selectResponseMode(item, { stress: { readiness: 0.2, knowledgeGap: 0.8 } }).mode, 'education');
+  assert.equal(selectResponseMode(item, { stress: { readiness: 0.2, knowledgeGap: 0.1 } }).mode, 'tracking');
+  assert.equal(selectResponseMode(item, { stress: { feasibility: 0.2 } }).mode, 'tracking');
+  assert.equal(selectResponseMode(item, { stress: { readiness: 0.8, capacity: 0.8 } }).mode, 'action');
+  assert.equal(selectResponseMode(item, { stress: { reassessmentDue: true } }).mode, 'reassessment');
 }
 
 {
@@ -41,4 +52,4 @@ const now = '2026-01-01T00:00:00.000Z';
 }
 
 assert.throws(() => createInterventionCandidates(null), /plan.planItems is required/);
-console.log('thin canonical Intervention tests passed');
+console.log('canonical Intervention tests passed');
