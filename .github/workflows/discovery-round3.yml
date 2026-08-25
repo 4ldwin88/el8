@@ -1,11 +1,19 @@
-name: Discovery Candidate Regression
+name: Discovery Regression
 on:
   push:
     paths:
+      - 'development/discovery/**'
+      - 'development/app/onboarding/discovery-*.js'
       - 'experiments/discovery/candidate/**'
+      - 'package.json'
+      - '.github/workflows/discovery-round3.yml'
   pull_request:
     paths:
+      - 'development/discovery/**'
+      - 'development/app/onboarding/discovery-*.js'
       - 'experiments/discovery/candidate/**'
+      - 'package.json'
+      - '.github/workflows/discovery-round3.yml'
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -14,15 +22,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Question-bank structure
-        run: node experiments/discovery/candidate/questions/validate.mjs
-      - name: Question-bank behavior
-        run: node experiments/discovery/candidate/questions/behavior-tests.mjs
-      - name: Evidence contracts
-        run: node experiments/discovery/candidate/evidence-contract-tests.mjs
-      - name: State contracts
-        run: node experiments/discovery/candidate/state-contract-tests.mjs
-      - name: Architecture regressions
-        run: node experiments/discovery/candidate/regression-tests.mjs
-      - name: Adversarial end-to-end scenarios
-        run: node experiments/discovery/candidate/end-to-end-tests.mjs
+      - name: Promoted Discovery runtime and onboarding boundary
+        run: npm run test:discovery:promoted
+      - name: Candidate behavioral regression during migration
+        run: npm run test:discovery:candidate
