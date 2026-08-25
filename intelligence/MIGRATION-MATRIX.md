@@ -16,9 +16,9 @@ Rules: classify capabilities, not filenames. No deletion during classification. 
 | `model/hierarchical-state*` | RETIRE LATER | Semantic reconciliation complete. Canonical Member State already preserves hierarchical dimension/topic/concern structure, evidence references, observation timing, concern status/sufficiency, and evidence confidence without deriving numeric dimension wellness values. Legacy weighted/peak dimension aggregation is intentionally obsolete. |
 | `model/subdimension-taxonomy*` | RETIRE LATER | Valid legacy vocabulary has been reconciled into `intelligence/state/taxonomy.js`; legacy numeric subdimension state/averaging is intentionally obsolete. |
 | `model/question-subdimension-map.js` | RETIRE LATER | Legacy `question -> signal -> subdimension` mapping is superseded by canonical Discovery questions that express semantic effects directly against concerns. |
-| `integration/routing-screen*` | RETAIN TEMPORARILY | Routing may be product/application integration rather than Intelligence. Keep until callers and ownership are identified. |
-| `integration/experience-router*` | RETAIN TEMPORARILY | Potential orchestration/application concern; canonical ownership not proven yet. |
-| `integration/checkin-shadow.js` | RETAIN TEMPORARILY | Shadow/integration behavior needs caller and data-contract inspection before disposition. |
+| `integration/routing-screen*` | RETIRE LATER | Legacy onboarding/routing UI plus dimension severity scoring. No indexed runtime caller found. Useful user-facing prompts can be redesigned at the product layer if needed; numeric routing evidence is obsolete and must not enter canonical Intelligence. |
+| `integration/experience-router*` | RETIRE LATER | Legacy experience-first routing UI with numeric dimension weights/severity. No indexed runtime caller found. The UX idea may be reused separately, but the scoring/router implementation is not canonical Intelligence. |
+| `integration/checkin-shadow.js` | RETIRE LATER | Shadow adapter for the legacy question bank/evidence matrix/selector. No indexed runtime caller found and its selector capability has already been rebuilt canonically. Do not migrate this adapter as runtime architecture. |
 | `integration/matrix-qa-selector*` | KEEP NONCANONICAL | QA/selection support is validation tooling unless a runtime dependency proves otherwise. |
 | `integration/blind-qa-policy*` | KEEP NONCANONICAL | QA policy belongs to validation/testing support, not canonical runtime Intelligence. |
 | `integration/.v05`, `integration/README-v05.md` | RETIRE LATER | Version-marker/documentation remnants; remove only with their legacy integration cleanup. |
@@ -32,12 +32,19 @@ Rules: classify capabilities, not filenames. No deletion during classification. 
 3. `selection/question-selector.js`: useful dependency/trigger gating, uncertainty need, redundancy control, burden/capacity handling, deterministic ranking, Safety-critical override, and information-value behavior rebuilt against canonical concerns/effects in `development/discovery/question-selector.js`; adversarial tests are part of mandatory Discovery QA.
 4. `model/dimension-hypothesis-state.js`: semantic comparison completed. Its useful state lifecycle is already represented by canonical concern `status`, `sufficiency`, evidence provenance, and unresolved reasons; its numeric confidence accumulation and dimension-priority formula are not migrated.
 5. `model/hierarchical-state.js`: semantic comparison completed. Evidence provenance/count/timing and hierarchical organization are already represented canonically; legacy mutable subdimension values, confidence accumulation, direction labels, and weighted/peak dimension scores are not migrated.
+6. `integration/routing-screen.js`: inspected and caller-searched. It is a legacy product-routing screen coupled to numeric dimension severity/evidence, not a canonical Intelligence subsystem.
+7. `integration/experience-router.js`: inspected and caller-searched. Experience-first UX remains a possible product concept, but its numeric dimension inference/severity weights are obsolete as Intelligence state.
+8. `integration/checkin-shadow.js`: inspected and caller-searched. It is explicitly a shadow adapter around the legacy bank/evidence/selector stack; canonical selector migration removes its architectural purpose.
 
 ## Immediate migration queue
 
-1. Inspect callers of `integration/routing-screen*`, `integration/experience-router*`, and `integration/checkin-shadow.js` before assigning ownership.
-2. Update simulation/QA tooling to consume canonical contracts after integration ownership is resolved.
-3. Before deleting legacy selector/model files, verify no required runtime caller remains and canonical Discovery has reached its promotion gate.
+1. Reconcile `simulation/synthetic-members.js` and `simulation/run-simulation.js` with canonical contracts so validation capability survives legacy retirement.
+2. Review `integration/matrix-qa-selector*` and `integration/blind-qa-policy*` only for reusable validation behavior; keep them outside runtime Intelligence.
+3. Before deleting RETIRE LATER files, perform final dependency searches and wait for canonical Discovery promotion.
+
+## Integration reconciliation conclusion
+
+The three previously ambiguous integration components do not need migration into Orchestration. `routing-screen` and `experience-router` mix user-facing routing UX with numeric dimension inference; any future UX should consume canonical Discovery/Member State rather than create a parallel state model. `checkin-shadow` is legacy migration instrumentation, not durable runtime architecture.
 
 ## Model reconciliation conclusion
 
