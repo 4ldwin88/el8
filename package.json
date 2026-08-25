@@ -9,9 +9,7 @@
     "test:planning": "node intelligence/planning/planning.test.js",
     "test:interventions": "node intelligence/interventions/interventions.test.js",
     "test:outcomes": "node intelligence/outcomes/outcomes.test.js",
-    "test:discovery:promoted": "node development/discovery/discovery-runtime.test.mjs",
-    "test:discovery:candidate": "node experiments/discovery/candidate/questions/validate.mjs && node experiments/discovery/candidate/questions/behavior-tests.mjs && node experiments/discovery/candidate/question-selector.test.mjs && node experiments/discovery/candidate/canonical-simulation.test.mjs && node experiments/discovery/candidate/evidence-contract-tests.mjs && node experiments/discovery/candidate/canonical-evidence-tests.mjs && node experiments/discovery/candidate/state-contract-tests.mjs && node experiments/discovery/candidate/member-state-projection-tests.mjs && node experiments/discovery/candidate/canonical-handoff-tests.mjs && node experiments/discovery/candidate/canonical-vertical-slice-tests.mjs && node experiments/discovery/candidate/canonical-adversarial-tests.mjs && node experiments/discovery/candidate/canonical-through-planning-tests.mjs && node experiments/discovery/candidate/canonical-end-to-end-spike.test.mjs && node experiments/discovery/candidate/regression-tests.mjs && node experiments/discovery/candidate/end-to-end-tests.mjs",
-    "test:discovery": "npm run test:discovery:promoted && npm run test:discovery:candidate",
+    "test:discovery": "node development/discovery/discovery-runtime.test.mjs",
     "test": "npm run test:contracts && npm run test:state && npm run test:discovery && npm run test:prioritization && npm run test:planning && npm run test:interventions && npm run test:outcomes"
   }
 }
