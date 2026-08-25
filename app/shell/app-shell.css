@@ -1,0 +1,12 @@
+.el8-app-shell{position:relative;z-index:50}
+.el8-shell-profile{position:fixed;top:14px;right:16px;z-index:55;border:0;background:transparent;padding:0;cursor:pointer}
+.el8-shell-avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--ink,#171717);color:var(--bg,#fff);font-weight:700}
+.el8-shell-nav{position:fixed;left:0;right:0;bottom:0;z-index:52;padding:0 12px 8px;pointer-events:none}
+.el8-shell-nav-inner{max-width:560px;margin:auto;min-height:58px;display:grid;grid-template-columns:repeat(4,1fr);align-items:center;background:var(--card,#fff);border:1px solid var(--line,#ddd);border-radius:19px;box-shadow:0 10px 35px rgba(0,0,0,.12);pointer-events:auto}
+.el8-shell-nav-item{border:0;background:transparent;color:var(--muted,#777);display:grid;justify-items:center;gap:3px;padding:8px 4px;font-size:10px;font-weight:600;cursor:pointer}
+.el8-shell-nav-item svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.el8-shell-nav-item[aria-current=page]{color:var(--ink,#171717)}
+.el8-shell-track{position:fixed;right:18px;bottom:78px;z-index:54;width:58px;height:58px;border:0;border-radius:50%;background:var(--ink,#171717);color:var(--bg,#fff);box-shadow:0 10px 28px rgba(0,0,0,.22);display:grid;place-items:center;cursor:pointer}
+.el8-shell-track svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.el8-shell-track span{position:absolute;width:1px;height:1px;overflow:hidden}
+@media(min-width:760px){.el8-shell-profile,.el8-shell-track{right:calc((100vw - 720px)/2)}}
