@@ -1,73 +1,79 @@
-# Intelligence Legacy Migration Matrix
+# Intelligence Legacy Migration Record
 
-Status: bounded classification/reconciliation pass after the validated canonical vertical spike.
+Status: **COMPLETED FOR THE CLASSIFIED DISCOVERY/MODEL/INTEGRATION/SIMULATION SCOPE**
 
-Rules: classify capabilities, not filenames. No deletion during classification. Ambiguous items default to RETAIN TEMPORARILY.
+This file is retained as a concise historical record of the controlled Intelligence reconstruction. It is no longer an active migration queue.
 
-| Legacy area / capability | Disposition | Canonical destination / reason |
-|---|---|---|
-| `selection/adaptive-discovery-v1*` | RETIRE LATER | Legacy Discovery implementation; replacement is being proven under `development/discovery/**`. Keep until promotion and dependency checks. |
-| `selection/discovery-question-bank-v1.js` | RETIRE LATER | Legacy question bank superseded by canonical Discovery question assets; retain until Discovery promotion. |
-| `selection/question-selector*` | RETIRE LATER | Required adaptive-selection semantics have been rebuilt in canonical Discovery and are now mandatory-QA covered. Legacy files remain only until caller/dependency checks and Discovery promotion. |
-| `selection/adversarial-scenarios.js` | RETIRE LATER | Useful scenario intents (high friction, financial pressure, ambiguity/ties, stable-low-uncertainty, stale evidence) are covered by canonical adversarial/synthetic QA. Legacy fixture depends on signal IDs/triggers and the retired selector. |
-| `selection/discovery-comparison-harness*` | RETIRE LATER | One-off v0.13 control-vs-v1 challenger migration harness. Both compared implementations are legacy; canonical mandatory QA now validates the replacement directly. |
-| `selection/member-zero-simulation.js` | RETIRE LATER | Historical deterministic QA snapshot tied to legacy signals/triggers and selector. Canonical synthetic fixtures provide reproducible validation without embedding a real-member-derived snapshot in runtime code. |
-| `model/dimension-hypothesis-state*` | RETIRE LATER | Useful lifecycle semantics are already represented more precisely at canonical concern level. Legacy dimension-level confidence/positive/negative accumulation and numeric priority formulas are obsolete. |
-| `model/hierarchical-state*` | RETIRE LATER | Semantic reconciliation complete. Canonical Member State already preserves hierarchical dimension/topic/concern structure, evidence references, observation timing, concern status/sufficiency, and evidence confidence without deriving numeric dimension wellness values. Legacy weighted/peak dimension aggregation is intentionally obsolete. |
-| `model/subdimension-taxonomy*` | RETIRE LATER | Valid legacy vocabulary has been reconciled into `intelligence/state/taxonomy.js`; legacy numeric subdimension state/averaging is intentionally obsolete. |
-| `model/question-subdimension-map.js` | RETIRE LATER | Legacy `question -> signal -> subdimension` mapping is superseded by canonical Discovery questions that express semantic effects directly against concerns. |
-| `integration/routing-screen*` | RETIRE LATER | Legacy onboarding/routing UI plus dimension severity scoring. No indexed runtime caller found. Useful user-facing prompts can be redesigned at the product layer if needed; numeric routing evidence is obsolete and must not enter canonical Intelligence. |
-| `integration/experience-router*` | RETIRE LATER | Legacy experience-first routing UI with numeric dimension weights/severity. No indexed runtime caller found. The UX idea may be reused separately, but the scoring/router implementation is not canonical Intelligence. |
-| `integration/checkin-shadow.js` | RETIRE LATER | Shadow adapter for the legacy question bank/evidence matrix/selector. No indexed runtime caller found and its selector capability has already been rebuilt canonically. Do not migrate this adapter as runtime architecture. |
-| `integration/matrix-qa-selector*` | RETIRE LATER | Legacy QA selector encodes useful coverage-first/anti-tunneling/redundancy/burden principles, but these are now represented by canonical selector + adversarial/synthetic QA. Its dimension-severity, signal-uncertainty, and numeric score model is obsolete. |
-| `integration/blind-qa-policy*` | RETIRE LATER | Useful broad-coverage/stop-condition intent is preserved by canonical validation scenarios; implementation depends on legacy numeric belief/uncertainty thresholds and matrix question families, so it should not survive as architecture. |
-| `integration/.v05`, `integration/README-v05.md` | RETIRE LATER | Version-marker/documentation remnants; remove only with their legacy integration cleanup. |
-| `simulation/synthetic-members.js` | RETIRE LATER | Scenario-based validation capability has been rebuilt as canonical synthetic simulation against canonical Member State/question targets/selector. Legacy trigger/signal fixture schema is obsolete. |
-| `simulation/run-simulation.js` | RETIRE LATER | Canonical synthetic simulation is mandatory-QA covered and both repository QA/regression gates pass. Legacy runner remains only until final dependency/deletion gate. |
+## Result
 
-## Completed reconciliation
+Canonical Discovery has been promoted to `intelligence/discovery/**` and mandatory QA executes from that location.
 
-1. `model/subdimension-taxonomy.js`: missing valid vocabulary migrated without the legacy numeric state/averaging model.
-2. `model/question-subdimension-map.js`: legacy mapping mechanism determined obsolete because canonical questions carry direct semantic effects.
-3. `selection/question-selector.js`: useful dependency/trigger gating, uncertainty need, redundancy control, burden/capacity handling, deterministic ranking, Safety-critical override, and information-value behavior rebuilt against canonical concerns/targets/effects in `development/discovery/question-selector.js`; adversarial tests are part of mandatory Discovery QA.
-4. `model/dimension-hypothesis-state.js`: semantic comparison completed. Its useful state lifecycle is already represented by canonical concern `status`, `sufficiency`, evidence provenance, and unresolved reasons; its numeric confidence accumulation and dimension-priority formula are not migrated.
-5. `model/hierarchical-state.js`: semantic comparison completed. Evidence provenance/count/timing and hierarchical organization are already represented canonically; legacy mutable subdimension values, confidence accumulation, direction labels, and weighted/peak dimension scores are not migrated.
-6. `integration/routing-screen.js`: inspected and caller-searched. It is a legacy product-routing screen coupled to numeric dimension severity/evidence, not a canonical Intelligence subsystem.
-7. `integration/experience-router.js`: inspected and caller-searched. Experience-first UX remains a possible product concept, but its numeric dimension inference/severity weights are obsolete as Intelligence state.
-8. `integration/checkin-shadow.js`: inspected and caller-searched. It is explicitly a shadow adapter around the legacy bank/evidence/selector stack; canonical selector migration removes its architectural purpose.
-9. `simulation/synthetic-members.js` + `simulation/run-simulation.js`: validation purpose preserved by `development/discovery/canonical-simulation.test.mjs`, now mandatory in `test:discovery`. The simulation exposed and helped correct canonical target-schema handling; both required CI workflows pass after the correction.
-10. `integration/matrix-qa-selector.js`: coverage-first exploration, anti-tunneling, redundancy control, burden sensitivity, and cross-dimensional probing were reviewed. Canonical selector/tests preserve the valid principles without legacy dimension severity/signal scoring.
-11. `integration/blind-qa-policy.js`: broad evidence coverage and conservative stopping intent were reviewed. These remain validation requirements rather than a separate runtime policy engine; legacy numeric belief/uncertainty thresholds are not migrated.
-12. `selection/adversarial-scenarios.js`: scenario intent reviewed against canonical adversarial and synthetic suites; no unique runtime capability remains.
-13. `selection/discovery-comparison-harness*`: confirmed as migration-era comparison instrumentation between two superseded selector implementations, not durable validation architecture.
-14. `selection/member-zero-simulation.js`: confirmed as a historical, real-member-derived QA snapshot tied to legacy signals. No canonical migration is required; generic synthetic fixtures are the durable replacement.
+The classified legacy runtime areas were reconciled and removed after their valid semantics were either migrated, represented canonically elsewhere, or explicitly rejected:
 
-## Immediate migration queue
+- legacy `intelligence/model/**`
+- legacy `intelligence/selection/**`
+- legacy `intelligence/simulation/**`
+- legacy routing/scoring/shadow/QA implementations under `intelligence/integration/**`
+- the temporary `development/discovery/**` promotion copy
 
-1. Run final repository dependency searches across all RETIRE LATER legacy Discovery/model/integration/simulation entry points.
-2. Confirm the canonical Discovery promotion gate and promotion path (`development/discovery/**` -> `intelligence/discovery/**`) before deleting legacy runtime files.
-3. Promote canonical Discovery, rerun mandatory QA, then delete only dependency-free RETIRE LATER files in bounded batches with QA after each batch.
+An orphaned `experience-router.test.js` left after the integration batch was subsequently removed as well.
 
-## Selection fixture conclusion
+## Semantics preserved
 
-There are no remaining KEEP NONCANONICAL selection fixtures. The adversarial scenario set is superseded by canonical adversarial/synthetic tests; the comparison harness only compares legacy implementations; and the Member Zero fixture is a historical snapshot coupled to legacy signal semantics. Durable validation should use fictional canonical fixtures and production-shaped contracts.
+The reconstruction retained the useful behavior rather than the obsolete file shapes:
 
-## Validation reconciliation conclusion
+- canonical taxonomy and concern vocabulary
+- traceable Member State lifecycle and sufficiency
+- evidence provenance and contradiction handling
+- adaptive question selection
+- dependency/trigger eligibility
+- uncertainty/information need
+- redundancy suppression
+- burden/capacity sensitivity
+- deterministic selection
+- Safety-critical override behavior
+- adversarial, vertical-slice, end-to-end, and synthetic validation
 
-Legacy validation contained several sound testing principles but implemented them through the obsolete scoring architecture. Canonical QA now exercises adaptive target selection, uncertainty need, redundancy suppression, burden/capacity behavior, Safety override, deterministic ranking, adversarial handoffs, end-to-end behavior, and synthetic production-shaped scenarios. Validation semantics should live in canonical tests/simulation fixtures, not in a parallel runtime selector or numeric belief policy.
+## Semantics intentionally rejected
 
-## Integration reconciliation conclusion
+The canonical architecture does not preserve:
 
-The three previously ambiguous integration components do not need migration into Orchestration. `routing-screen` and `experience-router` mix user-facing routing UX with numeric dimension inference; any future UX should consume canonical Discovery/Member State rather than create a parallel state model. `checkin-shadow` is legacy migration instrumentation, not durable runtime architecture.
+- aggregate wellness scores
+- mutable numeric dimension/subdimension state
+- numeric confidence accumulation as member truth
+- weighted/peak dimension scoring
+- legacy signal-ID routing as canonical taxonomy
+- numeric experience-router severity weights as Intelligence state
+- parallel legacy selector/policy engines
 
-## Model reconciliation conclusion
+Internal ranking calculations may still be used to choose among candidate actions/questions, but those values are ephemeral decision mechanics and are not Member State or member wellness scores.
 
-The legacy `model/**` runtime architecture contains no remaining known semantic capability that requires migration. Its valid taxonomy vocabulary and state lifecycle concepts are represented in canonical taxonomy/Member State. Its remaining distinctive behavior is numeric aggregation/scoring that the canonical architecture intentionally rejects. Files remain until the deletion gate is satisfied.
+## Canonical locations
 
-## Selector migration guardrails
+- shared contracts: `intelligence/contracts/**`
+- Discovery: `intelligence/discovery/**`
+- Member State/taxonomy: `intelligence/state/**`
+- Prioritization: `intelligence/prioritization/**`
+- Planning: `intelligence/planning/**`
+- Interventions: `intelligence/interventions/**`
+- Outcomes: `intelligence/outcomes/**`
 
-Do not restore legacy signal IDs or numeric wellness scoring. Canonical selector ranking values are ephemeral decision-support calculations—not Member State and not member wellness scores. Safety eligibility/override must remain compatible with the canonical Safety interface rather than creating a parallel selector-specific safety model.
+`intelligence/ARCHITECTURE.md` remains the architectural authority for subsystem boundaries and future build-out.
 
-## Deletion gate
+## Validation result
 
-A RETIRE LATER item can be deleted only when its canonical replacement is covered by mandatory QA; repository search shows no required caller; any unique still-valid semantics have been migrated; and the deletion itself passes canonical QA and relevant regression suites.
+The migration was executed behind repeated QA boundaries. Canonical Repository QA and Discovery Development Regression passed after:
+
+1. canonical Discovery promotion,
+2. removal of the former development copy,
+3. legacy model removal,
+4. legacy integration removal, and
+5. legacy selection/simulation removal.
+
+The canonical synthetic simulation also exposed a real `targets` versus `effects` integration mismatch during migration; that defect was corrected before legacy simulation retirement. This is evidence that the replacement validation path was functioning rather than merely duplicating old tests.
+
+## Remaining repository cleanup
+
+This migration record does **not** declare every historical file in the repository obsolete. Older root-level prototype files, `intelligence/question-bank/**`, `intelligence/policy/**`, planning-era files, migration notes, and product/UI artifacts require their own dependency/ownership decisions before deletion.
+
+Future cleanup must therefore continue capability-by-capability rather than treating completion of this migration as permission for indiscriminate repository deletion.
