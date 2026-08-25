@@ -2,6 +2,14 @@ import assert from 'node:assert/strict';
 import { DISCOVERY_QUESTIONS } from './questions/index.js';
 import { rankDiscoveryQuestions } from './question-selector.js';
 
+function targets(question) {
+  const canonicalTargets = Array.isArray(question.targets) ? question.targets : [];
+  const evidenceTargets = (question.effects ?? [])
+    .filter(effect => effect.type === 'evidence')
+    .map(effect => effect.target);
+  return [...new Set([...canonicalTargets, ...evidenceTargets].filter(Boolean))];
+}
+
 // Synthetic scenarios are deliberately fictional and contain no production/member data.
 const scenarios = [
   {
@@ -32,14 +40,10 @@ const scenarios = [
       stress: { concernId: 'stress', status: 'candidate', sufficiency: 'insufficient' },
       low_energy: { concernId: 'low_energy', status: 'candidate', sufficiency: 'insufficient' },
     } },
-    answeredQuestions: DISCOVERY_QUESTIONS.filter(q => (q.effects ?? []).some(e => e.type === 'evidence' && e.target === 'stress')).slice(0, 2),
+    answeredQuestions: DISCOVERY_QUESTIONS.filter(q => targets(q).includes('stress')).slice(0, 2),
     expect: { avoidTarget: 'stress' },
   },
 ];
-
-function targets(question) {
-  return (question.effects ?? []).filter(effect => effect.type === 'evidence').map(effect => effect.target);
-}
 
 for (const scenario of scenarios) {
   const ranked = rankDiscoveryQuestions({
