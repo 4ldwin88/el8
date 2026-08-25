@@ -7,6 +7,7 @@ const evidence=(id,questionId,concernId,polarity,strength)=>makeObservation({
   id,questionId,concernId,specificityLevel:2,
   effects:[{type:'evidence',target:concernId,polarity,strength,certainty:'graded',sourceType:'direct',temporality:'current'}],
 });
+const approx=(actual,expected,epsilon=1e-12)=>assert.ok(Math.abs(actual-expected)<=epsilon,`expected ${actual} ≈ ${expected}`);
 
 // State is concern/evidence-derived. Evidence in one area must not mutate an unrelated area.
 const log=[evidence('m1','M1','money','supports',.8),evidence('m2','M2','money','supports',.4)];
@@ -18,13 +19,13 @@ assert.equal(sleep.rawEvidenceScore,0);
 assert.deepEqual(sleep.evidenceRefs,[]);
 
 // Multiple observations accumulate while retaining traceable evidence references.
-assert.equal(money.rawEvidenceScore,1.2);
+approx(money.rawEvidenceScore,1.2);
 assert.deepEqual(money.evidenceRefs,['M1','M2']);
 
 // Contradictory evidence changes the projection without deleting the historical evidence trail.
 const mixed=[...log,evidence('m3','M3','money','contradicts',.5)];
 const revised=deriveConcernState(mixed,'money');
-assert.equal(revised.rawEvidenceScore,.7);
+approx(revised.rawEvidenceScore,.7);
 assert.deepEqual(revised.evidenceRefs,['M1','M2','M3']);
 
 // Member-facing planning is focused rather than forcing all eight dimensions into the active plan.
