@@ -32,9 +32,3 @@ export async function signOut() {
   await supabase.auth.signOut();
   location.replace('index.html');
 }
-
-// Track remains a large working capture surface. Its navigation is isolated
-// so capture, interpretation, confirmation and persistence logic stay intact.
-if (location.pathname.endsWith('/track.html') || location.pathname.endsWith('track.html')) {
-  queueMicrotask(() => import('./track-nav.js').catch(error => console.error('Track navigation unavailable', error)));
-}
