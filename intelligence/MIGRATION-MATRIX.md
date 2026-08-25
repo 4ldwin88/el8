@@ -8,7 +8,7 @@ Rules: classify capabilities, not filenames. No deletion during classification. 
 |---|---|---|
 | `selection/adaptive-discovery-v1*` | RETIRE LATER | Legacy Discovery implementation; replacement is being proven under `development/discovery/**`. Keep until promotion and dependency checks. |
 | `selection/discovery-question-bank-v1.js` | RETIRE LATER | Legacy question bank superseded by canonical Discovery question assets; retain until Discovery promotion. |
-| `selection/question-selector*` | MIGRATE | Adaptive selection remains required. Preserve useful behavior—dependency/trigger eligibility, uncertainty/freshness need, redundancy control, friction/capacity, burden budgets, deterministic ranking, safety override, and expected-information-gain concepts—but rebuild against canonical concern/evidence semantics rather than legacy signals. |
+| `selection/question-selector*` | RETIRE LATER | Required adaptive-selection semantics have been rebuilt in canonical Discovery and are now mandatory-QA covered. Legacy files remain only until caller/dependency checks and Discovery promotion. |
 | `selection/adversarial-scenarios.js` | KEEP NONCANONICAL | Validation fixture/scenario capability belongs with validation/simulation support, not runtime Intelligence. |
 | `selection/discovery-comparison-harness*` | KEEP NONCANONICAL | Migration/regression comparison tooling; useful until canonical Discovery is promoted. |
 | `selection/member-zero-simulation.js` | KEEP NONCANONICAL | Test/simulation fixture, not canonical runtime architecture. |
@@ -27,19 +27,20 @@ Rules: classify capabilities, not filenames. No deletion during classification. 
 
 ## Completed reconciliation
 
-1. `model/subdimension-taxonomy.js` compared with canonical taxonomy; missing valid vocabulary migrated without the legacy numeric state/averaging model.
-2. `model/question-subdimension-map.js` compared with canonical Discovery; mapping mechanism determined obsolete because canonical questions carry direct semantic effects.
+1. `model/subdimension-taxonomy.js`: missing valid vocabulary migrated without the legacy numeric state/averaging model.
+2. `model/question-subdimension-map.js`: legacy mapping mechanism determined obsolete because canonical questions carry direct semantic effects.
+3. `selection/question-selector.js`: useful dependency/trigger gating, uncertainty need, redundancy control, burden/capacity handling, deterministic ranking, Safety-critical override, and information-value behavior rebuilt against canonical concerns/effects in `development/discovery/question-selector.js`; adversarial tests are part of mandatory Discovery QA.
 
 ## Immediate migration queue
 
-1. Rebuild the useful behavior from `selection/question-selector.js` as a canonical Discovery selector using concern/evidence semantics and canonical Safety contracts.
-2. Inspect `model/dimension-hypothesis-state*` for any still-valid nonnumeric state semantics.
-3. Inspect callers of `integration/routing-screen*`, `integration/experience-router*`, and `integration/checkin-shadow.js` before assigning ownership.
-4. Update simulation/QA tooling to consume canonical contracts after reconciliation.
+1. Inspect `model/dimension-hypothesis-state*` for still-valid nonnumeric state semantics.
+2. Inspect callers of `integration/routing-screen*`, `integration/experience-router*`, and `integration/checkin-shadow.js` before assigning ownership.
+3. Update simulation/QA tooling to consume canonical contracts after reconciliation.
+4. Before deleting legacy selector files, verify no required runtime caller remains and canonical Discovery has reached its promotion gate.
 
 ## Selector migration guardrails
 
-Do not copy the legacy selector wholesale. In particular, do not restore legacy signal IDs or numeric wellness scoring. The canonical selector may rank questions internally, but ranking values are ephemeral decision-support calculations—not Member State and not member wellness scores. Safety eligibility/override must use the canonical Safety interface rather than a parallel selector-specific safety model.
+Do not restore legacy signal IDs or numeric wellness scoring. Canonical selector ranking values are ephemeral decision-support calculations—not Member State and not member wellness scores. Safety eligibility/override must remain compatible with the canonical Safety interface rather than creating a parallel selector-specific safety model.
 
 ## Deletion gate
 
