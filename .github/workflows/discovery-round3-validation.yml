@@ -1,9 +1,9 @@
-name: Discovery Round 3 Validation
+name: Discovery Development Validation
 on:
   pull_request:
     branches: [main]
     paths:
-      - 'discovery-round3/**'
+      - 'development/discovery/**'
       - 'discovery-v2-6-question-bank.js'
       - '.github/workflows/discovery-round3-validation.yml'
   workflow_dispatch:
@@ -18,6 +18,6 @@ jobs:
         with:
           node-version: '22'
       - name: Architecture regressions
-        run: node discovery-round3/regression-tests.mjs
+        run: node development/discovery/regression-tests.mjs
       - name: Adversarial end-to-end scenarios
-        run: node discovery-round3/end-to-end-tests.mjs
+        run: node development/discovery/end-to-end-tests.mjs

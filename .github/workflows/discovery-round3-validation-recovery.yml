@@ -1,10 +1,10 @@
-name: Discovery Round 3 Recovery Validation
+name: Discovery Development Recovery Validation
 on:
   push:
     branches: [feature/discovery-round-3-recovery]
   pull_request:
     paths:
-      - 'discovery-round3/**'
+      - 'development/discovery/**'
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -14,8 +14,8 @@ jobs:
         with:
           node-version: 22
       - name: Architecture regressions
-        run: node discovery-round3/regression-tests.mjs
+        run: node development/discovery/regression-tests.mjs
       - name: Adversarial end-to-end scenarios
-        run: node discovery-round3/end-to-end-tests.mjs
+        run: node development/discovery/end-to-end-tests.mjs
       - name: Human harness readiness
-        run: node discovery-round3/human-readiness-tests.mjs
+        run: node development/discovery/human-readiness-tests.mjs
