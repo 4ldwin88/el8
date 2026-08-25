@@ -1,13 +1,18 @@
 import { CORE_QUESTIONS } from './core.js';
-import { FINANCIAL_WORK_QUESTIONS } from './financial-work.js';
-import { PHYSICAL_EMOTIONAL_QUESTIONS } from './physical-emotional.js';
+import { FINANCIAL_QUESTIONS } from './financial.js';
+import { OCCUPATIONAL_QUESTIONS } from './occupational.js';
+import { PHYSICAL_QUESTIONS } from './physical.js';
+import { EMOTIONAL_QUESTIONS } from './emotional.js';
 
-// Canonical candidate bank. Additional domain modules should be added here in small,
-// reviewable files rather than rebuilding a single oversized versioned question-bank blob.
+// Canonical candidate bank. Each EL8 dimension owns its own small module.
+// Cross-dimensional relationships belong in question effects/intelligence logic,
+// not in combined source files.
 export const DISCOVERY_QUESTIONS = Object.freeze([
   ...CORE_QUESTIONS,
-  ...FINANCIAL_WORK_QUESTIONS,
-  ...PHYSICAL_EMOTIONAL_QUESTIONS,
+  ...PHYSICAL_QUESTIONS,
+  ...EMOTIONAL_QUESTIONS,
+  ...FINANCIAL_QUESTIONS,
+  ...OCCUPATIONAL_QUESTIONS,
 ]);
 
 const ids = new Set();
