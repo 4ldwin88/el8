@@ -16,44 +16,53 @@ The repository must support a low-rework development pipeline: experimental or i
 Every substantive repository artifact must have one clear lifecycle state.
 
 ### Active / Stable
-
-Accepted code, intelligence, assets, and supporting material that form the current maintained EL8 product/prototype. Active material is production-intent, understandable, maintained, and covered by appropriate regression validation.
-
-Active is the stable build. It is not the place to develop uncertain behavior.
+Accepted code, intelligence, assets, and supporting material that form the current maintained EL8 product/prototype. Active is production-intent and regression-protected. It is not the place to develop uncertain behavior.
 
 ### Development
-
-Isolated candidate work being designed, implemented, reviewed, or validated for possible promotion into Active. Development is organized by initiative/domain and must have a plausible path to acceptance or retirement.
-
-Development is where new Discovery behavior, assessments, check-ins, interventions, experiments, or other candidate capabilities should be built without repeatedly disturbing the stable implementation.
+Isolated candidate work being designed, implemented, reviewed, or validated for possible promotion into Active. Development is an initiative workspace, not a permanent parallel copy of the product.
 
 ### Test / Validation
-
-Testing is a validation layer, not a second product implementation. `tests/` contains reusable automated, synthetic, regression, integration, and QA assets. Initiative-specific test harnesses may remain with Development while an initiative is experimental, but accepted regression coverage should move into `tests/` when the behavior is promoted.
-
-Human-test builds may temporarily expose Development code through stable test URLs. Exposure for testing does not make that code Active.
+Testing is the gate between Development and Active, not a third product implementation. `tests/` contains durable automated, synthetic, regression, integration, and QA assets. Initiative-specific exploratory harnesses remain inside their Development initiative until worth promoting to permanent tests.
 
 ### Archive
-
-Superseded, rejected, obsolete, or historical work retained only when direct repository access remains useful for traceability. Archive is not part of the accepted product and must never be a dependency of Active.
+Superseded, rejected, obsolete, or historical work retained only when direct repository access remains useful. Active must never depend on Archive.
 
 ### Delete Candidate
-
 Material with no continuing operational, historical, testing, or reference value. Delete only after dependency checks and confirmation that Git history is sufficient.
 
 ### Test Freeze
+Temporary protection for artifacts involved in an active human test. Frozen material is not moved, renamed, refactored, archived, or behaviorally changed except for documented critical fixes.
 
-A temporary protection state applied to files, routes, assets, data, workflows, or dependencies involved in a live human test. Test Freeze overrides cleanup convenience: frozen material must not be moved, renamed, refactored, archived, or behaviorally changed during the active test unless a critical defect requires intervention.
+## 2. Runtime environment isolation
 
-## 2. Final repository architecture
+Stable and Development must be usable simultaneously in the same browser with different signed-in accounts. This is a permanent EL8 development requirement, not a temporary convenience.
+
+Therefore Stable and Development must have **distinct browser authentication/storage origins** in deployed use. A path-only split such as `/stable/` and `/development/` on the same hostname is insufficient because browser localStorage, cookies and many auth persistence mechanisms are origin-scoped and would cause the two builds to compete for the same session.
+
+Preferred deployment model:
+
+```text
+Stable repository state  → stable deployment origin
+Development workspace    → development deployment origin
+```
+
+For example, production may later use separate hosts/subdomains such as `app.<domain>` and `dev.<domain>`. During prototype development, separate GitHub Pages-capable origins or another deployment arrangement that produces distinct origins is acceptable. Exact hostnames are deployment configuration, not repository architecture.
+
+Rules:
+1. Stable and Development may use the same Supabase project during early prototyping only if authentication persistence remains isolated by browser origin and development data is unmistakably identified/test-scoped.
+2. Before production-sensitive development, prefer separate backend environments/configuration for Stable and Development so experimental migrations, functions and test data cannot damage stable data.
+3. Environment-specific URLs, Supabase keys/IDs, feature flags and similar configuration must be supplied through environment configuration rather than duplicated business logic.
+4. A member must be able to remain signed into Stable Account A while simultaneously signed into Development Account B in ordinary browser tabs/windows without session replacement.
+5. Tests must include a dual-session isolation check before the environment architecture is considered complete.
+
+## 3. Final repository architecture
 
 ```text
 /
 ├── README.md
-├── index.html                         # deployment/member entry when required at root
+├── index.html                         # stable deployment/member entry when required
 ├── .github/
 │   └── workflows/                     # CI, validation and promotion gates
-│
 ├── app/                               # ACTIVE member-facing product
 │   ├── shell/
 │   ├── home/
@@ -63,7 +72,6 @@ A temporary protection state applied to files, routes, assets, data, workflows, 
 │   ├── profile/
 │   ├── track/
 │   └── workflows/
-│
 ├── intelligence/                      # ACTIVE reusable intelligence/domain layer
 │   ├── evidence/
 │   ├── integration/
@@ -73,48 +81,42 @@ A temporary protection state applied to files, routes, assets, data, workflows, 
 │   ├── question-bank/
 │   ├── selection/
 │   └── simulation/
-│
-├── assets/                            # ACTIVE shared presentation assets
+├── assets/                            # ACTIVE shared product assets
 │   ├── brand/
 │   ├── icons/
 │   ├── images/
 │   └── styles/
-│
-├── development/                       # ISOLATED candidate implementations
+├── development/                       # TEMPORARY initiative workspaces
 │   ├── discovery/
 │   ├── assessments/
 │   ├── check-ins/
 │   ├── interventions/
-│   ├── experiments/
-│   └── qa/
-│
-├── tests/                             # ACCEPTANCE + REGRESSION validation
-│   ├── evals/
-│   ├── cases/
-│   ├── regressions/
+│   └── experiments/
+├── tests/                             # DURABLE promotion + regression validation
+│   ├── unit/
 │   ├── integration/
+│   ├── cases/
+│   ├── evals/
+│   ├── regressions/
 │   └── qa/
-│
 ├── admin/                             # restricted/internal accepted surfaces
 ├── supabase/                          # backend schema/functions/configuration
 ├── docs/                              # repository governance + technical docs
-└── archive/                           # retired material only when worth retaining
+└── archive/                           # exceptional retained history
     ├── prototypes/
     ├── superseded/
     ├── experiments/
     └── legacy/
 ```
 
-Root must remain intentionally small. Deployment constraints and stable public URLs take precedence; root entry points may remain when GitHub Pages or tooling requires them.
+`development/qa/` is intentionally not a permanent top-level Development domain. Temporary QA belongs inside the initiative being tested (for example `development/discovery/qa/`); durable QA belongs in `tests/qa/`.
 
-## 3. Environment boundary rule
+Root remains intentionally small. Deployment constraints and stable public URLs take precedence.
 
-The repository has one maintained product and one isolated development environment, with testing acting as the gate between them.
-
-The conceptual flow is:
+## 4. Environment boundary and promotion pipeline
 
 ```text
-DEVELOPMENT
+DEVELOPMENT INITIATIVE
     ↓
 Automated / synthetic validation
     ↓
@@ -133,162 +135,129 @@ ACTIVE / STABLE
 Ongoing regression protection
 ```
 
-Failed or rejected work returns to Development or is retired. It is not patched directly into Active simply to keep an experiment moving.
+Failed/rejected work returns to Development or is retired. Promotion moves only accepted behavior/contracts/tests into permanent product domains; it does not copy the whole experimental workspace.
 
-## 4. Active architecture
+Branches provide temporary change isolation and review but are not themselves the permanent Stable/Development runtime environments.
 
-`app/` owns accepted member-facing presentation and interaction. Its canonical MVP destinations are Home, Plan, Insights and Explore, with Profile through the avatar and Track as a global action. Secondary flows belong under `app/workflows/` rather than becoming primary navigation destinations.
+## 5. Active architecture
 
-`intelligence/` owns accepted reusable reasoning/domain logic. UI code must not duplicate intelligence rules merely for convenience. Evidence, planning, policy, selection, question-bank and related contracts remain independently testable.
+`app/` owns accepted member-facing presentation and interaction. Canonical MVP destinations are Home, Plan, Insights and Explore, with Profile through the avatar and Track as a global action. Secondary flows belong under `app/workflows/`.
+
+`intelligence/` owns accepted reusable reasoning/domain logic. UI code must not duplicate intelligence rules merely for convenience.
 
 `assets/` contains accepted shared presentation assets only.
 
-`tests/` protects accepted behavior. When candidate functionality is promoted, the regression cases required to prevent recurrence of known failures are promoted with it.
+`tests/` protects accepted behavior. Important failures discovered during development become regression cases when behavior is promoted.
 
-## 5. Development architecture
+## 6. Development architecture
 
-Development is organized by initiative/domain rather than by random files or branches.
+Development is temporary and organized by initiative/domain:
 
-- `development/discovery/` — candidate Discovery engines, policies, questions, schemas, telemetry and test UI before acceptance.
-- `development/assessments/` — assessment work not yet accepted into Active workflows/intelligence.
-- `development/check-ins/` — candidate check-in behavior.
-- `development/interventions/` — candidate intervention/adaptation behavior.
-- `development/experiments/` — bounded experiments that do not yet justify a product domain.
-- `development/qa/` — temporary initiative-specific QA harnesses and review surfaces.
+- `development/discovery/` — candidate Discovery engine, policies, questions, schemas, telemetry, UI and initiative-local QA.
+- `development/assessments/` — unaccepted assessment work.
+- `development/check-ins/` — unaccepted check-in behavior.
+- `development/interventions/` — unaccepted intervention/adaptation behavior.
+- `development/experiments/` — bounded experiments without a mature permanent domain.
 
-A development initiative may contain its own internal domain structure. Promotion moves only accepted product behavior and required contracts/tests into Active; it does not copy the entire experimental workspace.
+Successful initiatives graduate into permanent `app/`, `intelligence/`, `supabase/`, `assets/` and `tests/` destinations as appropriate. Failed or superseded initiatives are retired. Development folders should not become permanent duplicate implementations.
 
-Branches provide implementation isolation and review, but branches are not permanent environments. The repository tree expresses lifecycle state after work lands; branches express temporary change sets before merge.
+## 7. Discovery status
 
-## 6. Discovery rule
+The previous Discovery human-test freeze is **closed as of 2026-08-24 by project decision**. Discovery may now be reorganized into `development/discovery/` after dependency, public-route and workflow references are mapped.
 
-Discovery is currently an independently validated initiative. While its present human-test build is active, its distributed files, routes, dependencies, and workflows remain under TEST FREEZE even if their current physical paths do not yet match `development/discovery/`.
+Discovery remains Development—not Active—until it passes the applicable validation/promotion gates.
 
-Do not reorganize Discovery merely for cosmetic cleanliness during the freeze.
+Migration sequence:
+1. Inventory current Discovery files, routes, dependencies and workflows.
+2. Map the current public/test entry route and decide whether a compatibility redirect is temporarily required.
+3. Move the isolated implementation into `development/discovery/` with initiative-local `engine/`, `policies/`, `questions/`, `schemas/`, `telemetry/`, `ui/` and `qa/` as warranted.
+4. Update CI/path references atomically.
+5. Verify the Development deployment and its independent authentication origin.
+6. Continue synthetic/independent/human validation when those rounds are scheduled.
+7. Promote only accepted pieces into permanent Active domains.
 
-After the testing round closes:
+There must ultimately be one accepted Discovery implementation, not competing Development and Active engines.
 
-1. Resolve findings in the isolated Discovery implementation.
-2. Run synthetic/regression validation.
-3. Complete required independent/human review gates.
-4. Identify which Discovery behavior is accepted product behavior.
-5. Promote accepted reusable intelligence into the appropriate `intelligence/` domains and accepted member-facing flows into `app/`.
-6. Promote required regression coverage into `tests/`.
-7. Archive or delete experimental scaffolding that no longer has value.
-
-There should not ultimately be two competing accepted Discovery engines—one in Development and one in Active.
-
-## 7. Promotion contract
+## 8. Promotion contract
 
 A candidate is promotable only when:
-
-1. Its intended behavior and acceptance criteria are defined.
+1. Intended behavior and acceptance criteria are defined.
 2. Relevant automated/synthetic tests pass.
 3. Known high-severity findings are resolved or explicitly accepted.
-4. Independent review has occurred when the initiative warrants it.
-5. Human validation has occurred when member behavior/usability is material to acceptance.
-6. Regression cases exist for important failures discovered during development.
+4. Independent review has occurred when warranted.
+5. Human validation has occurred when member behavior/usability is material.
+6. Regression cases exist for important discovered failures.
 7. Dependencies and persistence contracts are understood.
-8. Active integration does not require Active to depend on Development.
-9. Public/deployment routes affected by promotion are verified.
-10. Temporary experimental scaffolding is excluded from the promoted implementation.
+8. Active does not depend on Development.
+9. Deployment/public routes and environment configuration are verified.
+10. Stable/Development session isolation is verified when authentication is affected.
+11. Temporary experimental scaffolding is excluded from promotion.
 
-Promotion should occur as a focused change. Do not combine a promotion with unrelated repository cleanup.
-
-## 8. Human-test protection
-
-During TEST FREEZE:
-
-- Do not change public test URLs unnecessarily.
-- Do not move or rename tested files or dependencies.
-- Do not refactor frozen code for repository cleanliness.
-- Do not silently replace the tested implementation mid-round.
-- Critical fixes must be documented so results can distinguish pre-fix and post-fix participants.
-
-A frozen test build may depend on temporary paths. That technical debt is deliberately tolerated until the test closes because preserving test validity is more important than cosmetic structure.
+Promotion is a focused change and must not be combined with unrelated cleanup.
 
 ## 9. Testing ownership
 
-`tests/` is primarily for accepted or promotion-gate validation, not a dumping ground for every experimental script.
-
-- `tests/evals/` — evaluation runners and acceptance logic.
+- `tests/unit/` — stable unit-level validation.
+- `tests/integration/` — cross-domain, persistence, auth/environment and contract validation.
 - `tests/cases/` — canonical fixtures/cases.
+- `tests/evals/` — evaluation runners and acceptance logic.
 - `tests/regressions/` — failures that must not recur.
-- `tests/integration/` — cross-domain, persistence and contract validation.
 - `tests/qa/` — stable readiness/UI/system QA.
 
-Temporary exploratory harnesses stay with their Development initiative until they become useful long-term validation assets.
-
-GitHub Actions remain in `.github/workflows/`. Path-dependent workflows must be changed atomically with the paths they validate.
+Temporary exploratory harnesses remain inside their Development initiative. GitHub Actions remain in `.github/workflows/`; path-dependent workflows move atomically with referenced files.
 
 ## 10. Active dependency rules
 
-Active may depend on Active, accepted shared assets, backend infrastructure, and accepted contracts.
+Active may depend on Active, accepted assets, backend infrastructure and accepted contracts. Active must not depend on Archive and must not normally depend on Development.
 
-Active must not depend on Archive.
-
-Active must not normally depend on Development. A temporary migration exception must be explicitly documented and removed as part of promotion completion.
-
-Development may consume accepted Active contracts when needed to prove compatibility, but experiments should avoid mutating Active behavior.
+Development may consume accepted Active contracts when necessary to prove compatibility but should avoid mutating Stable behavior or data.
 
 ## 11. File movement rules
 
-Before moving or renaming a live file:
-
-1. Identify imports, relative links, assets, routes, workflow references, tests and deployment assumptions.
-2. Determine lifecycle state and whether TEST FREEZE applies.
-3. Decide the destination according to environment first, then domain responsibility.
-4. Update references atomically with the move.
+Before moving/renaming a live file:
+1. Identify imports, links, assets, routes, workflow references, tests and deployment assumptions.
+2. Determine lifecycle state and any active Test Freeze.
+3. Decide destination by environment first, then domain responsibility.
+4. Update references atomically.
 5. Run relevant validation.
-6. Verify deployed/public behavior where applicable.
+6. Verify deployed/public behavior and environment/session isolation where applicable.
 
-Do not reorganize a working implementation solely because its current folder name is aesthetically imperfect.
+Do not reorganize a working implementation solely because a folder name is aesthetically imperfect.
 
 ## 12. Archive and deletion rules
 
-Prefer Git history over retaining meaningless duplicates.
-
-Use Archive only when a historical artifact needs to remain directly runnable/viewable or provides continuing traceability value. Archived code must not be deployed or referenced by Active.
-
-Delete material only after dependency checks establish that it has no operational/testing value and Git history adequately preserves provenance.
+Prefer Git history over retaining meaningless duplicates. Archive only when direct runnable/viewable history or traceability has continuing value. Delete only after dependency checks establish no operational/testing value remains.
 
 ## 13. Documentation authority
 
-This file is authoritative for repository lifecycle states, environment boundaries, promotion, test protection, cleanup and maintenance.
+This file is authoritative for repository lifecycle states, runtime environments, promotion, test protection, cleanup and maintenance.
 
-`docs/repository-target-architecture.md` is authoritative for the detailed internal domain layout of Active and Development implementations, but it must conform to the environment boundaries defined here.
-
-`docs/repository-classification.md` records current-state classification and migration decisions.
-
-README should remain concise and point to these documents rather than duplicating them.
+`docs/repository-target-architecture.md` controls detailed internal domain layout subject to these environment boundaries. `docs/repository-classification.md` records current-state classification and migration decisions. README should point here rather than duplicate this policy.
 
 ## 14. Cleanup migration sequence
 
-Repository cleanup follows this order:
-
 1. Inventory current repository state.
-2. Classify each substantive artifact as Active, Development, Archive, Delete Candidate, or TEST FREEZE.
-3. Map dependencies and deployment/public-route risk.
-4. Map each retained artifact to its final environment and domain destination.
-5. Protect all frozen test material.
-6. Move low-risk Development/Archive/support material first.
-7. Consolidate the canonical Active app and intelligence layers in controlled batches.
-8. Consolidate accepted regression/validation assets under `tests/`.
-9. Migrate frozen initiatives only after their test freezes close.
-10. Retire superseded root pages/helpers only after canonical behavior is validated.
+2. Classify each substantive artifact as Active, Development, Tests/Validation, Archive or Delete Candidate.
+3. Map dependencies, deployment/public routes and authentication/session assumptions.
+4. Map each retained artifact to final environment + domain destination.
+5. Move low-risk Development/Archive/support material first.
+6. Consolidate canonical Active app and intelligence layers in controlled batches.
+7. Consolidate durable regression/validation assets under `tests/`.
+8. Migrate Discovery into `development/discovery/` now that its freeze is closed.
+9. Retire superseded root pages/helpers only after canonical behavior is validated.
+10. Establish/verify distinct Stable and Development deployment origins and dual-account session isolation.
 11. Verify deployment and CI after each structural batch.
 12. Review stale branches only after the file tree is stable.
 
 ## 15. Decision rule for every current file
 
-Before any move, assign one action:
-
+Assign one action before movement:
 1. KEEP — already appropriate and stable.
 2. MIGRATE — retained behavior belongs at another canonical path.
 3. MERGE — useful behavior should be absorbed into another canonical module.
-4. HOLD — active dependency or TEST FREEZE makes movement premature.
+4. HOLD — active dependency/Test Freeze makes movement premature.
 5. RETIRE — superseded and dependency-free after accepted behavior/test coverage is preserved.
 
-Then assign one lifecycle destination: Active, Development, Tests/Validation, Archive, or Delete.
+Then assign lifecycle destination: Active, Development, Tests/Validation, Archive, or Delete.
 
-No mass move, rename, or deletion occurs without this classification and dependency check.
+No mass move, rename or deletion occurs without classification and dependency checks.
