@@ -10,6 +10,7 @@
     "test:interventions": "node intelligence/interventions/interventions.test.js",
     "test:outcomes": "node intelligence/outcomes/outcomes.test.js",
     "test:discovery": "node intelligence/discovery/discovery-runtime.test.mjs",
-    "test": "npm run test:contracts && npm run test:state && npm run test:discovery && npm run test:prioritization && npm run test:planning && npm run test:interventions && npm run test:outcomes"
+    "test:insights": "node app/insights/daily-evidence.test.mjs",
+    "test": "npm run test:contracts && npm run test:state && npm run test:discovery && npm run test:prioritization && npm run test:planning && npm run test:interventions && npm run test:outcomes && npm run test:insights"
   }
 }
