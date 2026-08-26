@@ -1,4 +1,4 @@
-export const EFFECT_TYPES = Object.freeze(['evidence','safety','immediacy','readiness','importance']);
+export const EFFECT_TYPES = Object.freeze(['evidence','safety','immediacy','readiness','importance','member-priority','feasibility','constraint','barrier','support','access','capacity']);
 export const RESOLUTION_STATES = Object.freeze(['unscoped','triaged','narrowing','sufficient','deferred','escalated','nonIssue']);
 export const IMMEDIACY = Object.freeze(['routine','time-sensitive','acute']);
 export const TEMPORALITY = Object.freeze(['current','recurring','historical','resolved','unknown']);
@@ -18,6 +18,7 @@ export function assertEffect(effect) {
     if (!['graded','definitive'].includes(effect.certainty ?? 'graded')) throw new Error('Invalid evidence certainty');
   }
   if (effect.type === 'immediacy' && !IMMEDIACY.includes(effect.value)) throw new Error('Invalid immediacy');
+  if (effect.type === 'feasibility' && (!effect.feasibility || typeof effect.feasibility !== 'object' || Array.isArray(effect.feasibility))) throw new Error('Invalid feasibility payload');
   return effect;
 }
 
