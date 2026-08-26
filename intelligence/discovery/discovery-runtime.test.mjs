@@ -5,6 +5,7 @@ import {
   nextDiscoveryStep,
   discoveryOutput,
   discoveryPriorityCandidates,
+  actionsForConfirmedPriorities,
 } from '../../app/onboarding/discovery-runtime.js';
 
 const runtime = discovery.session({ concernIds: [] });
@@ -20,8 +21,6 @@ assert.ok(proposal && typeof proposal === 'object', 'onboarding Discovery bounda
 assert.ok('plan' in proposal, 'proposal should include the member plan');
 assert.ok('trace' in proposal, 'proposal should include the Discovery trace');
 
-// Live-test regression: importance is a single pass. Once triaged, Discovery must not
-// emit another triage/priority-ranking step simply because later evidence changes.
 const once = createDiscoverySession({ concernIds: ['money_pressure','physical_condition','poor_sleep','low_focus'] });
 let step = nextDiscoveryStep(once);
 assert.equal(step.type, 'triage', 'new concern set should receive one importance pass');
@@ -30,9 +29,6 @@ step = nextDiscoveryStep(once);
 assert.notEqual(step.type, 'triage', 'importance must not be requested twice');
 assert.notEqual(step.type, 'priority-resolution', 'mid-Discovery priority ranking is forbidden');
 
-// Live-test regression: member-emphasized concerns survive to Proposed Priorities even
-// when derived evidence confidence is zero. This prevents an empty priority gate after
-// the member explicitly rated Money/Health high and Sleep/Focus somewhat important.
 const emphasizedOutput = {
   trace: { states: [
     { concernId:'money_pressure', resolutionState:'triaged', memberImportance:3, evidenceConfidence:0 },
@@ -47,8 +43,6 @@ const emphasized = discoveryPriorityCandidates(emphasizedOutput);
 assert.deepEqual(emphasized.map(x=>x.concernId), ['money_pressure','physical_condition','low_focus','poor_sleep'], 'explicitly important concerns must remain available');
 assert.equal(emphasized.some(x=>x.concernId==='low_energy'), false, 'unmentioned zero-evidence concern must not appear');
 
-// Inferred concerns are allowed only with positive evidence and are labeled as inferred
-// so the UI can explain why EL8 is asking/showing them.
 const inferred = discoveryPriorityCandidates({
   trace:{states:[{concernId:'low_energy',resolutionState:'triaged',memberImportance:null,evidenceConfidence:0.45,evidenceRefs:['D2:inside']}]},
   plan:{focus:[]},
@@ -56,5 +50,15 @@ const inferred = discoveryPriorityCandidates({
 assert.equal(inferred.length,1,'positive evidence may surface an inferred concern');
 assert.equal(inferred[0].inferred,true,'evidence-only concern should be marked inferred');
 assert.deepEqual(inferred[0].evidenceRefs,['D2:inside'],'inferred concern should preserve its evidence trail');
+
+// Live-test regression: confirming two domains must generate interventions from both
+// confirmed concern states, not filter a stale pre-confirmation action pool.
+const multiDomainOutput={trace:{states:[
+  {concernId:'money_pressure',label:'Money',resolutionState:'triaged',memberImportance:3,evidenceConfidence:.7,evidence:{severity:2,frequency:2,impact:2}},
+  {concernId:'physical_condition',label:'Health',resolutionState:'triaged',memberImportance:3,evidenceConfidence:.7,evidence:{severity:2,frequency:2,impact:2}},
+]},plan:{focus:[]}};
+const multi=actionsForConfirmedPriorities(multiDomainOutput,['money_pressure','physical_condition'],{});
+assert.ok(multi.some(a=>a.concernId==='money_pressure'),'Money confirmation should generate a financial action');
+assert.ok(multi.some(a=>a.concernId==='physical_condition'),'Health confirmation should generate a physical action');
 
 console.log('canonical Discovery runtime + onboarding contract regression tests passed');
