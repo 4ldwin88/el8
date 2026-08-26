@@ -1,5 +1,5 @@
-import{INTELLIGENCE_TEST_STORAGE_KEY}from'../app/research/intelligence-test-version.js?v=2026.08.26.1';
-import{createIntelligenceTestSession,beginIntelligenceTest,elapsedMs,nextSequence}from'../app/research/intelligence-test-contract.js?v=2026.08.26.1';
+import{INTELLIGENCE_TEST_STORAGE_KEY}from'../app/research/intelligence-test-version.js';
+import{createIntelligenceTestSession,beginIntelligenceTest,elapsedMs,nextSequence}from'../app/research/intelligence-test-contract.js';
 const SUPABASE_URL='https://jprdsidxwjkgiqqakwpr.supabase.co';
 const SUPABASE_KEY='sb_publishable_CkcqWpD6nkzRzBfuJV08TQ_t38C9j34';
 async function rpc(name,args={}){const response=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(args)});const text=await response.text();if(!response.ok)throw new Error(`Research service ${response.status}: ${text.slice(0,240)}`);if(!text)return null;try{return JSON.parse(text)}catch{return text}}
