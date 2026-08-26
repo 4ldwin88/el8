@@ -1,12 +1,47 @@
 import assert from 'node:assert/strict';
 
-const ENDPOINT = process.env.EL8_PERSISTENCE_HARNESS_URL || 'https://jprdsidxwjkgiqqakwpr.supabase.co/functions/v1/persistence-harness';
+const SUPABASE_URL = process.env.EL8_SUPABASE_URL || 'https://jprdsidxwjkgiqqakwpr.supabase.co';
+const ENDPOINT = process.env.EL8_PERSISTENCE_HARNESS_URL || `${SUPABASE_URL}/functions/v1/persistence-harness`;
+const PUBLISHABLE_KEY = process.env.EL8_SUPABASE_PUBLISHABLE_KEY;
+const QA_EMAIL = process.env.EL8_QA_EMAIL;
+const QA_PASSWORD = process.env.EL8_QA_PASSWORD;
+
+function requireSecret(name, value) {
+  if (!value) throw new Error(`Missing required live-test environment variable: ${name}`);
+  return value;
+}
+
+async function getAccessToken() {
+  requireSecret('EL8_SUPABASE_PUBLISHABLE_KEY', PUBLISHABLE_KEY);
+  requireSecret('EL8_QA_EMAIL', QA_EMAIL);
+  requireSecret('EL8_QA_PASSWORD', QA_PASSWORD);
+
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: PUBLISHABLE_KEY
+    },
+    body: JSON.stringify({ email: QA_EMAIL, password: QA_PASSWORD })
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || !body.access_token) {
+    throw new Error(`QA authentication failed (HTTP ${response.status}): ${body.error_description || body.msg || body.error || 'no access token returned'}`);
+  }
+  return body.access_token;
+}
+
+const ACCESS_TOKEN = await getAccessToken();
 const stamp = () => Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
 
 async function rawWrite(entry_id, payload, simulate_ambiguous = false) {
   const response = await fetch(ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: PUBLISHABLE_KEY,
+      Authorization: `Bearer ${ACCESS_TOKEN}`
+    },
     body: JSON.stringify({ entry_id, payload, simulate_ambiguous })
   });
   let body;
