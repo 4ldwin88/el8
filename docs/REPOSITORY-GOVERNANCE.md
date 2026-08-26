@@ -11,32 +11,35 @@ Source directories represent product domains. Build state is represented by Git 
 
 ## 1. Current lifecycle state
 
-EL8 currently has a **Working Prototype**. It does **not** yet have a declared Stable Build.
+EL8 currently has an accepted **Working Prototype** on `main` and an active **Development** integration line. It does **not** yet have a declared Stable Build.
 
-Until the Stable/Development split is formally activated:
+Current branch authority:
 
-- `main` is the canonical working prototype and the only permanent branch.
-- All implementation work occurs on short-lived branches created from current `main`.
-- A branch is merged only after applicable gates pass.
-- The branch is deleted after merge or rejection.
-- A working prototype is not automatically considered stable or production-ready.
+- `main` — accepted Working Prototype. It is protected by process from speculative development and remains the fallback accepted build.
+- `development` — persistent next-build integration line. Accepted experimental/feature increments enter here after their applicable gates pass.
+- `feat/*`, `fix/*`, `experiment/*` — short-lived bounded work created from current Development and returned through PR after validation.
 
-The current prototype may contain known product, UX, validation, infrastructure, and operational work still to be completed. Those issues belong in planned development; they are not a reason to create permanent alternate branches.
+Until Stable is formally declared, promotion from Development to `main` means accepting a new Working Prototype. It does not confer Stable or production-ready status.
 
-## 2. Future permanent build model
+The current prototype may contain known product, UX, validation, infrastructure, and operational work still to be completed. Those issues belong in planned Development work; they are not a reason to create permanent alternate branches.
 
-When EL8 reaches the agreed release-readiness threshold, activate two persistent build lines:
+## 2. Permanent build model
 
-### Stable
-The accepted release line. Stable must be independently deployable and boring by design: accepted behavior only, no speculative development, no experimental fixes, and no incomplete migrations.
+The Development line is now activated. Stable remains future state.
+
+### Working Prototype (`main`, current pre-Stable release line)
+The accepted prototype used as the fallback canonical build while release readiness is still being established. No speculative development occurs directly here.
 
 ### Development
-The coherent next-build integration line. Development may contain accepted-in-progress work intended for the next Stable release. It must remain deployable and reasonably healthy; it is not a dumping ground for arbitrary experiments.
+The coherent next-build integration line. Development may contain accepted-in-progress work intended for the next Working Prototype or future Stable release. It must remain deployable and reasonably healthy; it is not a dumping ground for arbitrary experiments.
+
+### Stable (future)
+The accepted release line after the Stable activation gate is explicitly satisfied. Stable must be independently deployable and boring by design: accepted behavior only, no speculative development, no experimental fixes, and no incomplete migrations.
 
 ### Feature / fix / experiment branches
-Short-lived branches created from Development once the split exists. They contain one bounded objective and return to Development through a PR after validation.
+Short-lived branches created from Development. They contain one bounded objective and return to Development through a PR after validation.
 
-The permanent flow becomes:
+The active flow is:
 
 ```text
 feature / fix / experiment
@@ -49,26 +52,30 @@ feature / fix / experiment
         ↓
  human / independent validation when warranted
         ↓
- release-readiness decision
+ explicit promotion decision
         ↓
-       Stable
+ main Working Prototype (pre-Stable)
+        ↓
+ Stable only after Stable activation gate
 ```
 
-Stable and Development use the same canonical source architecture. Environment differences are configuration and deployment concerns.
+Stable and Development will use the same canonical source architecture. Environment differences are configuration and deployment concerns.
 
 ## 3. Promotion principle
 
 EL8 follows **develop first, prove second, promote third**.
 
-No change is experimented on Stable. A proposed change is developed away from Stable, validated against its own acceptance criteria, integrated into Development, tested as part of the coherent candidate build, and only then promoted to Stable.
+No change is experimented on the accepted Working Prototype or future Stable line. A proposed change is developed away from `main`, validated against its own acceptance criteria, integrated into Development, tested as part of the coherent candidate build, and only then considered for promotion.
 
 A failed gate stops promotion. The response is to fix, revise, or reject the candidate—not to weaken the gate merely to make it pass.
+
+Before Stable exists, an accepted Development candidate may be promoted to `main` as the next Working Prototype. After Stable exists, Stable promotion follows the full release gate and Development remains the next-build line.
 
 Emergency Stable fixes, once Stable exists, use a short-lived hotfix branch from Stable, receive the smallest applicable gate set plus regression protection, merge to Stable, and are immediately reconciled back into Development so the lines cannot silently diverge.
 
 ## 4. Stable activation gate
 
-Do not create a permanent Stable/Development split prematurely. Activate it when all of the following are true:
+Do not declare Stable prematurely. Activate Stable when all of the following are true:
 
 1. The working prototype has a coherent MVP/release scope.
 2. Core onboarding and primary member workflows function end-to-end.
@@ -86,9 +93,9 @@ Passing one or several gates does not independently confer Stable status. Stable
 ## 5. Branch protocol
 
 ### Permanent branches
-Current prototype phase: `main` only.
+Current pre-Stable phase: `main` and `development`.
 
-Future release phase: Stable release branch plus one Development integration branch. Exact names should be chosen once and then remain fixed; do not accumulate aliases such as `dev2`, `stable-old`, `candidate-final`, etc.
+Future release phase: Stable release line plus Development integration line. If `main` becomes the Stable release line, document that explicit transition; do not create aliases such as `stable-old`, `dev2`, or `candidate-final`.
 
 ### Temporary branch naming
 Use one of:
@@ -106,7 +113,7 @@ Do not use personal-name branch families, version graveyards, numbered retry bra
 - One branch per bounded objective.
 - Reuse the active branch for corrections to that same objective instead of creating retry branches.
 - Do not create a new branch merely because CI failed.
-- Do not leave completed branches after merge.
+- Do not leave completed temporary branches after merge.
 - Do not keep rejected experiments as branches; Git history/closed PRs are sufficient.
 - Before starting work, check whether an active branch already owns the objective.
 
@@ -151,6 +158,9 @@ Authentication, persistence, Supabase, deployment, concurrency, migration, or en
 ### Level D — human/independent
 Required for material onboarding, Discovery, planning, safety, major UX, or release-candidate behavior where technically correct code may still produce a poor or misleading experience.
 
+### Working Prototype promotion
+A Development candidate may replace `main` only after all gates applicable to the material changes pass and no known blocking regression remains. This is an acceptance decision, not a Stable declaration.
+
 ### Stable promotion
 A release candidate must pass all gates designated for that release and have no unresolved release blockers.
 
@@ -161,9 +171,9 @@ Stable and Development must eventually support simultaneous authenticated use in
 Required future topology:
 
 ```text
-Stable       -> stable deployment origin
-Development  -> development/preview origin
-Experiment   -> isolated preview when authentication is required
+Stable / accepted release -> stable deployment origin
+Development               -> development/preview origin
+Experiment                -> isolated preview when authentication is required
 ```
 
 Environment identity, backend URL/key, feature flags, telemetry labels, and test namespace are configuration concerns. Before production-sensitive work, Stable and Development backend environments should be independently controllable.
@@ -226,7 +236,7 @@ For every material backend change:
 2. prefer migration/supersession over destructive deletion of member history;
 3. update repository-owned persistence contracts/migrations where applicable;
 4. test against the live development backend when mocks cannot prove correctness;
-5. ensure Stable is not silently depending on an untracked development-only backend mutation once Stable exists.
+5. ensure the accepted Working Prototype/future Stable build is not silently depending on an untracked Development-only backend mutation.
 
 ## 14. Documentation protocol
 
@@ -259,7 +269,7 @@ Check:
 - workflows no longer protecting canonical code;
 - backend changes not represented by current contracts/migrations.
 
-Expected branch state during the current prototype phase is normally `main` plus only the few branches actively being worked on. After a work item merges, return to `main` only whenever no other objective is active.
+Expected branch state during active development is `main`, `development`, and only the few temporary branches currently being worked on. After a work item merges, delete its temporary branch.
 
 ## 16. Cleanup and archive rule
 
@@ -272,7 +282,7 @@ Bring forward capabilities, not historical layouts.
 The lifecycle hierarchy is:
 
 1. Stable release contract, once activated.
-2. Development integration contract, once activated.
+2. Development integration contract.
 3. This repository governance document.
 4. Domain-specific technical contracts.
 5. Individual implementation artifacts.
