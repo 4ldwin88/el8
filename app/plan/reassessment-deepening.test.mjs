@@ -1,0 +1,5 @@
+import test from'node:test';import assert from'node:assert/strict';import{reassessmentDeepeningQuestions,deepeningNeed}from'./reassessment-deepening.js';
+test('ordinary ready state does not deepen',()=>assert.equal(deepeningNeed({reason:null}).required,false));
+test('insufficient evidence requests bounded follow-ups',()=>{const x=deepeningNeed({reason:'insufficient_driver_evidence',dimension:'Physical',drivers:[{id:'energy',confidence:.4}]});assert.equal(x.required,true);assert.ok(x.questions.length<=3);assert.ok(x.questions.length>0)});
+test('already asked questions are not repeated',()=>{const first=reassessmentDeepeningQuestions({dimension:'Physical',drivers:[{id:'energy'}]});if(!first.length)return;const next=reassessmentDeepeningQuestions({dimension:'Physical',drivers:[{id:'energy'}],askedQuestionIds:[first[0].id]});assert.ok(next.every(q=>q.id!==first[0].id))});
+test('follow-ups are discriminators or feasibility probes',()=>{const qs=reassessmentDeepeningQuestions({dimension:'Financial',drivers:[{id:'money'}]});assert.ok(qs.every(q=>['driver-discriminator','discriminator','confirmation','feasibility-probe'].includes(q.role)))});
