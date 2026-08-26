@@ -4,17 +4,17 @@ EL8 is a wellness operating system currently in prototype development. This repo
 
 ## Current build status
 
-**Working Prototype:** available and usable for ongoing product development and testing.
+**Working Prototype:** `main` remains the accepted working prototype.
 
-**Stable Build:** not established yet.
+**Development Candidate:** `development` is now the persistent integration line for the next coherent build.
 
-The current `main` branch is the canonical working prototype while EL8 remains in prototype development. A stable release line must not be declared merely because the prototype works. Stable begins only after the prototype reaches an agreed release-readiness threshold and passes the required technical, persistence, safety, regression, human-validation, and deployment gates.
+**Stable Build:** not established yet. `main` is not to be relabeled Stable merely because Development has been activated.
 
-When Stable is established, EL8 will use separate deployment lines without duplicating source trees:
+EL8 now uses the active development flow:
 
-`experiment/feature → development candidate → validation gates → stable promotion`
+`experiment/feature → development → validation gates → accepted working prototype/release promotion`
 
-See `docs/REPOSITORY-GOVERNANCE.md` for the authoritative protocol.
+Until a true Stable release is declared, promotion from Development to `main` means accepting a new Working Prototype, not declaring production stability. Stable begins only after the complete release-readiness gate in `docs/REPOSITORY-GOVERNANCE.md` is satisfied.
 
 ## Repository model
 
@@ -57,17 +57,21 @@ Safety can interrupt ordinary routing through the canonical Safety contract. Leg
 
 ## Development workflow
 
-Never develop substantial changes directly on the stable release line. During the current prototype phase, use a short-lived branch from `main`, validate the change, merge through a PR, then delete the branch. Keep only active work branches.
+Material new work starts from `development` on a short-lived `feat/`, `fix/`, or `experiment/` branch. Validate the bounded objective, merge it back to Development through a PR, then delete the temporary branch.
 
-Once a dedicated Development/Stable split is activated, new work starts from Development, not Stable. Stable receives only promoted release candidates that have passed the defined gates. Failed experiments are fixed or discarded in Development/feature branches and never patched experimentally in Stable.
+`development` is an integration line, not an experiment dump. It should contain only accepted-in-progress work intended for the next coherent prototype/release candidate.
+
+`main` remains the accepted Working Prototype until a Development candidate passes the applicable integration, persistence, safety, regression, and human-validation gates and is explicitly promoted. Do not experiment directly on `main`.
+
+Once Stable is formally declared, the same experiment → Development → validation → Stable discipline continues, with Stable deployed separately.
 
 `npm test` is the repository-level canonical automated gate. Focused workflows may add stricter domain gates. Passing automation is necessary but does not by itself make a build Stable.
 
 ## Repository hygiene
 
-- `main` is the only permanent branch during the current prototype phase.
+- Permanent active lines are currently `main` (accepted Working Prototype) and `development` (next-build integration).
 - Feature/fix/experiment branches are short-lived and single-purpose.
-- Every branch must end by merge or explicit rejection, then deletion.
+- Every temporary branch must end by merge or explicit rejection, then deletion.
 - No abandoned draft PRs or indefinite compatibility branches.
 - No duplicate Stable/Development source directories.
 - No root dumping ground for temporary scripts, reports, experiments, or documents.
