@@ -7,23 +7,27 @@ function concernForTarget(target){return CONCERN_ALIAS[target]??target}
 function specificityForRole(role){return role==='gateway'?0:role==='concern-scope'?1:role==='confirmation'?2:role==='discriminator'?2:role==='driver-discriminator'?3:role==='bridge'?2:role==='feasibility-probe'?3:1}
 function responseMode(q){if(q.responseMode)return q.responseMode;if(q.mode==='multi')return'multi';if(q.mode==='scale')return'scale';if(q.mode==='structured')return'structured';return'single'}
 function evidenceEffect(target,value){return {type:'evidence',target:concernForTarget(target),polarity:value>0?'supports':value<0?'contradicts':'neutral',strength:Math.min(1,Math.abs(value)),certainty:Math.abs(value)>=.9?'definitive':'graded',sourceType:'direct',temporality:'current'}}
+const FIT=Object.freeze({
+ time:[['constraint','limited_time'],['feasibility',{scheduleFlexibility:'low'}]],
+ cost:[['constraint','limited_budget'],['feasibility',{costSensitivity:'high'}]], money:[['constraint','limited_budget'],['feasibility',{costSensitivity:'high'}]],
+ space:[['constraint','limited_space'],['feasibility',{locationAccess:'limited'}]], environment:[['constraint','unreliable_environment'],['feasibility',{locationAccess:'limited'}]],
+ mobility:[['constraint','mobility_accessibility'],['feasibility',{accessibilityNeeds:true}]], accessibility:[['constraint','mobility_accessibility'],['feasibility',{accessibilityNeeds:true}]],
+ pain:[['constraint','pain_or_symptoms'],['feasibility',{symptomConstraint:true}]], symptoms:[['constraint','pain_or_symptoms'],['feasibility',{symptomConstraint:true}]], health:[['constraint','health_or_energy'],['feasibility',{healthConstraint:true}]],
+ health_guidance:[['constraint','professional_guidance'],['feasibility',{professionalGuidanceRequired:true}]], professional:[['constraint','professional_guidance'],['feasibility',{professionalGuidanceRequired:true}]],
+ motivation:[['barrier','activation_barrier'],['feasibility',{activationSupportNeeded:true}]], starting:[['barrier','activation_barrier'],['feasibility',{activationSupportNeeded:true}]],
+ interruptions:[['constraint','uncontrolled_interruptions'],['feasibility',{interruptionControl:'low'}]], energy:[['constraint','variable_energy'],['feasibility',{energyConstraint:true}]],
+ transport:[['constraint','transport_or_location'],['feasibility',{locationAccess:'limited'}]], care:[['constraint','caregiving_responsibilities'],['feasibility',{scheduleFlexibility:'low'}]], credentials:[['constraint','credential_gap'],['feasibility',{credentialConstraint:true}]], opportunity:[['constraint','limited_opportunities'],['feasibility',{opportunityAccess:'limited'}]],
+ other_person:[['constraint','other_person_participation'],['feasibility',{otherPersonParticipation:'uncertain'}]], safety:[['constraint','direct_contact_unsafe'],['feasibility',{directContactAppropriate:false}]], distance:[['constraint','distance_or_limited_contact'],['feasibility',{contactAccess:'limited'}]], boundaries:[['constraint','boundary_requirement'],['feasibility',{maintainBoundaries:true}]],
+ people:[['constraint','support_network_limited'],['feasibility',{supportAccess:'limited'}]], trust:[['barrier','trust_or_opening_up'],['feasibility',{relationalReadiness:'limited'}]], access:[['constraint','access_or_transport'],['feasibility',{locationAccess:'limited'}]], support:[['constraint','support_limited'],['feasibility',{supportAccess:'limited'}]],
+ high:[['feasibility',{controlLevel:'high'}]], some:[['feasibility',{controlLevel:'some'}]], little:[['constraint','limited_control'],['feasibility',{controlLevel:'low'}]],
+ none:[['feasibility',{reportedConstraint:'none'}]]
+});
 function feasibilityEffects(question,option){
  if(question.role!=='feasibility-probe')return[];
  const target=question.concernId;
- const map={
-  time:[{type:'constraint',target,value:'limited_time'},{type:'feasibility',target,feasibility:{scheduleFlexibility:'low'}}],
-  cost:[{type:'constraint',target,value:'limited_budget'},{type:'feasibility',target,feasibility:{costSensitivity:'high'}}],
-  space:[{type:'constraint',target,value:'limited_space'},{type:'feasibility',target,feasibility:{locationAccess:'limited'}}],
-  mobility:[{type:'constraint',target,value:'mobility_accessibility'},{type:'feasibility',target,feasibility:{accessibilityNeeds:true}}],
-  accessibility:[{type:'constraint',target,value:'mobility_accessibility'},{type:'feasibility',target,feasibility:{accessibilityNeeds:true}}],
-  pain:[{type:'constraint',target,value:'pain_or_symptoms'},{type:'feasibility',target,feasibility:{symptomConstraint:true}}],
-  symptoms:[{type:'constraint',target,value:'pain_or_symptoms'},{type:'feasibility',target,feasibility:{symptomConstraint:true}}],
-  health_guidance:[{type:'constraint',target,value:'professional_guidance'},{type:'feasibility',target,feasibility:{professionalGuidanceRequired:true}}],
-  professional:[{type:'constraint',target,value:'professional_guidance'},{type:'feasibility',target,feasibility:{professionalGuidanceRequired:true}}],
-  motivation:[{type:'barrier',target,value:'activation_barrier'},{type:'feasibility',target,feasibility:{activationSupportNeeded:true}}],
-  none:[{type:'feasibility',target,feasibility:{reportedConstraint:'none'}}]
- };
- return (map[option.id]??[]).map(e=>({...e,sourceType:'direct',temporality:'current'}));
+ let specs=FIT[option.id]??[];
+ if(question.id==='H4'&&option.id==='none')specs=[['constraint','no_current_control'],['feasibility',{controlLevel:'none'}]];
+ return specs.map(([type,value])=>type==='feasibility'?{type,target,feasibility:value,sourceType:'direct',temporality:'current'}:{type,target,value,sourceType:'direct',temporality:'current'});
 }
 export function adaptQuestion(q){const mappedTargets=[...new Set((q.targets??[]).map(concernForTarget))];const mode=responseMode(q);const options=(q.options??[]).map(o=>({...o,exclusiveWithinGroup:o.exclusiveWithinGroup??(mode==='multi'&&WEAK_IDS.has(o.id))}));return{...q,responseMode:mode,options,concernId:mappedTargets[0]??null,concernIds:mappedTargets,specificityLevel:specificityForRole(q.role)}}
 export const ROUND3_BANK=Object.freeze(CANDIDATE_BANK.map(adaptQuestion));
