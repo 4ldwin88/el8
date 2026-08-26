@@ -5,6 +5,9 @@ const dimensionFor=concernId=>CONCERN_DIMENSION[concernId]||'Physical';
 
 export async function persistDiscovery({userId,memberCode=null,timezone='UTC',output}={}){
   if(!userId||!output?.trace)throw new Error('Discovery persistence requires a completed output.');
+  const{data:existing,error:existingError}=await supabase.from('el8_assessment_sessions').select('id').eq('user_id',userId).eq('module_type','discovery').eq('status','completed').eq('trigger_type','onboarding').order('submitted_at',{ascending:false}).limit(1).maybeSingle();
+  if(existingError)throw existingError;
+  if(existing)return existing;
   const trace=output.trace,now=new Date().toISOString();
   const row={user_id:userId,member_code:memberCode,module_id:'DISCOVERY-R3',module_version:'3',module_type:'discovery',status:'completed',trigger_type:'onboarding',trigger_context:{source:'universal_baseline'},responses:{observations:trace.observations||[],priority_choices:trace.priorityChoices||[]},derived_outputs:{states:trace.states||[],plan:output.plan||trace.memberPlan||null,trace},safety_flags:[],evidence_context:{active_concerns:trace.activeConcerns||[]},local_timezone:timezone,started_at:trace.timing?.assessmentStart||now,submitted_at:trace.timing?.assessmentCompleted||now,updated_at:now,active_duration_seconds:Math.round(trace.timing?.totalDurationSeconds||0),interaction_count:trace.questionsAsked||0,background_duration_seconds:0};
   const{data,error}=await supabase.from('el8_assessment_sessions').insert(row).select('id').single();
