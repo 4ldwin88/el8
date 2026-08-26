@@ -1,0 +1,7 @@
+import test from'node:test';import assert from'node:assert/strict';import{reassessmentQuestions,deriveReassessmentDecision}from'./reassessment-model.js';
+const plan={dimension:'Physical'};const actions=[{id:'walk',action:'Walk 15 minutes',dimension:'Physical'},{id:'sleep',action:'Keep a sleep boundary',dimension:'Physical'},{id:'budget',action:'Review spending',dimension:'Financial'}];
+test('reassessment is focused rather than onboarding repeated',()=>assert.equal(reassessmentQuestions({kind:'reassess'}).length,5));
+test('requires a current success definition',()=>assert.equal(deriveReassessmentDecision({sourcePlan:plan,responses:{},candidateActions:actions}).reason,'desired_outcome_required'));
+test('reprioritization cannot invent a new priority',()=>assert.equal(deriveReassessmentDecision({kind:'reprioritize',sourcePlan:plan,responses:{still_priority:'no',desired_outcome:'Less stress'},candidateActions:actions}).reason,'new_priority_required'));
+test('low capacity hard-caps replacement to one action',()=>{const x=deriveReassessmentDecision({sourcePlan:plan,responses:{desired_outcome:'More daily energy',capacity:'one_small_action'},candidateActions:actions});assert.equal(x.decision.interventions.length,1);assert.equal(x.decision.confirmed,false);assert.equal(x.requiresMemberConfirmation,true)});
+test('normal capacity remains bounded to two actions',()=>{const x=deriveReassessmentDecision({sourcePlan:plan,responses:{desired_outcome:'More daily energy',capacity:'normal'},candidateActions:actions});assert.equal(x.decision.interventions.length,2)});
