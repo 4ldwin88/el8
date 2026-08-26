@@ -19,13 +19,22 @@ The Intelligence Engine owns the decision lifecycle from understanding a member 
 
 ## Current repository boundary
 
-`intelligence/discovery/**` is the canonical Discovery implementation.
+`intelligence/discovery/**` is the canonical Discovery implementation. Its current component version is **Discovery v3**. Canonical entry files use capability names such as `discovery-engine.js` and `discovery-controller.js`; development-history labels such as “Round 3” are not canonical API names.
 
 Shared contracts live under `intelligence/contracts/**`; canonical Member State and taxonomy live under `intelligence/state/**`. Prioritization, Planning, Interventions, and Outcomes consume those canonical boundaries.
 
-The former `development/discovery/**` promotion copy and the superseded legacy `intelligence/model/**`, `selection/**`, `simulation/**`, and routing/scoring integration implementations have been removed after semantic reconciliation and mandatory QA validation.
+Historical repository files outside the canonical subsystem folders may still exist for product, migration, or earlier prototype purposes. Their presence does not make their APIs, scores, constants, object shapes, or historical development labels authoritative Intelligence contracts.
 
-Historical repository files outside the canonical subsystem folders may still exist for product, migration, or earlier prototype purposes. Their presence does not make their APIs, scores, constants, or object shapes authoritative Intelligence contracts.
+## Versioning standard
+
+EL8 separates release/test versions from component versions.
+
+- **Product or research-test versions** describe a complete tested experience, for example Intelligence Test `v0.2.1`.
+- **Component versions** describe a canonical subsystem contract, for example Baseline `v3.1`, Discovery `v3`, or Planning `v1`.
+- **Implementation names** describe capability and responsibility, not development history. Prefer `discovery-engine`, `discovery-controller`, `question-bank`, and similar capability names.
+- Do not combine unrelated version dimensions into labels such as `round3-v0.2.1`.
+- A component version changes only when its contract or behavior changes materially; a research-test patch does not automatically rename every component.
+- Historical review artifacts may retain their original historical terminology when needed for provenance, but current authority must identify the canonical modern name.
 
 ## Design rules
 
@@ -50,4 +59,4 @@ Legacy behavior is not kept merely for compatibility. A behavior survives only w
 
 Use **Intelligence Engine** for the overall EL8 decision system.
 
-Use **Discovery** only for the subsystem responsible for understanding the member and producing sufficient, traceable evidence/state for downstream intelligence functions.
+Use **Discovery** for the subsystem responsible for understanding the member and producing sufficient, traceable evidence/state for downstream intelligence functions. Use **Discovery v3** when a version is required. “Round 3” refers only to the historical development iteration that produced v3 and should not be used as a current component or API name.
