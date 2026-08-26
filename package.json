@@ -12,7 +12,7 @@
     "test:outcomes": "node intelligence/outcomes/outcomes.test.js",
     "test:discovery": "node intelligence/discovery/discovery-runtime.test.mjs",
     "test:intelligence-test": "node app/research/intelligence-test-contract.test.mjs",
-    "test:onboarding": "node app/onboarding/flow.test.mjs",
+    "test:onboarding": "node app/onboarding/flow.test.mjs && node app/onboarding/adaptive-plan.test.mjs",
     "test:insights": "node app/insights/daily-evidence.test.mjs && node app/insights/dimension-history.test.mjs",
     "test:profile": "node app/profile/history.test.mjs",
     "test:persistence:live": "node tests/persistence-concurrency.test.mjs",
