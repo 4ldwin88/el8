@@ -1,28 +1,51 @@
-// Determines which semantic facts onboarding still needs before a confident package fit can be made.
-// This keeps onboarding short: ask only facts that distinguish plausible packages for confirmed priorities.
+// EL8 action-specific evidence agenda.
+// Onboarding stays broad and short. After prioritization/composition, selected candidate
+// actions may request only missing facts that can materially change a downstream decision.
 
-export const BASELINE_FIT_SCHEMA_VERSION='0.1.0';
+export const ACTION_FIT_SCHEMA_VERSION='0.2.0';
 
-function keyOf(rule){return typeof rule==='string'?rule:rule?.semanticKey||null}
-function currentKeys(memberState){return new Set(Object.values(memberState?.facts||{}).filter(f=>f.currentStatus==='current').map(f=>f.semanticKey))}
-function packageRequirements(pkg){return [...(pkg.eligibilityRules||[]),...(pkg.minimumEvidence||[]),...(pkg.environmentRequirements||[]),...(pkg.equipmentRequirements||[])].map(keyOf).filter(Boolean)}
-
-export function baselineFactsNeededForPriority({memberState,priorityConcernId,planFamilies=[],planPackages=[]}={}){
- const known=currentKeys(memberState);
- const familyIds=new Set(planFamilies.filter(f=>f.targetConcernId===priorityConcernId).map(f=>f.familyId));
- const relevant=planPackages.filter(p=>familyIds.has(p.familyId));
- const required=new Set(relevant.flatMap(packageRequirements));
- return {schemaVersion:BASELINE_FIT_SCHEMA_VERSION,concernId:priorityConcernId,knownFacts:[...known],neededFacts:[...required].filter(k=>!known.has(k)),candidatePackageCodes:relevant.map(p=>p.packageCode)};
+function currentFacts(memberState={}) {
+  return new Map(Object.values(memberState.facts||{})
+    .filter(f=>f.currentStatus==='current')
+    .map(f=>[f.semanticKey,f.value]));
 }
 
-export function buildBaselineFitAgenda({memberState,prioritization,planFamilies=[],planPackages=[],maxFacts=6}={}){
- if(prioritization?.blockedBySafety)return{schemaVersion:BASELINE_FIT_SCHEMA_VERSION,blockedBySafety:true,items:[]};
- const items=[];
- for(const priority of prioritization?.priorityItems||[]){
-  const concern=memberState?.concerns?.[priority.concernId];
-  if(!concern?.memberConfirmed)continue;
-  const result=baselineFactsNeededForPriority({memberState,priorityConcernId:priority.concernId,planFamilies,planPackages});
-  if(result.neededFacts.length)items.push({priorityId:priority.priorityId,concernId:priority.concernId,factKeys:result.neededFacts.slice(0,maxFacts),candidatePackageCodes:result.candidatePackageCodes});
- }
- return{schemaVersion:BASELINE_FIT_SCHEMA_VERSION,blockedBySafety:false,items};
+function normalizedRequirements(action={}) {
+  return (action.deepeningRequirements||[])
+    .filter(r=>r?.evidenceKey && r?.decisionImpact)
+    .map(r=>({
+      actionId:action.id,
+      requirementId:r.id,
+      evidenceKey:r.evidenceKey,
+      purpose:r.purpose,
+      decisionImpact:r.decisionImpact,
+      prompt:r.prompt||null,
+      requiredBeforeActivation:r.requiredBeforeActivation!==false
+    }));
+}
+
+export function actionFactsNeeded({memberState,action}={}) {
+  if(!action?.id) throw new Error('action is required');
+  const known=currentFacts(memberState);
+  const requirements=normalizedRequirements(action);
+  return {
+    schemaVersion:ACTION_FIT_SCHEMA_VERSION,
+    actionId:action.id,
+    knownFacts:[...known.keys()],
+    requirements:requirements.filter(r=>!known.has(r.evidenceKey))
+  };
+}
+
+export function buildActionDeepeningAgenda({memberState,actions=[],blockedBySafety=false,maxItems=6}={}) {
+  if(blockedBySafety) return {schemaVersion:ACTION_FIT_SCHEMA_VERSION,blockedBySafety:true,items:[]};
+  const items=[];
+  for(const action of actions) {
+    const result=actionFactsNeeded({memberState,action});
+    for(const requirement of result.requirements) {
+      if(items.length>=maxItems) break;
+      items.push(requirement);
+    }
+    if(items.length>=maxItems) break;
+  }
+  return {schemaVersion:ACTION_FIT_SCHEMA_VERSION,blockedBySafety:false,items};
 }
