@@ -3,7 +3,7 @@ import { Q, scale } from './core.js';
 // Physical owns body, activity, sleep, energy and activation investigation. Questions
 // may emit evidence about drivers in other dimensions without changing ownership.
 export const PHYSICAL_QUESTIONS = Object.freeze([
-  Q('PH0', 'concern-scope', 'Which physical-health areas feel relevant? Select any that fit.', ['physical_condition'], [
+  Q('PH0', 'concern-scope', 'Which physical-health areas feel relevant?', ['physical_condition'], [
     ['body', 'Weight, fitness, or physical condition', { physical_condition: 0.55 }],
     ['activity', 'Physical activity', { physical_condition: 0.25, low_activity: 0.35 }],
     ['symptoms', 'Physical symptoms or discomfort', { physical_condition: 0.5 }],
@@ -11,6 +11,13 @@ export const PHYSICAL_QUESTIONS = Object.freeze([
     ['unsure', 'Not sure', {}],
   ], 0.28, 'multi'),
   Q('PH1', 'state-probe', 'How has your physical activity been lately?', ['low_activity'], scale('low_activity'), 0.16),
+  Q('PH1A', 'driver-discriminator', 'What exercise resources can you realistically use right now?', ['low_activity'], [
+    ['gym', 'Gym access', { low_activity: 0.08 }],
+    ['home_equipment', 'Equipment at home', { low_activity: 0.08 }],
+    ['both', 'Gym and home equipment', { low_activity: 0.08 }],
+    ['bodyweight', 'No equipment, but bodyweight or outdoor activity works', { low_activity: 0.05 }],
+    ['none', 'No practical access right now', {}],
+  ], 0.12),
   Q('PH2', 'state-probe', 'Are weight, fitness, or your physical condition bothering you right now?', ['physical_condition'], [
     ['no', 'No', { physical_condition: -0.65 }],
     ['little', 'A little', { physical_condition: 0.25 }],
@@ -39,7 +46,7 @@ export const PHYSICAL_QUESTIONS = Object.freeze([
   ], 0.18),
 
   Q('E1', 'state-probe', 'How has your energy been?', ['low_energy'], scale('low_energy'), 0.16),
-  Q('E2', 'discriminator', 'What seems connected to your low energy? Select all that fit.', ['low_energy'], [
+  Q('E2', 'discriminator', 'What seems connected to your low energy?', ['low_energy'], [
     ['sleep', 'Poor sleep', { poor_sleep: 0.5 }],
     ['schedule', 'Busy or irregular schedule', { schedule_disruption: 0.4 }],
     ['stress', 'Stress', { stress: 0.35 }],
