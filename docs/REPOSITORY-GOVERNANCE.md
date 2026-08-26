@@ -5,48 +5,40 @@ Reconciled: 2026-08-25
 
 ## Purpose
 
-This document governs how EL8 code is organized, isolated, tested, promoted, and retired. The repository is treated like an operational product organization: Stable is protected, Development is the integration environment for unfinished candidate builds, and Experiments are independent laboratories for uncertain ideas.
+This document governs how EL8 code is organized, isolated, tested, promoted, and retired. Source directories represent product domains. Release state is represented by Git branches and deployment environments rather than duplicated `stable/` and `development/` source trees.
 
-The cleanup objective is not to preserve historical layouts. It is to preserve valuable working capability from the old prototype, merge accepted capability into the new MVP architecture, validate it, and delete superseded material when Git history is sufficient.
+The cleanup objective is to preserve valuable working capability, converge it into one obvious canonical architecture, validate it, and delete superseded material when Git history is sufficient.
 
 ## 1. Permanent environment model
 
 ### Stable
-Stable is the accepted, maintained EL8 build. It contains only promoted product behavior and must remain usable while Development changes independently. Stable must never depend on Development or Experiments.
+Stable is the accepted deployable EL8 release, represented by the protected release/default branch and its stable deployment origin.
 
 ### Development
-Development is the integrated unfinished EL8 build. Candidate features that have passed isolated experimentation are combined here and tested as a coherent next release. Development may depend on Stable contracts but must not mutate Stable runtime state.
+Development is an integration branch or short-lived integration branch containing the coherent candidate next release. It deploys to a distinct preview/development origin and must not require a duplicated source tree.
 
 ### Experiments
-Experiments are isolated workspaces for new concepts, prototypes, research spikes, adversarial testing, alternative UX, new intelligence behavior, and other work not yet accepted into Development. Experiments should be bounded and disposable. Successful work is promoted by capability, not by copying an entire experimental tree.
+Uncertain concepts should normally live on bounded experiment branches or isolated preview work. An `experiments/` directory is permitted only when a runnable experiment genuinely benefits from coexisting with canonical source and is not a production dependency.
 
 ### Tests
-`tests/` contains durable validation shared across the product lifecycle. Experiment-specific disposable harnesses stay with their experiment until they earn permanent regression value.
+Durable tests live with the domain they protect when practical. Cross-domain integration, end-to-end, fixtures, or system QA may use a dedicated `tests/` directory when that improves ownership.
 
 ### Archive / deletion
-Git history is the default archive. Keep repository archive material only when direct runnable/viewable access has continuing value. Otherwise retire obsolete files after dependency and validation checks.
+Git history is the default archive. Repository archive folders are not a substitute for deletion unless direct runnable/viewable access has continuing value.
 
 ## 2. Runtime isolation contract
 
-Stable and Development must support simultaneous authenticated use in the same browser with different accounts.
-
-A path-only split on one hostname is not sufficient because browser authentication persistence is origin-scoped. Stable and Development therefore require distinct deployed origins.
+Stable and Development must support simultaneous authenticated use in the same browser with different accounts. Because browser authentication persistence is origin-scoped, stable and candidate deployments require distinct origins.
 
 Required topology:
 
 ```text
-Stable source       -> stable deployment origin       -> Stable Account A
-Development source  -> development deployment origin  -> Development Account B
-Experiments         -> isolated preview/origin when authentication is required
+stable branch/release      -> stable deployment origin
+candidate/integration      -> preview/development origin
+experiment branch          -> isolated preview when authentication is required
 ```
 
-Rules:
-1. Stable and Development must use different browser origins.
-2. Environment identity and backend configuration must be configuration-driven, not implemented through duplicated business logic.
-3. During prototype development Stable and Development may temporarily share a Supabase project only when browser sessions are origin-isolated and development/test records are clearly namespaced.
-4. Before production-sensitive work, Stable and Development should use separate backend projects/environments.
-5. A permanent integration/QA check must verify Stable Account A remains signed in while Development Account B signs in and operates independently.
-6. Experimental authenticated surfaces must not overwrite Stable or Development browser sessions.
+Environment identity and backend configuration must be configuration-driven. Prototype environments may temporarily share a Supabase project only when browser sessions are origin-isolated and development/test records are clearly namespaced. Before production-sensitive work, backend environments should also be independently controllable.
 
 ## 3. Repository architecture
 
@@ -56,47 +48,43 @@ Rules:
 ├── package.json
 ├── .github/
 │   └── workflows/
-├── stable/                         # deployable accepted EL8 build
-│   ├── app/
-│   ├── intelligence/
-│   ├── assets/
-│   ├── admin/
-│   └── config/
-├── development/                    # deployable integrated next EL8 build
-│   ├── app/
-│   ├── intelligence/
-│   ├── assets/
-│   ├── admin/
-│   └── config/
-├── experiments/                    # independent bounded laboratories
+├── app/
+│   ├── auth/
+│   ├── onboarding/
+│   ├── shell/
+│   ├── home/
+│   ├── plan/
+│   ├── insights/
+│   ├── explore/
+│   ├── profile/
+│   ├── track/
+│   └── workflows/
+├── intelligence/
+│   ├── contracts/
 │   ├── discovery/
-│   ├── assessments/
-│   ├── check-ins/
+│   ├── evidence/
+│   ├── state/
+│   ├── prioritization/
+│   ├── planning/
 │   ├── interventions/
-│   └── sandbox/
-├── tests/                          # durable cross-environment validation
-│   ├── unit/
-│   ├── integration/
-│   ├── cases/
-│   ├── evals/
-│   ├── regressions/
-│   └── qa/
-├── supabase/                       # backend source/configuration
-│   ├── stable/
-│   ├── development/
-│   └── shared/
-└── docs/                           # current repository/technical authority only
+│   ├── outcomes/
+│   └── safety/
+├── assets/
+├── admin/
+├── supabase/              # when backend source/config is repository-owned
+├── tests/                 # only for genuinely cross-domain/system validation
+└── docs/                  # current repository/technical authority only
 ```
 
-The final root should remain small. Temporary compatibility entry points may exist only while deployment migration requires them.
+The root should remain deployment-oriented and small. Compatibility entry points may exist only while a migration or static-hosting constraint requires them.
 
 ## 4. Source strategy
 
-Stable and Development are deployable environment assemblies, not permission to maintain two unrelated applications forever. Shared accepted modules should be factored so fixes are not manually duplicated where practical. Environment-specific configuration, routing, feature availability, and deployment wiring may differ.
+There is one canonical source location for each accepted capability. Branches may diverge temporarily during development, but the repository must not maintain permanent duplicated copies of the application by environment.
 
-During this cleanup, the old working prototype is a capability donor. For every old file or behavior:
+For legacy or candidate artifacts:
 - KEEP when already canonical and useful;
-- MERGE when useful behavior belongs inside the MVP architecture;
+- MERGE when useful behavior belongs inside an existing canonical domain;
 - MIGRATE when useful but incorrectly located;
 - HOLD only when a live dependency prevents safe movement;
 - RETIRE when superseded or valueless after preserved behavior/tests are confirmed.
@@ -107,102 +95,69 @@ No file is retained merely because it existed before.
 
 The accepted member architecture is Home, Plan, Insights and Explore as primary destinations; Profile is entered through the avatar; Track is a global capture action. Authentication, onboarding, Universal Baseline, Discovery, check-ins, history, safety, privacy/data and similar flows are supporting workflows.
 
-The MVP shell is the structural destination. Proven working functions from the old prototype are merged into that architecture rather than preserving the old page topology.
+Proven capabilities are merged into this architecture rather than preserving historical page topology.
 
 ## 6. Intelligence architecture
 
 Accepted intelligence follows:
 
-Discovery -> Evidence / Member State -> Prioritization -> Planning -> Intervention -> Outcomes / Learning
+Discovery -> Evidence / Member State -> Prioritization -> Planning -> Interventions -> Outcomes / Learning
 
-Safety may interrupt normal routing through an accepted safety contract.
-
-Experimental intelligence stays under `experiments/` until validated. Development integrates candidate intelligence with the candidate member build. Stable receives only promoted behavior and regression coverage.
+Safety may interrupt normal routing through the canonical safety contract. Alternative intelligence belongs on an isolated experiment branch or other non-production surface until accepted.
 
 ## 7. Promotion pipeline
 
 ```text
-EXPERIMENT
+EXPERIMENT / FEATURE BRANCH
    -> isolated validation
    -> accepted capability
-DEVELOPMENT
-   -> integration + synthetic/regression validation
-   -> independent/human validation when warranted
-   -> release gate
-STABLE
-   -> ongoing regression protection
+INTEGRATION / CANDIDATE BRANCH
+   -> coherent regression + system validation
+   -> human/independent validation when warranted
+STABLE RELEASE BRANCH
 ```
 
-Promotion moves capability, contracts and useful regression cases. It does not preserve experimental scaffolding.
+Promotion moves commits/capability and regression protection. It does not require copying source between environment directories.
 
 ## 8. Stable rules
 
-Stable must:
-- remain independently deployable;
-- have no runtime dependency on Development or Experiments;
-- contain only accepted member and intelligence behavior;
-- have regression coverage for material promoted behavior;
-- use stable environment configuration;
-- remain operational during Development work.
+Stable must remain independently deployable, contain only accepted behavior, have regression protection for material behavior, use stable environment configuration, and remain operational during candidate work.
 
 ## 9. Development rules
 
-Development must:
-- be independently deployable on its own origin;
-- represent one coherent candidate next build, not a dumping ground;
-- integrate the new MVP shell with preserved proven prototype functions;
-- use development environment configuration;
-- tolerate unfinished candidate behavior without destabilizing Stable;
-- shed temporary scaffolding as features mature.
+Candidate development must be independently deployable on its own origin, represent one coherent next build rather than a dumping ground, use development configuration, and shed temporary scaffolding as work matures.
 
 ## 10. Experiment rules
 
-Experiments must:
-- be independently scoped;
-- avoid becoming hidden production dependencies;
-- carry their own temporary UI/QA when needed;
-- be easy to delete when rejected;
-- promote only accepted capability into Development.
-
-Discovery currently remains experimental/candidate work until its validation gates justify Development integration and eventual Stable promotion.
+Experiments must be bounded, avoid becoming hidden production dependencies, carry temporary QA only when needed, be easy to delete when rejected, and promote only accepted capability.
 
 ## 11. Testing ownership
 
-- `tests/unit/` — accepted module validation.
-- `tests/integration/` — cross-domain, persistence, auth and environment validation.
-- `tests/cases/` — canonical fixtures/cases.
-- `tests/evals/` — evaluation runners and acceptance logic.
-- `tests/regressions/` — failures that must never recur.
-- `tests/qa/` — durable readiness/UI/system checks.
+Prefer domain-local tests such as `intelligence/safety/policy.test.js` or `app/insights/dimension-history.test.mjs` when a test protects one owner. Use `tests/` for cross-domain persistence, authentication/session isolation, fixtures/evals, deployable-build smoke checks, and other validation without a natural single owner.
 
-The dual-session isolation test is mandatory before the environment migration is complete.
+Canonical repository QA must run the durable domain suites. A dual-session isolation test is required before production-sensitive environment separation is considered complete.
 
 ## 12. Backend/environment configuration
 
-Environment-specific values include deployment URL, environment identity, Supabase project URL/key, feature flags, telemetry labels and test-data namespace. They must be supplied through environment configuration.
-
-Stable and Development backend migrations must become independently controllable before production-sensitive development. Shared schema/contracts may be maintained under `supabase/shared/` where genuinely common.
+Deployment URL, environment identity, Supabase project URL/key, feature flags, telemetry labels and test-data namespace are configuration concerns, not reasons to duplicate business logic. Repository-owned backend source belongs under `supabase/`; externally deployed backend behavior must still have a documented contract and durable verification path.
 
 ## 13. Documentation policy
 
-Keep only documentation that is current and operationally useful. Repository governance, architecture, persistence/security contracts and current validation/release procedures may remain. Historical migration narratives, obsolete QA reports, superseded architecture documents and completed cleanup instructions should be deleted once their useful decisions or tests have been absorbed.
+Keep only documentation that is current and operationally useful. Repository governance, target architecture, persistence/security contracts and current validation/release procedures may remain. Historical migration narratives, obsolete QA reports, superseded architecture documents and completed cleanup instructions should be deleted once useful decisions or tests have been absorbed.
 
-README is the short entry point. This document is authoritative for environment lifecycle and promotion policy. `docs/repository-target-architecture.md` defines detailed target placement.
+README is the short entry point. This document is authoritative for repository lifecycle and promotion policy. `docs/repository-target-architecture.md` defines detailed target placement.
 
 ## 14. Cleanup execution order
 
-1. Lock this environment model and target tree.
-2. Inventory every current file and dependency.
-3. Build a capability map of the old working prototype: preserve behavior, not layout.
-4. Establish the deployable Development MVP shell and merge preserved functions into it.
-5. Establish Stable and Development configuration/origin boundaries and verify dual sessions.
-6. Separate independent experimental initiatives from Development.
-7. Consolidate durable tests and CI.
-8. Promote the validated build into Stable.
-9. Remove superseded root pages, helpers, QA harnesses and obsolete documents in broad verified batches.
-10. Run full regression, smoke, auth/session and deployment validation.
-11. Delete stale branches only after the tree and deployments are stable.
+1. Converge accepted behavior into canonical domain ownership.
+2. Remove duplicated, historical and migration-only implementations after dependency checks.
+3. Convert unique valuable QA behavior into durable tests before deleting harnesses.
+4. Keep Canonical Repository QA and focused regression workflows green after each structural batch.
+5. Reconcile documentation with implemented architecture.
+6. Minimize the deployment root and remove completed cleanup-control documents.
+7. Validate stable/candidate deployments and environment isolation before release-sensitive work.
+8. Delete stale branches only after the canonical tree and deployments are stable.
 
 ## 15. Decision rule
 
-Before any destructive batch, every affected artifact receives an action: KEEP, MIGRATE, MERGE, HOLD or RETIRE. RETIRE is preferred over archive when Git history already provides sufficient recovery.
+Before destructive changes, affected artifacts receive an action: KEEP, MIGRATE, MERGE, HOLD or RETIRE. RETIRE is preferred over archive when Git history provides sufficient recovery.
