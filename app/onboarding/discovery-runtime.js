@@ -1,8 +1,8 @@
-import * as Discovery from '../../intelligence/discovery/round3-engine.js';
+import * as Discovery from '../../intelligence/discovery/discovery-engine.js';
 import LIBRARY from '../../intelligence/discovery/intervention-library.js';
 import {rankInterventionCandidates} from '../../intelligence/discovery/intervention-selector.js';
 
-const STORAGE_KEY='el8_onboarding_discovery_v1';
+const STORAGE_KEY='el8_onboarding_discovery_v3';
 const INTERVENTION_CONCERN=Object.freeze({money_pressure:'money',physical_condition:'health',poor_sleep:'sleep',low_energy:'energy',low_focus:'focus',work_pressure:'work',work_instability:'work',high_stress:'stress',relationship_strain:'relationships',low_support:'support',home_instability:'home',low_direction:'direction'});
 const interventionConcern=id=>INTERVENTION_CONCERN[id]||id;
 export function discoveryOptionsFromBaselineHandoff(handoff={}){const concerns=[...new Set(handoff.candidateConcerns||[])].filter(Boolean);return Object.freeze({concernIds:concerns,baselineHandoff:handoff})}
