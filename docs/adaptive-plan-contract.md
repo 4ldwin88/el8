@@ -1,10 +1,12 @@
-# EL8 Adaptive Plan Contract v1
+# EL8 Adaptive Plan Contract
 
 Status: implementation contract for the current prototype.
 
 ## Information architecture boundary
 
-The member's adaptive plan is a core EL8 system, not a primary navigation destination. The canonical navigation destination formerly called Plan is now **Explore**. Explore contains modules, lessons, practical guidance and discoverable wellness content. Adaptive-plan actions should surface contextually on Home and in focused plan workflows; implementation must not recreate a Plan tab by accident.
+The member's adaptive plan is a core EL8 system and **Plan is a canonical primary navigation destination**. The canonical member shell exposes Home / Plan / Insights / Explore, with Profile accessed separately and Track as a global action.
+
+Plan owns the member-facing view of the current plan cycle, priorities/focus dimensions, active interventions/actions, rationale, cadence/schedule, review state and plan history/detail workflows. Home may surface contextual next actions and plan-derived evidence needs, but must not become a second independent plan implementation. Explore remains the content/learning destination and must not own adaptive-plan state.
 
 ## Core model
 
@@ -15,13 +17,13 @@ An EL8 plan is not defined as one primary dimension plus one supporting dimensio
 
 The counts are independent. Three focus dimensions do not imply three interventions. A single high-leverage intervention may support all three.
 
-Legacy `dimension`, `supporting_dimension`, `primary_action`, `supporting_action`, and `actions` fields remain compatibility projections for historical records and older backend surfaces. New member-facing interpretation must use `focus_dimensions` and `interventions` through `plan-model.js`.
+Legacy `dimension`, `supporting_dimension`, `primary_action`, `supporting_action`, and `actions` fields remain compatibility projections for historical records and older backend surfaces. New member-facing interpretation must use `focus_dimensions` and `interventions` through the canonical app Plan model.
 
 ## Adaptation
 
-EL8 may narrow, maintain, modify, progress, reprioritize, or expand a plan based on evidence and member capacity. More activity is not inherently better.
+EL8 may narrow, maintain, modify, progress, reprioritize or expand a plan based on evidence and member capacity. More activity is not inherently better.
 
-Plan review considers outcome signal, adherence, burden/manageability, usefulness, priority change, and evidence from the exact plan version being reviewed.
+Plan review considers outcome signal, adherence, burden/manageability, usefulness, priority change and evidence from the exact plan version being reviewed.
 
 ## Version integrity
 
@@ -33,11 +35,11 @@ Plan check-ins are bound to the exact `plan_id`. New check-ins cannot be written
 
 QA plans are identified with `is_test=true` and excluded from member-facing plan queries. Legacy immutable QA reviews remain preserved but are classified by their QA markers and excluded from member history.
 
-The Plan v2 branch matrix is non-persistent. It must not create disposable production-schema plan or review rows because review immutability is a product invariant, not something QA may temporarily disable.
+Automated or manual QA must not create disposable production-schema plan or review rows when doing so would violate product immutability or history invariants.
 
 ## Member-facing query rule
 
-Any surface requesting the current plan must scope by authenticated `user_id`, `status='active'`, and `is_test=false`, then interpret the returned plan through the shared plan model. Member-facing history must exclude test plans and QA reviews.
+Any surface requesting the current plan must scope by authenticated `user_id`, `status='active'`, and `is_test=false`, then interpret the returned plan through the shared Plan model. Member-facing history must exclude test plans and QA reviews.
 
 ## Evidence mapping rule
 
