@@ -7,7 +7,7 @@
     "test:state": "node intelligence/state/state-contract.test.js",
     "test:safety": "node intelligence/safety/policy.test.js",
     "test:prioritization": "node intelligence/prioritization/prioritization.test.js",
-    "test:planning": "node intelligence/planning/planning.test.js && node intelligence/planning/adaptation-policy.test.js && node intelligence/planning/adaptation-transaction.test.js && node --test intelligence/planning/plan-engine.test.js intelligence/planning/plan-deepening.test.js intelligence/planning/baseline-fit-requirements.test.js intelligence/planning/intervention-library.test.js intelligence/planning/end-to-end-assessment.test.js app/plan/adaptive-review.test.mjs app/plan/review-history.test.mjs app/plan/adaptation-apply.test.mjs app/plan/reassessment-model.test.mjs",
+    "test:planning": "node intelligence/planning/planning.test.js && node intelligence/planning/adaptation-policy.test.js && node intelligence/planning/adaptation-transaction.test.js && node --test intelligence/planning/plan-engine.test.js intelligence/planning/plan-deepening.test.js intelligence/planning/baseline-fit-requirements.test.js intelligence/planning/intervention-library.test.js intelligence/planning/end-to-end-assessment.test.js app/plan/adaptive-review.test.mjs app/plan/review-history.test.mjs app/plan/adaptation-apply.test.mjs app/plan/reassessment-model.test.mjs app/plan/reassessment-deepening.test.mjs",
     "test:interventions": "node intelligence/interventions/interventions.test.js",
     "test:outcomes": "node intelligence/outcomes/outcomes.test.js",
     "test:discovery": "node intelligence/discovery/discovery-runtime.test.mjs",
