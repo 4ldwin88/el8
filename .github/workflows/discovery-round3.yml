@@ -5,13 +5,13 @@ on:
       - 'intelligence/discovery/**'
       - 'app/onboarding/discovery-*.js'
       - 'package.json'
-      - '.github/workflows/discovery-round3.yml'
+      - '.github/workflows/discovery-regression.yml'
   pull_request:
     paths:
       - 'intelligence/discovery/**'
       - 'app/onboarding/discovery-*.js'
       - 'package.json'
-      - '.github/workflows/discovery-round3.yml'
+      - '.github/workflows/discovery-regression.yml'
 jobs:
   test:
     runs-on: ubuntu-latest
