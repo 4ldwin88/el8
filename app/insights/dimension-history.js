@@ -1,4 +1,4 @@
-import { normalizeCondition } from './insights.js';
+import { normalizeCondition } from './condition-model.js';
 
 export const CONDITION_BANDS = ['Attention', 'Stable', 'Healthy', 'Thriving'];
 
