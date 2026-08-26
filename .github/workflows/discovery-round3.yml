@@ -4,14 +4,12 @@ on:
     paths:
       - 'intelligence/discovery/**'
       - 'app/onboarding/discovery-*.js'
-      - 'development/app/onboarding/discovery-*.js'
       - 'package.json'
       - '.github/workflows/discovery-round3.yml'
   pull_request:
     paths:
       - 'intelligence/discovery/**'
       - 'app/onboarding/discovery-*.js'
-      - 'development/app/onboarding/discovery-*.js'
       - 'package.json'
       - '.github/workflows/discovery-round3.yml'
 jobs:
