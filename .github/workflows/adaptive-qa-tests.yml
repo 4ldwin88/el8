@@ -21,3 +21,5 @@ jobs:
           node-version: '22.x'
       - name: Run canonical test suite
         run: npm test
+      - name: Temporary cleanup gate - live persistence concurrency
+        run: npm run test:persistence:live
