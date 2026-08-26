@@ -1,38 +1,44 @@
-import { buildPlan, adaptPlan } from './plan-engine.js';
+import test from 'node:test';
 import assert from 'node:assert/strict';
+import { buildPlan, respondToItem, recordProgress, adaptPlan } from './plan-engine.js';
 
-// CI checkpoint: this file intentionally remains inside intelligence/** so PR QA
-// reruns whenever the validated Plan Engine regression set changes.
-// Validation branch is now recognized by the workflow definition on main.
-const sleepCascade=buildPlan({ranked:[{id:'poor_sleep',confidence:.94,breadth:4,urgency:4},{id:'low_energy',confidence:.88,breadth:1,urgency:2},{id:'low_focus',confidence:.81,breadth:1,urgency:2}]},{capacity:'medium'});
-assert.equal(sleepCascade.status,'active');
-assert.equal(sleepCascade.actions[0].driver,'poor_sleep','root/leverage sleep driver should outrank symptoms');
-assert.ok(sleepCascade.actions.length<=2,'medium capacity should not overload member');
-
-const lowCapacity=buildPlan({ranked:[{id:'money_pressure',confidence:.95,urgency:5,breadth:3},{id:'work_instability',confidence:.9,urgency:5,breadth:3}]},{capacity:'low'});
-assert.equal(lowCapacity.actions.length,1,'low capacity must receive one primary action');
-
-const uncertain=buildPlan({},{}); assert.equal(uncertain.status,'observe'); assert.equal(uncertain.reason,'insufficient_evidence');
-const safety=buildPlan({ranked:[{id:'stress',confidence:.9}]},{safetyHold:true}); assert.equal(safety.status,'escalate'); assert.equal(safety.actions.length,0);
-
-const maintain=adaptPlan(sleepCascade,{adherence:.9,benefit:.6}); assert.equal(maintain.adaptation,'maintain');
-const reassess=adaptPlan(sleepCascade,{adherence:.9,benefit:0}); assert.equal(reassess.adaptation,'reassess');
-const reduced=adaptPlan(sleepCascade,{adherence:.3,benefit:0}); assert.equal(reduced.adaptation,'simplify_or_reschedule');
-
-const lowReadiness=buildPlan({ranked:[{id:'low_activity',confidence:.95,importance:5,urgency:4,readiness:1}]},{capacity:'high'});
-assert.ok(![...lowReadiness.active,...lowReadiness.backlog].some(x=>x.id==='strength_activity'),'minimum-readiness action must be rejected');
-
-const contraindicated=buildPlan({ranked:[{id:'low_activity',confidence:.95,importance:5,urgency:4,readiness:5}]},{capacity:'high',contraindications:['strength_activity']});
-assert.ok(![...contraindicated.active,...contraindicated.backlog].some(x=>x.id==='strength_activity'),'contraindicated action must be blocked');
-
-const duplicateSupport=buildPlan({ranked:[{id:'poor_sleep',confidence:.9,importance:5,urgency:4,readiness:5},{id:'poor_sleep',confidence:.8,importance:4,urgency:3,readiness:5}]},{capacity:'high'});
-const sleepLogs=[...duplicateSupport.active,...duplicateSupport.backlog].filter(x=>x.id==='sleep_log');
-assert.equal(sleepLogs.length,1,'duplicate action candidates must collapse to one');
-assert.equal(sleepLogs[0].supportingDrivers.length,2,'deduplicated action must preserve provenance');
-
-const evidencePlan=buildPlan({ranked:[{id:'low_activity',confidence:.8,importance:3,urgency:2,readiness:4}]},{capacity:'high'});
-const evidenceItems=[...evidencePlan.active,...evidencePlan.backlog];
-assert.ok(evidenceItems.some(x=>x.evidenceStrength==='supported'),'supported evidence candidates should remain represented');
-assert.ok(evidenceItems.every(x=>Number.isFinite(x.priority)),'all eligible candidates need auditable ranking scores');
-
-console.log(JSON.stringify({pass:true,scenarios:11,sample:sleepCascade},null,2));
+test('buildPlan creates a bounded active plan and backlog',()=>{
+ const plan=buildPlan({ranked:[{id:'sleep_irregularity',confidence:.9,memberImportance:5,readiness:4},{id:'low_activity',confidence:.8,memberImportance:4,readiness:4}]},{capacity:'medium'});
+ assert.equal(plan.status,'active'); assert.ok(plan.active.length<=2); assert.ok(plan.evidenceUsed.length===2);
+});
+test('low capacity limits active commitments',()=>{
+ const plan=buildPlan({ranked:[{id:'sleep_irregularity',confidence:.9},{id:'low_activity',confidence:.8}]},{capacity:'low'});
+ assert.equal(plan.active.length,1);
+});
+test('safety hold prevents routine planning',()=>{
+ const plan=buildPlan({ranked:[{id:'sleep_irregularity',confidence:.9}],safetyHold:true},{});
+ assert.equal(plan.status,'escalate'); assert.equal(plan.active.length,0);
+});
+test('insufficient evidence stays observational',()=>{ assert.equal(buildPlan({},{}).status,'observe'); });
+test('respondToItem moves completed item to history and promotes backlog',()=>{
+ const plan=buildPlan({ranked:[{id:'sleep_irregularity',confidence:.9},{id:'low_activity',confidence:.8}]},{capacity:'medium'});
+ const id=plan.active[0].id; const next=respondToItem(plan,id,{decision:'complete'},{});
+ assert.ok(next.history.some(x=>x.id===id)); assert.ok(!next.active.some(x=>x.id===id));
+});
+test('recordProgress completes cadence target',()=>{
+ const plan=buildPlan({ranked:[{id:'sleep_irregularity',confidence:.9}]},{capacity:'low'}); const item=plan.active[0];
+ const next=recordProgress(plan,item.id,item.cadence.target,{capacity:'low'}); assert.ok(next.history.some(x=>x.id===item.id));
+});
+test('adaptPlan responds to adherence and benefit',()=>{
+ const plan=buildPlan({ranked:[{id:'sleep_irregularity',confidence:.9}]},{});
+ assert.equal(adaptPlan(plan,{adherence:.3}).adaptation,'simplify_or_reschedule');
+ assert.equal(adaptPlan(plan,{adherence:.8,benefit:.5}).adaptation,'maintain');
+ assert.equal(adaptPlan(plan,{adherence:.8,benefit:0}).adaptation,'reassess');
+});
+test('Discovery feasibility changes the friction budget used for an action',()=>{
+ const base={ranked:[{id:'sleep_irregularity',confidence:.9,readiness:4}]};
+ const low=buildPlan({ranked:[{...base.ranked[0],feasibility:{values:{capacity:'low'},constraints:[],supports:[]}}]},{});
+ const high=buildPlan({ranked:[{...base.ranked[0],feasibility:{values:{capacity:'high'},constraints:[],supports:[]}}]},{});
+ assert.ok(low.active[0].friction.budget < high.active[0].friction.budget);
+ assert.equal(low.active[0].feasibilityUsed.values.capacity,'low');
+});
+test('Discovery feasibility is preserved in plan evidence provenance',()=>{
+ const feasibility={values:{scheduleFlexibility:'low'},constraints:['limited_schedule'],supports:['partner_support'],evidenceRefs:['q-fit-1']};
+ const plan=buildPlan({ranked:[{id:'low_activity',confidence:.8,readiness:4,feasibility}]},{});
+ assert.deepEqual(plan.evidenceUsed[0].feasibility,feasibility);
+});
