@@ -1,12 +1,14 @@
 // EL8 canonical MVP member shell.
-// Introduced as migration scaffolding while legacy root routes remain operational.
+// Route defaults are repository-root relative because the shell is mounted by
+// deployed member pages at the repository root. Feature modules may override
+// them explicitly when embedded elsewhere.
 
 const DEFAULT_ROUTES = Object.freeze({
-  home: '../../home.html',
-  plan: '../../mvp-shell.html#plan',
-  insights: '../../insights.html',
-  explore: '../../explore.html',
-  profile: '../../profile.html'
+  home: 'home.html',
+  plan: 'plan.html',
+  insights: 'insights.html',
+  explore: 'explore.html',
+  profile: 'profile.html'
 });
 
 const ICONS = Object.freeze({

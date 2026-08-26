@@ -1,0 +1,13 @@
+// Internal onboarding efficiency telemetry. Invisible to members.
+// Local/session storage keeps the timer continuous across Baseline -> Discovery -> Plan -> Introduction.
+const KEY='el8_onboarding_telemetry_v1';
+const now=()=>Date.now();
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'null')||null}catch{return null}}
+function save(x){try{localStorage.setItem(KEY,JSON.stringify(x))}catch{}return x}
+export function startOnboardingTelemetry(meta={}){let x=load();if(!x||x.completedAt){x={version:1,journeyId:crypto.randomUUID?.()||`${now()}-${Math.random()}`,startedAt:now(),lastActiveAt:now(),activeMs:0,idleMs:0,stages:{},events:[],meta};save(x)}return x}
+export function enterStage(stage,meta={}){const x=startOnboardingTelemetry();const t=now();if(x.currentStage&&x.currentStage!==stage)leaveStage(x.currentStage);const fresh=load()||x;fresh.currentStage=stage;fresh.stages[stage]??={visits:0,activeMs:0,idleMs:0,startedAt:t,completedAt:null};fresh.stages[stage].visits++;fresh.stages[stage].lastEnteredAt=t;fresh.events.push({type:'stage_enter',stage,at:t,meta});return save(fresh)}
+export function leaveStage(stage,meta={}){const x=load();if(!x)return;const t=now(),s=x.stages?.[stage];if(s){s.lastLeftAt=t;x.events.push({type:'stage_leave',stage,at:t,meta})}return save(x)}
+export function recordOnboardingEvent(type,meta={}){const x=startOnboardingTelemetry(),t=now();x.events.push({type,stage:x.currentStage||null,at:t,meta});if(x.events.length>500)x.events=x.events.slice(-500);return save(x)}
+export function completeOnboardingTelemetry(meta={}){const x=startOnboardingTelemetry(),t=now();x.completedAt=t;x.totalElapsedMs=t-x.startedAt;x.events.push({type:'journey_complete',at:t,meta});return save(x)}
+export function onboardingTelemetrySnapshot(){const x=load();if(!x)return null;return {...x,totalElapsedMs:(x.completedAt||now())-x.startedAt}}
+export function instrumentOnboardingStage(stage,{idleAfterMs=30000}={}){enterStage(stage);let last=now(),idle=false;const tick=()=>{const x=load();if(!x)return;const t=now(),delta=Math.min(t-last,5000);last=t;const s=x.stages?.[stage];if(!s)return;if(document.hidden||idle){x.idleMs+=delta;s.idleMs+=delta}else{x.activeMs+=delta;s.activeMs+=delta}save(x)};const timer=setInterval(tick,1000);const activity=()=>{last=now();idle=false};['pointerdown','keydown','scroll','touchstart','input','change'].forEach(e=>addEventListener(e,activity,{passive:true}));const idleTimer=setInterval(()=>{idle=now()-last>=idleAfterMs},1000);addEventListener('pagehide',()=>{tick();leaveStage(stage);clearInterval(timer);clearInterval(idleTimer)},{once:true});return{event:recordOnboardingEvent,snapshot:onboardingTelemetrySnapshot}}

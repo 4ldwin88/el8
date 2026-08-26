@@ -1,29 +1,33 @@
 # EL8 Repository Target Architecture
 
-Status: Target-state domain architecture
-Reconciled: 2026-08-24
+Status: Target-state operational architecture
+Reconciled: 2026-08-25
 
-This document defines EL8's internal domain structure. `docs/REPOSITORY-GOVERNANCE.md` is authoritative for lifecycle/environment boundaries, runtime isolation, promotion, Test Freeze and cleanup policy. `docs/repository-classification.md` maps current files before migration.
+`docs/REPOSITORY-GOVERNANCE.md` controls lifecycle, promotion and environment isolation. This document defines physical/domain placement.
 
-## 1. Governing model
+## 1. Design goals
 
-Placement is decided in two steps:
-1. **Environment/lifecycle first** — Active, Development, Tests/Validation, Archive or Delete.
-2. **Domain responsibility second** — the permanent or initiative domain that owns the artifact.
+The repository should have one obvious source location for each accepted capability. Product domains belong in directories; release states belong in Git branches and deployment configuration.
 
-Development is temporary; permanent product domains are `app/`, `intelligence/`, `supabase/`, `assets/`, `admin/` and `tests/`.
+The target must:
+- keep the deployment root small;
+- avoid permanent Stable/Development source duplication;
+- make ownership obvious;
+- keep accepted intelligence independently testable;
+- preserve unique regression value while deleting disposable harnesses;
+- use Git history as the default archive.
 
-Stable and Development must also be independently deployable to **different browser origins** so two different EL8 accounts can remain signed in simultaneously. Repository folder separation alone does not provide session isolation.
-
-## 2. Target top-level structure
+## 2. Target tree
 
 ```text
 /
 ├── README.md
-├── index.html
+├── package.json
 ├── .github/
 │   └── workflows/
-├── app/                               # ACTIVE member product
+├── app/
+│   ├── auth/
+│   ├── onboarding/
 │   ├── shell/
 │   ├── home/
 │   ├── plan/
@@ -32,178 +36,108 @@ Stable and Development must also be independently deployable to **different brow
 │   ├── profile/
 │   ├── track/
 │   └── workflows/
-├── intelligence/                      # ACTIVE EL8 intelligence
-│   ├── evidence/
-│   ├── integration/
-│   ├── model/
-│   ├── planning/
-│   ├── policy/
-│   ├── question-bank/
-│   ├── selection/
-│   └── simulation/
-├── development/                       # TEMPORARY initiative workspaces
+├── intelligence/
+│   ├── contracts/
 │   ├── discovery/
-│   ├── assessments/
-│   ├── check-ins/
+│   ├── evidence/
+│   ├── state/
+│   ├── prioritization/
+│   ├── planning/
 │   ├── interventions/
-│   └── experiments/
-├── tests/                             # PERMANENT validation system
-│   ├── unit/
-│   ├── integration/
-│   ├── cases/
-│   ├── evals/
-│   ├── regressions/
-│   └── qa/
-├── supabase/                          # backend
-├── assets/                            # accepted shared assets
-│   ├── brand/
-│   ├── icons/
-│   ├── images/
-│   └── styles/
-├── admin/                             # restricted accepted surfaces
-├── docs/                              # repository/technical docs
-└── archive/                           # exceptional retained history
+│   ├── outcomes/
+│   └── safety/
+├── assets/
+├── admin/
+├── supabase/              # repository-owned backend source/config when present
+├── tests/                 # cross-domain/system validation only
+└── docs/
 ```
 
-`development/qa/` is intentionally absent. Initiative-local QA belongs inside that initiative; durable QA belongs in `tests/qa/`.
+Static-hosting entry pages may remain at root when they are genuine deployment routes. Business logic should not live there when a canonical domain owns it.
 
-## 3. Runtime topology
+## 3. Member application architecture
 
-The repository architecture and deployment architecture are related but not identical.
+- `auth/` — signup, login, logout, recovery and session handling.
+- `onboarding/` — account setup, required preferences, Universal Baseline, Discovery handoff, initial Plan proposal and introduction.
+- `shell/` — common navigation/layout. Primary destinations are Home, Plan, Insights and Explore; Profile is avatar-accessed; Track is global.
+- `home/` — today's execution surface and required member inputs.
+- `plan/` — active plan, priorities/focus dimensions, interventions/actions, schedule/calendar, rationale and review state.
+- `insights/` — baseline/current state, trends, dimension details and evidence interpretation.
+- `explore/` — For You, learning, saved content and professional/expert-services space.
+- `profile/` — member record, history, assessments, membership, connections, settings, notifications and privacy/data.
+- `track/` — speed-first capture and plan-derived quick logs.
+- `workflows/` — supporting flows without a better primary owner.
+
+## 4. Capability-donor rule
+
+Historical root pages/scripts and candidate implementations are capability donors, not architecture. Useful behavior is merged into a canonical module, converted into durable regression coverage, isolated as a bounded experiment, or retired when superseded.
+
+## 5. Intelligence architecture
 
 ```text
-Repository Active ─────→ Stable deployment origin ─────→ Stable browser session
-
-Development initiative → Development deployment origin → Development browser session
-
-Tests / CI ─────────────→ validates Development → promotion → validates Stable
+intelligence/
+├── contracts/
+├── discovery/
+├── evidence/
+├── state/
+├── prioritization/
+├── planning/
+├── interventions/
+├── outcomes/
+└── safety/
 ```
 
-Stable and Development must not be deployed merely as two paths on the same origin when both use persistent authentication. They require separate origins so browser auth/session storage cannot overwrite the other build's account.
+Canonical chain:
 
-Environment-specific backend/configuration values should be injected as configuration. The codebase should not fork business logic just to produce Stable and Development deployments.
+Discovery -> Evidence / State -> Prioritization -> Planning -> Interventions -> Outcomes / Learning
 
-Long-term preferred topology also separates backend environments so Development database migrations/functions/test data cannot affect Stable. During prototype work a shared backend may be tolerated only with strict test-data isolation and separate browser origins.
+Safety may interrupt the chain. Alternative engines must not sit beside accepted implementations as ambiguous peers.
 
-## 4. Active member app
+## 6. Environment assembly
 
-`app/` owns accepted member-facing presentation and interaction.
+Stable, candidate development and experiments use Git refs plus distinct deployment origins. Environment configuration supplies deployment identity, backend/project/key, feature flags, telemetry labels and test namespace.
 
-- `app/shell/` — shared header, four-destination bottom navigation, avatar Profile entry, global Track action, routing/layout.
-- `app/home/` — Today's execution surface, EL8-requested evidence/check-ins, daily progress and detailed Home Quick Logs.
-- `app/plan/` — Active Plan, intervention/action details, rationale, cadence, calendar/schedule and review state.
-- `app/insights/` — Baseline-versus-Current state, trends, graphs, dimension details and evidence interpretation.
-- `app/explore/` — For You, Learn, Experts and Saved.
-- `app/profile/` — member record, priorities/constraints, history, achievements, assessments, connections, membership, notifications, privacy/data and settings.
-- `app/track/` — global speed-first evidence capture with plan-derived Quick Logs plus text/photo/file/audio fallbacks.
-- `app/workflows/` — onboarding, Universal Baseline, reassessment, check-ins, plan review/history, safety/escalation, privacy/data and other secondary flows.
+A branch-based environment model prevents source duplication while still allowing Stable Account A and Development Account B to operate simultaneously in one browser when deployed to distinct origins.
 
-## 5. Active intelligence
+## 7. Experiments
 
-`intelligence/` owns accepted reusable reasoning/domain logic. UI code calls domain contracts instead of duplicating intelligence rules.
+Prefer isolated experiment/feature branches. A repository `experiments/` directory is optional and should exist only for bounded runnable work that benefits from coexistence and has no production dependency. Successful experiments promote capability and tests; rejected scaffolding is deleted.
 
-Preserve independently testable boundaries for evidence, integration, model, planning, policy, question-bank, selection and simulation. Large question banks remain modular. Generated artifacts must be distinguishable from human-authored source if generation is introduced.
+## 8. Tests
 
-## 6. Development initiatives
+Tests with a clear domain owner stay beside that domain. This keeps implementation and regression semantics together and is the default for canonical Intelligence and app modules.
 
-`development/` is not a parallel permanent product. Each folder is an isolated candidate workspace with a lifecycle.
+Use a root `tests/` tree only for cross-domain/system concerns such as persistence concurrency, authentication/session isolation, end-to-end deployment readiness, shared fixtures/evals or regression cases with no natural single owner.
 
-### `development/discovery/`
+Important failures from old QA/adversarial harnesses become durable tests before those harnesses are retired.
 
-```text
-development/discovery/
-├── engine/
-├── policies/
-├── questions/
-├── schemas/
-├── telemetry/
-├── ui/
-└── qa/                 # only while useful to this initiative
-```
+## 9. Backend
 
-The previous Discovery human-test freeze is closed. Current Discovery material may now migrate here after dependency/public-route/workflow mapping.
+Repository-owned Supabase migrations/functions/configuration belong under `supabase/`, organized by capability and environment requirements rather than duplicated application trees. If backend implementation is externally deployed and not repository-owned, the repository must still retain its canonical contract and an appropriate verification path.
 
-### Other initiatives
-- `development/assessments/` — unaccepted assessment work.
-- `development/check-ins/` — unaccepted check-in behavior.
-- `development/interventions/` — unaccepted intervention/adaptation behavior.
-- `development/experiments/` — bounded experiments without a mature domain.
+## 10. Documentation
 
-Successful work graduates into permanent domains. Failed/superseded work is retired. A completed Development initiative should normally shrink substantially or disappear.
+`docs/` contains only current operational/technical authority. Historical reviews, migration maps, completed validation ledgers and superseded architecture documents belong in Git history rather than the live tree.
 
-## 7. Tests and validation
+Cleanup-control documents are temporary and should delete themselves once their acceptance criteria are met.
 
-- `tests/unit/` — stable unit-level tests.
-- `tests/integration/` — cross-domain, persistence, environment/auth and contract tests.
-- `tests/cases/` — canonical fixtures/cases.
-- `tests/evals/` — evaluation runners and acceptance logic.
-- `tests/regressions/` — failures that must not recur.
-- `tests/qa/` — durable readiness/UI/system QA.
+## 11. Root acceptance rule
 
-A permanent integration test must verify the environment contract: Stable Account A and Development Account B can coexist without session replacement or storage collision.
+A root artifact survives only when it is one of:
+- repository/deployment metadata;
+- a genuine static-hosting/deployment entry route;
+- an unavoidable top-level client/configuration boundary;
+- a temporary compatibility surface with an explicit retirement dependency.
 
-Exploratory initiative-specific QA stays with the initiative until it deserves durable status.
+Everything else should have a canonical domain owner.
 
-## 8. Promotion mapping
+## 12. Completion criteria
 
-Promotion does not move an entire Development folder into Active. Accepted pieces are distributed to their permanent homes.
-
-Examples:
-- accepted Discovery reasoning/policies → relevant `intelligence/` domains;
-- accepted Discovery member flow → `app/workflows/` or relevant feature;
-- accepted intervention presentation → `app/plan/`;
-- accepted evidence capture → `app/track/` + `intelligence/evidence/` as appropriate;
-- backend changes → `supabase/`;
-- accepted regression cases → `tests/regressions/`;
-- temporary review/test UI → retire unless continuing value exists.
-
-## 9. Configuration contract
-
-Stable and Development should share source contracts while receiving environment-specific configuration. Configuration may include:
-- deployment/base URL;
-- environment identity (`stable`, `development`, test where needed);
-- Supabase URL/project and publishable key;
-- feature flags;
-- telemetry labels;
-- test-data namespace/markers.
-
-Do not hard-code Stable assumptions into reusable modules. Do not solve environment isolation by duplicating the whole application source tree.
-
-## 10. Schemas, telemetry and assets
-
-Keep contracts close to their governing domain. Experimental Discovery schemas/telemetry/assets stay inside `development/discovery/`; accepted shared equivalents move to permanent domains.
-
-Do not create generic top-level schema or telemetry dumping grounds unless a genuinely shared infrastructure layer emerges.
-
-`assets/` is for accepted shared presentation material only. Experimental assets remain with their Development initiative.
-
-## 11. Documentation and admin
-
-`docs/` owns repository governance and technical implementation documentation. Product authority remains in governed EL8 product documents outside the repo.
-
-`admin/` owns restricted accepted administrative surfaces and stays separate from the normal member app.
-
-## 12. Archive
-
-Prefer Git history to a large permanent archive. Retain files under `archive/` only when directly runnable/viewable historical material or traceability has continuing value.
-
-## 13. Migration sequence
-
-1. Inventory and classify current repository artifacts.
-2. Map dependencies, routes, workflows and auth/session assumptions.
-3. Establish final environment + domain destination for each retained artifact.
-4. Migrate Discovery into `development/discovery/` now that its Test Freeze is closed.
-5. Consolidate Active Home/Track, Plan, Insights, Explore, Profile and workflows.
-6. Consolidate accepted intelligence domains.
-7. Consolidate durable validation under `tests/`.
-8. Establish distinct Stable and Development deployment origins/configuration.
-9. Verify simultaneous dual-account sessions.
-10. Retire superseded root pages/helpers after canonical behavior is validated.
-11. Verify deployment/CI after each structural batch.
-12. Review stale branches after the tree stabilizes.
-
-## 14. Decision rule
-
-Every existing file receives an action—KEEP, MIGRATE, MERGE, HOLD or RETIRE—and a lifecycle destination—Active, Development, Tests/Validation, Archive or Delete—before structural movement.
-
-No mass move occurs without dependency and deployment checks.
+The repository reaches target state when:
+1. accepted behavior has one obvious owner;
+2. no production path depends on retired/development/experiment implementations;
+3. canonical QA is green;
+4. unique legacy QA value has durable ownership;
+5. the root contains no unexplained historical implementation files;
+6. current documentation describes the tree that actually exists;
+7. stable and candidate deployments can be isolated by branch/configuration without source duplication.

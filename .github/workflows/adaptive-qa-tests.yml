@@ -1,4 +1,4 @@
-name: Adaptive QA Tests
+name: Canonical Repository QA
 
 on:
   pull_request:
@@ -18,6 +18,6 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '20.x'
-      - name: Run full test suite
+          node-version: '22.x'
+      - name: Run canonical test suite
         run: npm test

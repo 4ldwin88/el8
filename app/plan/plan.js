@@ -2,7 +2,7 @@ import { mountAppShell } from '../shell/app-shell.js';
 import { mountTrackSheet } from '../track/track-sheet.js';
 
 export function mountPlanShell({ member, quickLogs = [], routes = {} } = {}) {
-  const trackSheet = mountTrackSheet({ quickLogs, legacyTrackUrl: '../../track.html' });
+  const trackSheet = mountTrackSheet({ quickLogs });
   const shell = mountAppShell({
     active: 'plan',
     routes,
