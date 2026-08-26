@@ -1,0 +1,5 @@
+import assert from'node:assert/strict';
+if(!globalThis.crypto)globalThis.crypto=(await import('node:crypto')).webcrypto;
+if(!globalThis.performance)globalThis.performance={now:()=>100};
+const{createIntelligenceTestSession,beginIntelligenceTest,elapsedMs,resetIntelligenceTestSession,resultPayload}=await import('./intelligence-test-contract.js');
+const a=createIntelligenceTestSession({testerMode:'roleplay'});assert.equal(a.tester_mode,'roleplay');assert.equal(a.stage,'introduction');assert.equal(a.started_at,null);const b=beginIntelligenceTest(a,{now:'2026-08-26T00:00:00Z',perf:100});assert.equal(b.stage,'baseline');assert.equal(elapsedMs(b,350),250);const c=resetIntelligenceTestSession({testerMode:'self'});assert.notEqual(c.id,a.id);b.baseline={ok:true};b.discovery={ok:true};b.confirmed_priorities=['financial'];b.priority_accuracy=4;b.survey={useful:'5'};const p=resultPayload(b);assert.equal(p.session_id,b.id);assert.deepEqual(p.confirmed_priorities,['financial']);assert.equal(p.priority_accuracy,4);console.log('Intelligence Test contract regression passed');
