@@ -20,7 +20,7 @@ function stateWith(concerns) {
   const result = prioritizeMemberState(stateWith([
     { concernId: 'stress', status: 'candidate', sufficiency: 'insufficient', evidenceRefs: ['ev-stress'] },
     { concernId: 'money_pressure', status: 'active', sufficiency: 'sufficient', evidenceRefs: ['ev-money'], observationRefs: ['obs-money'] },
-    { concernId: 'poor_sleep', status: 'excluded', sufficiency: 'sufficient' },
+    { concernId: 'poor_sleep', status: 'resolved', sufficiency: 'sufficient' },
   ]), { now });
   assert.equal(result.blockedBySafety, false);
   assert.deepEqual(result.priorityItems.map(item => item.concernId), ['money_pressure', 'stress']);
