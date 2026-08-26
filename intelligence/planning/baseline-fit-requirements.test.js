@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {createMemberState,createConcernState,createFact} from '../state/member-state-contract.js';
+import {definePlanFamily,definePlanPackage} from './plan-package-contract.js';
+import {buildBaselineFitAgenda} from './baseline-fit-requirements.js';
+const s=createMemberState();const c=createConcernState({concernId:'physical.weight',status:'active'});c.memberConfirmed=true;c.sufficiency='sufficient';s.concerns[c.concernId]=c;
+s.facts.walk=createFact({factId:'walk',semanticKey:'environment.safe_walking',value:true,sourceType:'baseline',sourceRef:'q:walk',affectedConcernId:c.concernId});
+const f=definePlanFamily({familyId:'weight_management',familyCode:'WM',name:'Weight Management',targetDimensionId:'physical',targetConcernId:c.concernId,supportedTopicIds:['physical.weight'],familyGoal:'Sustainable weight management'});
+const base={familyId:f.familyId,familyCode:'WM',targetDimensionId:'physical',targetConcernId:c.concernId,targetTopicIds:['physical.weight'],capabilityLevel:'foundation',goal:'Sustainable routine',rationale:'Fit package',requiredComponents:[{id:'move',type:'do'}],indicatorDefinitions:[{id:'trend'}],initialReviewWindow:{days:14}};
+const p1=definePlanPackage({...base,variantNumber:1,name:'No Equipment',environmentRequirements:[{semanticKey:'environment.safe_walking',equals:true}],minimumEvidence:[{semanticKey:'baseline.weight_context'}]});
+const p2=definePlanPackage({...base,variantNumber:2,name:'Gym',equipmentRequirements:[{semanticKey:'access.gym',equals:true}],minimumEvidence:[{semanticKey:'baseline.weight_context'}]});
+const r=buildBaselineFitAgenda({memberState:s,prioritization:{blockedBySafety:false,priorityItems:[{priorityId:'p1',concernId:c.concernId}]},planFamilies:[f],planPackages:[p1,p2]});
+assert.deepEqual(new Set(r.items[0].factKeys),new Set(['baseline.weight_context','access.gym']));
+assert.deepEqual(r.items[0].candidatePackageCodes,['WM-101','WM-102']);
+assert.equal(buildBaselineFitAgenda({memberState:s,prioritization:{blockedBySafety:true,priorityItems:[]},planFamilies:[f],planPackages:[p1]}).blockedBySafety,true);
+console.log('adaptive baseline fit agenda tests passed');
