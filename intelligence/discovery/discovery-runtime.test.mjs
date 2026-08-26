@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import * as discovery from './round3-engine.js';
 import { deriveConcernState } from './concern-projection.js';
 import { makeObservation } from './contracts.js';
+import { ROUND3_BANK, observationsForAnswer } from './question-bank-adapter.js';
 import {
   createDiscoverySession,
   nextDiscoveryStep,
@@ -71,5 +72,15 @@ assert.equal(fitState.feasibility.values.capacity,'low','Discovery state should 
 assert.equal(fitState.feasibility.values.scheduleFlexibility,'low','Discovery state should preserve schedule feasibility');
 assert.deepEqual(fitState.feasibility.constraints,['limited_transport'],'Discovery state should preserve constraints');
 assert.deepEqual(fitState.feasibility.supports,['partner_support'],'Discovery state should preserve supports');
+
+const activityFitQuestion=ROUND3_BANK.find(q=>q.id==='PH1B');
+const activityFitObservations=observationsForAnswer(activityFitQuestion,['time','cost','mobility']);
+const activityFitState=deriveConcernState(activityFitObservations,'energy');
+assert.equal(activityFitState.feasibility.values.scheduleFlexibility,'low','PH1B time answer should become schedule feasibility');
+assert.equal(activityFitState.feasibility.values.costSensitivity,'high','PH1B cost answer should become cost feasibility');
+assert.equal(activityFitState.feasibility.values.accessibilityNeeds,true,'PH1B mobility answer should become accessibility feasibility');
+assert.ok(activityFitState.feasibility.constraints.includes('limited_time'),'PH1B should preserve time as a planning constraint');
+assert.ok(activityFitState.feasibility.constraints.includes('limited_budget'),'PH1B should preserve cost as a planning constraint');
+assert.ok(activityFitState.feasibility.constraints.includes('mobility_accessibility'),'PH1B should preserve mobility as a planning constraint');
 
 console.log('canonical Discovery runtime + onboarding contract + feasibility regression tests passed');
