@@ -8,87 +8,85 @@ function normalizeEvidence(input={}) {
   const ranked=input.ranked || input.drivers || [];
   return ranked.map((x,i)=>typeof x==='string'
     ? {id:x, confidence:Math.max(.35,1-(i*.15)), rank:i+1}
-    : {rank:i+1, confidence:x.confidence ?? x.score ?? Math.max(.35,1-(i*.15)), ...x});
+    : {rank:i+1, confidence:x.confidence ?? x.score ?? x.evidenceConfidence ?? Math.max(.35,1-(i*.15)), ...x});
 }
 
 function adherenceEstimate(context={}) {
-  // Dynamic recent adherence, not a permanent member label. Neutral when unknown.
   const raw=context.adherence ?? context.recentAdherence ?? context.adherenceScore;
   return raw==null ? .6 : clamp(Number(raw),0,1);
 }
 
+function driverFeasibility(driver={}) { return driver.feasibility?.values || driver.feasibility || {}; }
+function mergedContext(driver={},context={}) {
+  const f=driverFeasibility(driver);
+  const capacity=f.capacity ?? context.capacity;
+  const supports=[...(context.supports||[]),...(driver.feasibility?.supports||[])];
+  const constraints=[...(context.constraints||[]),...(driver.feasibility?.constraints||[])];
+  return {...context,...f,capacity,supports,constraints};
+}
 function frictionBudget(context={}) {
   const adherence=adherenceEstimate(context);
   const capacityBase=context.capacity==='low' ? 1.6 : context.capacity==='high' ? 4.4 : 3;
   return clamp(capacityBase + ((adherence-.6)*2.5),1,5);
 }
-
-function evidenceWeight(strength) {
-  // Deliberately modest: evidence quality breaks close calls but does not overwhelm member fit.
-  return strength==='supported' ? .5 : strength==='evidence_informed' ? .15 : 0;
+function evidenceWeight(strength) { return strength==='supported' ? .5 : strength==='evidence_informed' ? .15 : 0; }
+function constraintTokens(driver={},context={}) {
+  const f=driver.feasibility||{};
+  return new Set([...(context.contraindications||[]),...(context.constraints||[]),...(driver.contraindications||[]),...(f.constraints||[])].map(String));
 }
-
 function isEligible(driver,action,context={}) {
-  const readiness=clamp(Number(driver.readiness ?? context.readiness ?? 3),1,5);
+  const fit=mergedContext(driver,context);
+  const readiness=clamp(Number(driver.readiness ?? fit.readiness ?? 3),1,5);
   const minReadiness=Number(action.eligibility?.minReadiness ?? 1);
   if(readiness < minReadiness) return false;
-  const blocked=new Set([...(context.contraindications||[]), ...(driver.contraindications||[])]);
-  return !(action.contraindications||[]).some(x=>blocked.has(x));
+  const blocked=constraintTokens(driver,fit);
+  if((action.contraindications||[]).some(x=>blocked.has(String(x)))) return false;
+  const values=driverFeasibility(driver);
+  if(values.professionalGuidanceRequired===true && action.requiresProfessionalGuidance===false) return false;
+  if(values.access===false && action.requiresAccess===true) return false;
+  return true;
 }
-
 function priorityScore(driver, action, context={}) {
+  const fit=mergedContext(driver,context);
   const confidence=clamp(Number(driver.confidence)||0,0,1);
   const importance=clamp(Number(driver.memberImportance ?? driver.importance ?? 3),1,5);
   const leverage=clamp(Number(driver.breadth ?? driver.downstreamCount ?? 1),1,5);
   const urgency=clamp(Number(driver.urgency ?? 3),1,5);
-  const readiness=clamp(Number(driver.readiness ?? context.readiness ?? 3),1,5);
+  const readiness=clamp(Number(driver.readiness ?? fit.readiness ?? 3),1,5);
   const effort=clamp(Number(action.effort),1,5);
   const feasibility=6-effort;
-  const budget=frictionBudget(context);
+  const budget=frictionBudget(fit);
   const overBudget=Math.max(0,effort-budget);
   const underBudget=Math.max(0,budget-effort);
   const frictionPenalty=overBudget*2.25;
   const adherenceFit=underBudget*.2;
-  const capacityPenalty=context.capacity==='low' ? effort*.35 : context.capacity==='high' ? 0 : effort*.15;
+  const capacityPenalty=fit.capacity==='low' ? effort*.35 : fit.capacity==='high' ? 0 : effort*.15;
   return +(urgency + importance + confidence*5 + leverage + readiness + feasibility + evidenceWeight(action.evidenceStrength) + adherenceFit - frictionPenalty - capacityPenalty).toFixed(3);
 }
-
 function toBacklogItem(driver,action,priority,context={},supportingDrivers=[driver]) {
+  const fit=mergedContext(driver,context);
   return {...action,cadence:{...action.cadence},driver:driver.id,
     supportingDrivers:supportingDrivers.map(x=>({id:x.id,confidence:+Number(x.confidence).toFixed(3)})),
     confidence:+Number(driver.confidence).toFixed(3),priority,status:'backlog',progress:0,
-    friction:{effort:clamp(Number(action.effort),1,5),budget:+frictionBudget(context).toFixed(2),recentAdherence:+adherenceEstimate(context).toFixed(2)},
+    friction:{effort:clamp(Number(action.effort),1,5),budget:+frictionBudget(fit).toFixed(2),recentAdherence:+adherenceEstimate(fit).toFixed(2)},
+    feasibilityUsed:driver.feasibility||null,
     goal:driver.goal || `Improve the situation related to ${driver.id.replaceAll('_',' ')}`,
     barrierPlan:driver.barrierPlan || null,support:driver.support || null,
     rationale:'Ranked using Discovery evidence, member context, demonstrated adherence, current capacity, feasibility, evidence quality and expected leverage. This is a working hypothesis, not a proven causal conclusion.'};
 }
-
 function activeLimit(context={}) { return context.capacity==='low' ? 1 : 2; }
-
 function buildCandidates(evidence,context) {
   const raw=evidence.flatMap(driver=>candidatesForDriver(driver.id)
     .filter(action=>isEligible(driver,action,context))
     .map(action=>({driver,action,priority:priorityScore(driver,action,context)})));
-
-  // One action may eventually be supported by multiple Discovery drivers. Keep one candidate
-  // while preserving provenance from every supporting driver.
   const byAction=new Map();
   for(const candidate of raw) {
     const existing=byAction.get(candidate.action.id);
     if(!existing) byAction.set(candidate.action.id,{...candidate,supportingDrivers:[candidate.driver]});
-    else {
-      existing.supportingDrivers.push(candidate.driver);
-      if(candidate.priority>existing.priority) {
-        existing.driver=candidate.driver;
-        existing.action=candidate.action;
-        existing.priority=candidate.priority;
-      }
-    }
+    else { existing.supportingDrivers.push(candidate.driver); if(candidate.priority>existing.priority) Object.assign(existing,{driver:candidate.driver,action:candidate.action,priority:candidate.priority}); }
   }
-  return [...byAction.values()].sort((a,b)=>b.priority-a.priority)
-    .map(x=>toBacklogItem(x.driver,x.action,x.priority,context,x.supportingDrivers));
+  return [...byAction.values()].sort((a,b)=>b.priority-a.priority).map(x=>toBacklogItem(x.driver,x.action,x.priority,context,x.supportingDrivers));
 }
-
 export function buildPlan(discovery={}, context={}) {
   if(context.safetyHold || discovery.safetyHold) return {status:'escalate',reason:'safety_hold',active:[],backlog:[],history:[],reviewDays:null};
   const evidence=normalizeEvidence(discovery);
@@ -97,11 +95,10 @@ export function buildPlan(discovery={}, context={}) {
   if(!backlog.length) return {status:'observe',reason:'no_eligible_authorized_action',active:[],backlog:[],history:[],reviewDays:7};
   const active=backlog.splice(0,activeLimit(context)).map(x=>({...x,status:'active'}));
   return {status:'active',reason:'evidence_informed_priority',active,backlog,history:[],actions:active,
-    reviewDays:Math.min(...active.map(a=>a.reviewDays)),evidenceUsed:evidence.map(x=>({id:x.id,confidence:x.confidence})),
+    reviewDays:Math.min(...active.map(a=>a.reviewDays)),evidenceUsed:evidence.map(x=>({id:x.id,confidence:x.confidence,feasibility:x.feasibility||null})),
     memberFit:{recentAdherence:+adherenceEstimate(context).toFixed(2),frictionBudget:+frictionBudget(context).toFixed(2),capacity:context.capacity||'medium'},
     uncertainty:'Plan choices are hypotheses to test through follow-up, not claims of optimality or causality.'};
 }
-
 export function respondToItem(plan={}, itemId, response={}, context={}) {
   if(plan.status!=='active') return plan;
   const active=[...(plan.active||plan.actions||[])], backlog=[...(plan.backlog||[])], history=[...(plan.history||[])];
@@ -112,24 +109,16 @@ export function respondToItem(plan={}, itemId, response={}, context={}) {
   while(active.length<activeLimit(context)&&backlog.length) active.push({...backlog.shift(),status:'active',deferred:false});
   return {...plan,active,actions:active,backlog,history};
 }
-
 export function recordProgress(plan={}, itemId, amount=1, context={}) {
   const active=[...(plan.active||[])]; const i=active.findIndex(x=>x.id===itemId); if(i<0) return plan;
   const item={...active[i]}, target=Number(item.cadence?.target||1); item.progress=Math.min(target,Number(item.progress||0)+amount); active[i]=item;
-  let next={...plan,active,actions:active};
-  if(item.progress>=target) next=respondToItem(next,itemId,{decision:'complete'},context);
-  return next;
+  let next={...plan,active,actions:active}; if(item.progress>=target) next=respondToItem(next,itemId,{decision:'complete'},context); return next;
 }
-
 export function planView(plan={}) {
   const groups={daily:[],thisWeek:[],scheduled:[],oneTime:[]};
-  for(const item of plan.active||[]) {
-    const c=item.cadence||{}; const view={...item,progressLabel:`${item.progress||0}/${c.target||1}`};
-    if(c.type==='daily') groups.daily.push(view); else if(c.type==='weekly_target') groups.thisWeek.push(view); else if(c.type==='specific_days') groups.scheduled.push(view); else groups.oneTime.push(view);
-  }
+  for(const item of plan.active||[]) { const c=item.cadence||{}; const view={...item,progressLabel:`${item.progress||0}/${c.target||1}`}; if(c.type==='daily') groups.daily.push(view); else if(c.type==='weekly_target') groups.thisWeek.push(view); else if(c.type==='specific_days') groups.scheduled.push(view); else groups.oneTime.push(view); }
   return {...groups,backlogCount:(plan.backlog||[]).length};
 }
-
 export function adaptPlan(plan={}, feedback={}) {
   if(plan.status!=='active') return {...plan,adaptation:'no_active_plan'};
   const adherence=clamp(Number(feedback.adherence??1),0,1), benefit=clamp(Number(feedback.benefit??0),-1,1);
@@ -140,5 +129,4 @@ export function adaptPlan(plan={}, feedback={}) {
   if(adherence>=.7&&benefit<=0) return {...plan,adaptation:'reassess'};
   return {...plan,adaptation:'continue_observation'};
 }
-
 export { LIBRARY };
