@@ -1,10 +1,16 @@
-# EL8 Public Discovery Test Specification
+# EL8 Intelligence Test Specification
 
 Status: Locked product/validation specification
 
+## Naming
+
+The public-facing name is **EL8 Intelligence Test**.
+
+Use **Intelligence Test** in tester-facing UI and **intelligence-test** for repository paths, telemetry identifiers, and implementation names. Avoid abbreviations such as `Int Engine Test`; they are less clear to external testers. Internally, the test validates the EL8 Intelligence Engine, but the shorter public name is easier to understand.
+
 ## Purpose
 
-The EL8 Public Discovery Test is a permanent external validation harness for the canonical EL8 onboarding intelligence. It exists to answer three questions:
+The EL8 Intelligence Test is a permanent external validation harness for the canonical EL8 Intelligence Engine used during onboarding. It exists to answer three questions:
 
 1. Does EL8 understand what matters to the tester?
 2. Does EL8 turn that understanding into a useful, manageable proposed plan?
@@ -14,11 +20,11 @@ It is not a second onboarding implementation and must never become one.
 
 ## Core architecture rule: same intelligence, different wrapper
 
-The public test must import and execute the same canonical Baseline contract, Baseline-to-Discovery projection, Discovery runtime, priority-candidate logic, intervention selection, and plan-generation logic used by authenticated EL8 onboarding.
+The Intelligence Test must import and execute the same canonical Baseline contract, Baseline-to-Discovery projection, Discovery runtime, priority-candidate logic, intervention selection, and plan-generation logic used by authenticated EL8 onboarding.
 
-The public test may have its own UI wrapper, anonymous session persistence, telemetry, tester-note collection, research survey, and completion experience. It must not fork or copy the underlying assessment, Discovery, prioritization, or planning intelligence.
+The Intelligence Test may have its own UI wrapper, anonymous session persistence, telemetry, tester-note collection, research survey, and completion experience. It must not fork or copy the underlying assessment, Discovery, prioritization, or planning intelligence.
 
-A change to canonical intelligence therefore changes both authenticated onboarding and the public test after normal QA gates pass.
+A change to canonical intelligence therefore changes both authenticated onboarding and the Intelligence Test after normal QA gates pass.
 
 ## Public access
 
@@ -42,7 +48,7 @@ A `Try Again` action on the Thank You screen starts a completely new anonymous s
 The introduction should be concise and explain:
 
 - EL8 is being developed as a wellness operating system that helps people understand what matters, identify priorities, and turn them into a manageable plan.
-- This test evaluates the assessment/Discovery/planning process itself; the tester is testing EL8, not being graded by EL8.
+- The EL8 Intelligence Test evaluates whether EL8's intelligence can understand the answers it receives and respond with relevant priorities and a useful plan; the tester is testing EL8, not being graded by EL8.
 - There are no right or wrong answers and testers should not try to guess what EL8 wants them to say.
 - The experience is a prototype and is not medical advice.
 - Participation is anonymous and responses/interactions are collected for product research; testers should avoid entering identifying information.
@@ -87,7 +93,7 @@ This measure is intentionally separate from plan-quality feedback so Discovery f
 
 Generate the proposed plan from the same canonical planning/intervention path used by authenticated onboarding.
 
-The public test must not show `Accept Plan`, because no member plan is being activated. Instead, the plan is the stimulus for the research survey.
+The Intelligence Test must not show `Accept Plan`, because no member plan is being activated. Instead, the plan is the stimulus for the research survey.
 
 ## Optional post-plan research survey
 
@@ -162,7 +168,7 @@ Anonymous write access must be narrowly constrained to the research data contrac
 
 Every completed or abandoned session must be attributable to the exact logic being tested. Store at least:
 
-- public-test UI version;
+- Intelligence Test UI version;
 - repository commit/build identifier where practical;
 - Baseline contract version;
 - Discovery engine/question-bank version;
@@ -172,7 +178,7 @@ Research comparisons across versions must not silently combine materially differ
 
 ## Operational controls
 
-The public test requires:
+The Intelligence Test requires:
 
 - an internal enable/disable (kill-switch) mechanism for new sessions;
 - a visible test version for debugging;
@@ -206,7 +212,7 @@ Before the public URL is shared externally:
 
 1. Canonical Repository QA passes.
 2. Discovery Regression passes.
-3. A parity regression demonstrates that the public harness and authenticated onboarding produce equivalent priority/plan outputs from equivalent canonical inputs.
+3. A parity regression demonstrates that the Intelligence Test and authenticated onboarding produce equivalent priority/plan outputs from equivalent canonical inputs.
 4. Anonymous telemetry writes are verified against the intended research-only persistence contract.
 5. Repeated `Try Again` runs create independent sessions.
 6. No login or member-account state is required.
@@ -217,4 +223,4 @@ Before the public URL is shared externally:
 
 ## Change-control rule
 
-Do not fix a public-test logic failure by patching only the public wrapper when the same failure exists in canonical EL8 intelligence. Repair the canonical intelligence, add a regression, pass gates, then let both authenticated onboarding and the public harness consume the correction.
+Do not fix an Intelligence Test logic failure by patching only the public wrapper when the same failure exists in canonical EL8 intelligence. Repair the canonical intelligence, add a regression, pass gates, then let both authenticated onboarding and the Intelligence Test consume the correction.
