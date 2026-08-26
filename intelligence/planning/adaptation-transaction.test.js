@@ -1,0 +1,11 @@
+import assert from'node:assert/strict';import{createAdaptationTransaction,nextAdaptationRoute}from'./adaptation-transaction.js';
+const policy={adaptation:'modify',reason:'repeated_fit_or_adherence_barrier',requiresConfirmation:true};
+const proposed=createAdaptationTransaction({planId:'p1',interventionId:'walk',policy,reviewSessionIds:['r1','r2']});
+assert.equal(proposed.status,'proposed');assert.equal(proposed.mutationStatus,'not_applied');assert.equal(nextAdaptationRoute(proposed),null);
+const confirmed=createAdaptationTransaction({planId:'p1',interventionId:'walk',policy,reviewSessionIds:['r1','r2'],confirmed:true,confirmedAt:'2026-08-26T12:00:00Z',memberInstruction:'make it shorter'});
+assert.equal(confirmed.status,'confirmed');assert.equal(confirmed.memberInstruction,'make it shorter');assert.equal(nextAdaptationRoute(confirmed),'plan-adjustment');
+assert.equal(nextAdaptationRoute(createAdaptationTransaction({planId:'p1',interventionId:'walk',policy:{adaptation:'reassess',reason:'poor_outcome',requiresConfirmation:true},confirmed:true,confirmedAt:'x'})),'plan-reassessment');
+assert.equal(nextAdaptationRoute(createAdaptationTransaction({planId:'p1',interventionId:'walk',policy:{adaptation:'reprioritize',reason:'context',requiresConfirmation:true},confirmed:true,confirmedAt:'x'})),'priority-reassessment');
+assert.throws(()=>createAdaptationTransaction({planId:'p1',interventionId:'walk',policy:{adaptation:'maintain',requiresConfirmation:false}}),/not confirmable/);
+assert.throws(()=>createAdaptationTransaction({planId:'p1',interventionId:'walk',policy,confirmed:true}),/confirmedAt/);
+console.log('adaptation transaction tests passed');
