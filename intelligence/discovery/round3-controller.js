@@ -5,7 +5,7 @@ import {needsTriage, buildTriageQuestion} from './triage.js';
 import {stoppingDecision} from './sufficiency.js';
 import {selectPlanConcerns} from './plan-priority.js';
 
-export function createRound3Session({concernIds=[], questionBank=[], labels={}, outerGuardrail=14}={()) {
+export function createRound3Session({concernIds=[], questionBank=[], labels={}, outerGuardrail=14}={}) {
   return {version:'round-3', observationLog:[], concernIds:[...concernIds], questionBank, labels, asked:[], questionsAsked:0, outerGuardrail, phase:concernIds.length?'discovery':'gateway', triaged:false, incomplete:false, resolutionStates:{}, driverKnown:{}, recoveryAttempts:{}, priorityResolutionUsed:false};
 }
 export function activateConcerns(session, concernIds=[]) {session.concernIds=[...new Set([...session.concernIds,...concernIds.filter(Boolean)])];for(const id of concernIds)if(!session.resolutionStates[id])session.resolutionStates[id]='triaged';session.phase='discovery';return session;}
