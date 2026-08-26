@@ -1,6 +1,6 @@
 import { supabase } from '../../el8-client.js';
 
-const CONCERN_DIMENSION=Object.freeze({money:'Financial',work:'Occupational',sleep:'Physical',health:'Physical',energy:'Physical',stress:'Emotional',relationships:'Social',support:'Social',home:'Environmental',focus:'Intellectual',direction:'Spiritual'});
+const CONCERN_DIMENSION=Object.freeze({money:'Financial',money_pressure:'Financial',work:'Occupational',work_instability:'Occupational',sleep:'Physical',poor_sleep:'Physical',health:'Physical',physical_condition:'Physical',low_activity:'Physical',energy:'Physical',low_energy:'Physical',stress:'Emotional',relationships:'Social',relationship_strain:'Social',support:'Social',low_support:'Social',home:'Environmental',home_instability:'Environmental',focus:'Intellectual',low_focus:'Intellectual',direction:'Spiritual',lack_direction:'Spiritual'});
 export const dimensionFor=concernId=>CONCERN_DIMENSION[concernId]||'Physical';
 
 export async function persistDiscovery({userId,memberCode=null,timezone='UTC',output}={}){
@@ -11,7 +11,23 @@ export async function persistDiscovery({userId,memberCode=null,timezone='UTC',ou
   const{data,error}=await supabase.from('el8_assessment_sessions').insert(row).select('id').single();if(error)throw error;return data;
 }
 
+function canonicalInterventions(plan={}){
+  return (plan.active||plan.actions||[]).map((a,i)=>({id:a.id,order:i+1,action:a.title||a.label||a.id,dimensions:[dimensionFor(a.driver||a.concernId)],concern_id:a.driver||a.concernId||null,intent:a.type||null,rationale:a.rationale||null,measurement:a.measurement||null,success_signal:a.successSignal||null,time_horizon:a.reviewDays?`${a.reviewDays}-days`:null,effort:a.effort??null,source:'adaptive-plan',deepening_requirements:(plan.deepening?.requirements||[]).filter(r=>r.actionId===a.id)}));
+}
+
+export async function persistAdaptiveInitialPlan({userId,plan,discoveryOutput}={}){
+  const interventions=canonicalInterventions(plan);
+  if(!userId||plan?.status!=='active'||!interventions.length)throw new Error('An active adaptive plan is required.');
+  if(plan.activationStatus==='needs_plan_specific_assessment')throw new Error('Complete the plan-specific assessment before activating this plan.');
+  const focus=[...new Map(interventions.map((a,i)=>[a.dimensions[0],{dimension:a.dimensions[0],role:i===0?'lead':'linked',source:'adaptive-plan'}])).values()],primary=interventions[0],supporting=interventions[1]||null,acceptedAt=new Date().toISOString();
+  const payload={accepted:true,version:'adaptive-plan-v1',dimension:primary.dimensions[0],supporting_dimension:supporting?.dimensions?.[0]||'',primary_action:primary.action,supporting_action:supporting?.action||'',measure:primary.measurement||'Plan review evidence',review_days:plan.reviewDays||7,rationale:plan.uncertainty||null,actions:interventions.map(a=>({action:a.action,dimension:a.dimensions[0],id:a.id})),generated_from:{discovery_version:'round-3',discovery_trace:discoveryOutput?.trace||null,accepted_at:acceptedAt,decision_trace:plan.decisionTrace||null,evidence_used:plan.evidenceUsed||[]},focus_dimensions:focus,interventions,capacity:{max_actions:interventions.length,review_days:plan.reviewDays||7,member_fit:plan.memberFit||null},activation_status:plan.activationStatus||'ready',deepening:plan.deepening||null,plan_objective:'Start with the smallest evidence-supported plan, deepen only where the selected action requires it, and review outcomes before adapting.'};
+  const{data,error}=await supabase.rpc('el8_accept_initial_plan',{p_plan:payload});if(error)throw error;return data;
+}
+
+// Temporary compatibility wrapper for callers not yet migrated. New onboarding code should
+// pass the canonical Adaptive Plan to persistAdaptiveInitialPlan instead.
 export async function persistInitialPlan({userId,plan,discoveryOutput}={}){
+  if(plan?.version==='adaptive-plan-v1'||plan?.active||plan?.actions)return persistAdaptiveInitialPlan({userId,plan,discoveryOutput});
   if(!userId||!plan?.accepted||!plan.interventions?.length)throw new Error('Accepted initial plan is required.');
   const interventions=plan.interventions.map((a,i)=>({id:a.id,order:i+1,action:a.title||a.label||a.id,dimensions:[dimensionFor(a.concernId)],concern_id:a.concernId||null,intent:a.intent||null,rationale:a.why||null,measurement:a.measurement||null,time_horizon:a.timeHorizon||`${plan.reviewDays}-days`,effort:a.effort??null,source:'discovery-round-3'}));
   const focus=[...new Map(interventions.map((a,i)=>[a.dimensions[0],{dimension:a.dimensions[0],role:i===0?'lead':'linked',source:'discovery-round-3'}])).values()],primary=interventions[0],supporting=interventions[1]||null;
