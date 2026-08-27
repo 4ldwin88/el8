@@ -1,62 +1,19 @@
 import assert from 'node:assert/strict';
-import { createMemberState, createConcernState } from '../state/member-state-contract.js';
-import { prioritizeMemberState } from './prioritization.js';
-
-const now = '2026-01-01T00:00:00.000Z';
-
-function stateWith(concerns) {
-  const state = createMemberState({ memberId: 'member-1', now });
-  for (const input of concerns) {
-    const concern = createConcernState({ concernId: input.concernId, status: input.status, now });
-    concern.sufficiency = input.sufficiency ?? 'insufficient';
-    concern.evidenceRefs = [...(input.evidenceRefs ?? [])];
-    concern.observationRefs = [...(input.observationRefs ?? [])];
-    state.concerns[concern.concernId] = concern;
-  }
-  return state;
-}
-
+import { prioritizeCandidates } from './prioritization.js';
+const now='2026-08-27T17:30:00.000Z';
+const input=(candidates)=>({memberStateRevision:7,supportedProblemIds:candidates.map(c=>c.problemId),candidates,excluded:[]});
 {
-  const result = prioritizeMemberState(stateWith([
-    { concernId: 'stress', status: 'candidate', sufficiency: 'insufficient', evidenceRefs: ['ev-stress'] },
-    { concernId: 'money_pressure', status: 'active', sufficiency: 'sufficient', evidenceRefs: ['ev-money'], observationRefs: ['obs-money'] },
-    { concernId: 'poor_sleep', status: 'resolved', sufficiency: 'sufficient' },
-  ]), { now });
-  assert.equal(result.blockedBySafety, false);
-  assert.deepEqual(result.priorityItems.map(item => item.concernId), ['money_pressure', 'stress']);
-  assert.deepEqual(result.priorityItems[0].evidenceRefs, ['ev-money']);
-  assert.deepEqual(result.priorityItems[0].observationRefs, ['obs-money']);
-  assert.equal(result.priorityItems[0].rank, 1);
-  assert.equal(result.priorityItems[1].rank, 2);
-  assert.equal('score' in result.priorityItems[0], false);
-  assert.equal('sufficiency' in result.priorityItems[0], false);
-  assert.ok(result.priorityItems[0].decisionFactors);
+ const result=prioritizeCandidates(input([{problemId:'problem:stress',evidenceRefs:['e1']},{problemId:'problem:poor_sleep',evidenceRefs:['e2']}]),{now,decisionFactors:{'problem:stress':{urgency:.2,memberImportance:.4},'problem:poor_sleep':{urgency:.9,memberImportance:.8}}});
+ assert.deepEqual(result.priorityItems.map(x=>x.problemId),['problem:poor_sleep','problem:stress']);
+ assert.equal(result.memberStateRevision,7);assert.equal('score'in result.priorityItems[0],false);assert.ok(result.priorityItems[0].rationaleCodes.includes('high_urgency'));
 }
-
 {
-  const result = prioritizeMemberState(stateWith([
-    { concernId: 'stress', status: 'candidate', sufficiency: 'sufficient' },
-    { concernId: 'poor_sleep', status: 'candidate', sufficiency: 'sufficient' },
-  ]), {
-    now,
-    decisionFactors: {
-      stress: { urgency: 0.2, memberImportance: 0.4 },
-      poor_sleep: { urgency: 0.9, memberImportance: 0.8 },
-    },
-  });
-  assert.deepEqual(result.priorityItems.map(item => item.concernId), ['poor_sleep', 'stress']);
-  assert.ok(result.priorityItems[0].rationaleCodes.includes('high_urgency'));
-  assert.ok(result.priorityItems[0].rationaleCodes.includes('member_importance'));
-  assert.deepEqual(Object.keys(result.priorityItems[0].decisionFactors).sort(), ['leverage','materiality','memberImportance','urgency'].sort());
+ const result=prioritizeCandidates(input([{problemId:'problem:stress',evidenceRefs:[]}]),{safetyDisposition:{disposition:'pause_ordinary_flow'},now});
+ assert.equal(result.blockedBySafety,true);assert.deepEqual(result.priorityItems,[]);
 }
-
 {
-  const result = prioritizeMemberState(stateWith([
-    { concernId: 'stress', status: 'candidate', sufficiency: 'insufficient' },
-  ]), { safetyDisposition: { disposition: 'pause_ordinary_flow' }, now });
-  assert.equal(result.blockedBySafety, true);
-  assert.deepEqual(result.priorityItems, []);
-  assert.deepEqual(result.rationaleCodes, ['safety_override']);
+ const result=prioritizeCandidates(input([{problemId:'problem:work',evidenceRefs:[]}]),{now,decisionFactors:{'problem:work':{readiness:.9}}});
+ assert.ok(result.priorityItems[0].rationaleCodes.includes('member_readiness'));
+ assert.deepEqual(Object.keys(result.priorityItems[0].decisionFactors).sort(),['leverage','materiality','memberImportance','readiness','urgency'].sort());
 }
-
 console.log('canonical Prioritization tests passed');
