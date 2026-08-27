@@ -1,0 +1,15 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {applyCanonicalBrowserPlan} from './browser-member-state-plan.js';
+
+const at='2026-08-27T00:03:00.000Z';
+function state(){return{schemaVersion:'1.0.0',memberId:'member:test',revision:2,updatedAt:'2026-08-27T00:02:00.000Z',problems:[{id:'problem:poor_sleep',status:'SUPPORTED',evidenceRefs:['e1']}],priorities:[{id:'priority:poor_sleep',problemId:'problem:poor_sleep',status:'ACCEPTED'}],activePlan:{planId:null,status:null,interventions:[]},history:[]}}
+function plan(revision=2){return{status:'active',createdAt:at,memberStateRevision:revision,registry_version:'wave1-0.1',reviewDays:7,activationStatus:'ready',active:[{intervention_id:'intervention:sleep',priorityId:'priority:poor_sleep',problemId:'problem:poor_sleep',title:'Stabilize sleep',purpose:'ACT',selectionMechanism:'sleep_pattern_established',actionTemplates:['Use a stable sleep window'],measurement:{metric:'sleep timing'},reviewRule:{window:'7 days'},burden:{effort:1},evidenceRefs:['e1']}],backlog:[],decisionTrace:{confirmedPriorityIds:['priority:poor_sleep']}}}
+
+test('browser transition preserves canonical plan traceability and review window',()=>{const s=state(),next=applyCanonicalBrowserPlan(s,plan(),{at});assert.equal(next.revision,3);assert.equal(next.activePlan.planId,'plan:member:test:3');assert.equal(next.activePlan.status,'ACTIVE');assert.equal(next.activePlan.reviewDueAt,'2026-09-03T00:03:00.000Z');assert.equal(next.activePlan.planningRevision,2);assert.equal(next.activePlan.interventions[0].id,'intervention:sleep');assert.equal(next.activePlan.interventions[0].priorityId,'priority:poor_sleep');assert.equal(next.activePlan.interventions[0].problemId,'problem:poor_sleep');assert.deepEqual(next.activePlan.interventions[0].evidenceRefs,['e1']);assert.deepEqual(next.activePlan.interventions[0].actionTemplates,['Use a stable sleep window']);assert.deepEqual(next.activePlan.interventions[0].measurement,{metric:'sleep timing'});assert.deepEqual(next.activePlan.interventions[0].reviewRule,{window:'7 days'});assert.deepEqual(next.history.at(-1),{revision:3,previousRevision:2,type:'PLAN_UPDATED',at,source:'planning:canonical'})});
+
+test('browser transition rejects a stale canonical plan',()=>{assert.throws(()=>applyCanonicalBrowserPlan(state(),plan(1),{at}),/revision conflict/)});
+test('browser transition rejects an unaccepted priority',()=>{const s=state();s.priorities[0].status='RECOMMENDED';assert.throws(()=>applyCanonicalBrowserPlan(s,plan(),{at}),/accepted priority/)});
+test('browser transition rejects contradicted problem',()=>{const s=state();s.problems[0].status='CONTRADICTED';assert.throws(()=>applyCanonicalBrowserPlan(s,plan(),{at}),/supported problem/)});
+test('browser transition rejects priority/problem mismatch',()=>{const p=plan();p.active[0].problemId='problem:other';assert.throws(()=>applyCanonicalBrowserPlan(state(),p,{at}),/problem must match accepted priority/)});
+test('browser transition rejects non-active plans',()=>{const p=plan();p.status='deepen';assert.throws(()=>applyCanonicalBrowserPlan(state(),p,{at}),/revision conflict/)});
