@@ -1,0 +1,36 @@
+name: Canonical Repository QA
+
+on:
+  push:
+    branches:
+      - architecture/member-state-v1
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci --ignore-scripts
+      - name: Member State canonical loop
+        run: npm run test:member-state
+      - name: Canonical Prioritization
+        run: npm run test:prioritization
+      - name: Planning and Review
+        run: npm run test:planning
+      - name: Safety
+        run: npm run test:safety
+      - name: Discovery regression
+        run: npm run test:discovery
