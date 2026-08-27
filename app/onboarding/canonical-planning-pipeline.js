@@ -1,5 +1,5 @@
-// Canonical onboarding continuation: Baseline handoff -> Discovery session -> canonical Planning evidence.
-// This module does not select interventions; buildPlan in intelligence/planning remains the sole action-selection authority.
+// Canonical onboarding continuation: Baseline handoff -> Discovery session -> Planning evidence.
+// This module does not select interventions; buildCanonicalPlan in intelligence/planning is the sole Planning action-selection authority.
 import {createDiscoverySession,activateConcerns,mergeFacts,buildPlan as buildDiscoveryPriority} from '../../intelligence/discovery/discovery-controller.js';
 
 const DRIVER_MAP=Object.freeze({money:'money_pressure',physical_condition:'low_activity',work_pressure:'work_instability',low_direction:'lack_direction'});
