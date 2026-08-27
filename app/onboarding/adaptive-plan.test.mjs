@@ -14,7 +14,8 @@ assert.deepEqual(evidence.map(x=>x.id),priorities);
 assert.equal(evidence[0].confidence,.82);
 
 // Confirmed priorities are not sufficient authority to prescribe an intervention.
-const needsSelectionEvidence=buildOnboardingAdaptivePlan({discoveryOutput,confirmedPriorities:priorities,baselineHandoff});
+// This fixture represents acceptance of EL8's recommendation, not an unexplained override.
+const needsSelectionEvidence=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:priorities,confirmedPriorities:priorities,baselineHandoff});
 assert.equal(needsSelectionEvidence.status,'deepen');
 assert.equal(needsSelectionEvidence.reason,'selection_evidence_required');
 assert.equal(needsSelectionEvidence.active.length,0);
@@ -25,12 +26,11 @@ assert.equal(deepenView.actions.length,0);
 assert.equal(deepenView.selectionDeepening.required,true);
 assert.equal(deepenView.selectionDeepening.requirements.length,2);
 
-// Only after decision-changing evidence is supplied may the canonical composer choose actions.
 const selectionEvidence={
   'financial.current_snapshot':'Increase income',
   'baseline.sleep_pattern':'Usually 5–6 hours with an inconsistent bedtime'
 };
-const plan=buildOnboardingAdaptivePlan({discoveryOutput,confirmedPriorities:priorities,baselineHandoff,selectionEvidence});
+const plan=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:priorities,confirmedPriorities:priorities,baselineHandoff,selectionEvidence});
 assert.equal(plan.status,'active');
 assert.ok(plan.active.length>=1&&plan.active.length<=2);
 assert.ok(plan.active.every(action=>priorities.includes(action.driver)));
@@ -41,11 +41,11 @@ assert.equal(view.actions.length,plan.active.length);
 assert.equal(view.deepening.required,Boolean(plan.deepening?.required));
 assert.deepEqual(view.selectionEvidence,selectionEvidence);
 
-const insufficient=buildOnboardingAdaptivePlan({discoveryOutput,confirmedPriorities:['low_focus']});
+const insufficient=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:['low_focus'],confirmedPriorities:['low_focus']});
 assert.equal(insufficient.status,'observe');
 assert.equal(insufficient.reason,'insufficient_evidence');
 
-const lowCapacity=buildOnboardingAdaptivePlan({discoveryOutput,confirmedPriorities:priorities,capacity:'low',selectionEvidence});
+const lowCapacity=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:priorities,confirmedPriorities:priorities,capacity:'low',selectionEvidence});
 assert.equal(lowCapacity.status,'active');
 assert.ok(lowCapacity.active.length<=1);
 
