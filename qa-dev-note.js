@@ -1,5 +1,11 @@
 import {supabase,getSessionOrRedirect,getMyProfile} from './el8-client.js';
 const session=await getSessionOrRedirect();
+// Mobile Baseline matrix override: all five response columns must remain visible at once.
+if(document.querySelector('.matrix')){
+  const matrixStyle=document.createElement('style');
+  matrixStyle.textContent=`@media(max-width:700px){.page{padding-left:8px!important;padding-right:8px!important}.matrix-wrap{overflow-x:hidden!important}.matrix{width:100%!important;min-width:0!important;table-layout:fixed!important}.matrix .label{position:static!important;width:34%!important;padding:8px 5px!important;font-size:10px!important;line-height:1.15!important}.matrix thead th{font-size:8px!important;padding:7px 1px!important;white-space:normal!important;overflow-wrap:anywhere!important}.matrix th:not(.label),.matrix td{width:13.2%!important;padding:7px 1px!important}.pick{width:26px!important;height:26px!important}.pick.sel{box-shadow:inset 0 0 0 6px var(--card)!important}}`;
+  document.head.appendChild(matrixStyle);
+}
 if(session){
   const profile=await getMyProfile();
   if(/^T\d+/i.test(profile?.member_code||'')){
