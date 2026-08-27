@@ -24,12 +24,12 @@ function stateWith(concerns) {
   ]), { now });
   assert.equal(result.blockedBySafety, false);
   assert.deepEqual(result.priorityItems.map(item => item.concernId), ['money_pressure', 'stress']);
-  assert.deepEqual(result.unresolvedConcernIds, ['stress']);
   assert.deepEqual(result.priorityItems[0].evidenceRefs, ['ev-money']);
   assert.deepEqual(result.priorityItems[0].observationRefs, ['obs-money']);
   assert.equal(result.priorityItems[0].rank, 1);
   assert.equal(result.priorityItems[1].rank, 2);
   assert.equal('score' in result.priorityItems[0], false);
+  assert.equal('sufficiency' in result.priorityItems[0], false);
   assert.ok(result.priorityItems[0].decisionFactors);
 }
 
@@ -40,14 +40,14 @@ function stateWith(concerns) {
   ]), {
     now,
     decisionFactors: {
-      stress: { urgency: 0.2, memberImportance: 0.4, burden: 0.2 },
-      poor_sleep: { urgency: 0.9, memberImportance: 0.8, burden: 0.3 },
+      stress: { urgency: 0.2, memberImportance: 0.4 },
+      poor_sleep: { urgency: 0.9, memberImportance: 0.8 },
     },
   });
   assert.deepEqual(result.priorityItems.map(item => item.concernId), ['poor_sleep', 'stress']);
   assert.ok(result.priorityItems[0].rationaleCodes.includes('high_urgency'));
   assert.ok(result.priorityItems[0].rationaleCodes.includes('member_importance'));
-  assert.equal('score' in result.priorityItems[0], false);
+  assert.deepEqual(Object.keys(result.priorityItems[0].decisionFactors).sort(), ['leverage','materiality','memberImportance','urgency'].sort());
 }
 
 {
@@ -57,15 +57,6 @@ function stateWith(concerns) {
   assert.equal(result.blockedBySafety, true);
   assert.deepEqual(result.priorityItems, []);
   assert.deepEqual(result.rationaleCodes, ['safety_override']);
-}
-
-{
-  const result = prioritizeMemberState(stateWith([
-    { concernId: 'low_energy', status: 'candidate', sufficiency: 'insufficient' },
-  ]), { now });
-  assert.equal(result.priorityItems[0].status, 'candidate');
-  assert.equal(result.priorityItems[0].sufficiency, 'insufficient');
-  assert.deepEqual(result.unresolvedConcernIds, ['low_energy']);
 }
 
 console.log('canonical Prioritization tests passed');
