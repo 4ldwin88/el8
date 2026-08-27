@@ -1,62 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildPlan} from './plan-engine.js';
-
 const driver=(id,extra={})=>({id,confidence:.85,memberImportance:4,urgency:3,readiness:3,...extra});
-
-test('money pressure cannot become generic financial advice without clarifying the actual need',()=>{
-  const plan=buildPlan({ranked:[driver('money_pressure')]},{capacity:'medium'});
-  assert.equal(plan.status,'deepen');
-  assert.deepEqual(plan.selectionDeepening.requirements.map(x=>x.evidenceKey),['financial.current_snapshot']);
-});
-
-test('sleep concern cannot become sleep prescription before current pattern is known',()=>{
-  const plan=buildPlan({ranked:[driver('poor_sleep')]},{capacity:'medium'});
-  assert.equal(plan.status,'deepen');
-  assert.deepEqual(plan.selectionDeepening.requirements.map(x=>x.evidenceKey),['baseline.sleep_pattern']);
-});
-
-test('two supported concerns request only their decision-changing evidence',()=>{
-  const plan=buildPlan({ranked:[driver('poor_sleep'),driver('low_activity')]},{capacity:'medium'});
-  assert.equal(plan.status,'deepen');
-  assert.deepEqual(plan.selectionDeepening.requirements.map(x=>x.evidenceKey).sort(),['baseline.activity_level','baseline.sleep_pattern']);
-});
-
-test('partial selection evidence asks only what remains missing',()=>{
-  const plan=buildPlan({ranked:[driver('poor_sleep'),driver('low_activity')]},{capacity:'medium',selectionEvidence:{'baseline.sleep_pattern':'5–6 hours, inconsistent'}});
-  assert.equal(plan.status,'deepen');
-  assert.deepEqual(plan.selectionDeepening.requirements.map(x=>x.evidenceKey),['baseline.activity_level']);
-});
-
-test('unsupported secondary concern does not create needless deepening burden',()=>{
-  const plan=buildPlan({ranked:[driver('poor_sleep'),driver('low_activity',{confidence:.3})]},{capacity:'medium'});
-  assert.equal(plan.status,'deepen');
-  assert.deepEqual(plan.selectionDeepening.requirements.map(x=>x.evidenceKey),['baseline.sleep_pattern']);
-});
-
-test('safety hold outranks all normal selection questioning',()=>{
-  const plan=buildPlan({ranked:[driver('poor_sleep')]},{safetyHold:true});
-  assert.equal(plan.status,'escalate');
-  assert.equal(plan.selectionDeepening,undefined);
-});
-
-test('lack of consent outranks normal selection questioning',()=>{
-  const plan=buildPlan({ranked:[driver('poor_sleep')]},{consent:false});
-  assert.equal(plan.status,'observe');
-  assert.equal(plan.reason,'member_consent_required');
-  assert.equal(plan.selectionDeepening,undefined);
-});
-
-test('no capacity still requires enough evidence to know what would be selected before capacity hold',()=>{
-  const before=buildPlan({ranked:[driver('poor_sleep')]},{capacity:'none'});
-  assert.equal(before.status,'deepen');
-  const after=buildPlan({ranked:[driver('poor_sleep')]},{capacity:'none',selectionEvidence:{'baseline.sleep_pattern':'5–6 hours'}});
-  assert.equal(after.status,'observe');
-  assert.equal(after.reason,'capacity_hold');
-});
-
-test('selection evidence completion permits bounded composition, not unlimited recommendations',()=>{
-  const plan=buildPlan({ranked:[driver('poor_sleep'),driver('low_activity')]},{capacity:'medium',selectionEvidence:{'baseline.sleep_pattern':'5–6 hours','baseline.activity_level':'one short walk weekly'}});
-  assert.equal(plan.status,'active');
-  assert.ok(plan.active.length>=1&&plan.active.length<=2);
-});
+const first=(id,selectionEvidence,extra={})=>buildPlan({ranked:[driver(id)]},{capacity:'low',selectionEvidence,...extra});
+test('money pressure cannot become generic financial advice without clarifying the actual need',()=>{const p=buildPlan({ranked:[driver('money_pressure')]},{capacity:'medium'});assert.equal(p.status,'deepen');assert.deepEqual(p.selectionDeepening.requirements.map(x=>x.evidenceKey),['financial.current_snapshot'])});
+test('sleep concern cannot become sleep prescription before current pattern is known',()=>{const p=buildPlan({ranked:[driver('poor_sleep')]},{capacity:'medium'});assert.equal(p.status,'deepen');assert.deepEqual(p.selectionDeepening.requirements.map(x=>x.evidenceKey),['baseline.sleep_pattern'])});
+test('two supported concerns request only their decision-changing evidence',()=>{const p=buildPlan({ranked:[driver('poor_sleep'),driver('low_activity')]},{capacity:'medium'});assert.equal(p.status,'deepen');assert.deepEqual(p.selectionDeepening.requirements.map(x=>x.evidenceKey).sort(),['baseline.activity_level','baseline.sleep_pattern'])});
+test('partial selection evidence asks only what remains missing',()=>{const p=buildPlan({ranked:[driver('poor_sleep'),driver('low_activity')]},{capacity:'medium',selectionEvidence:{'baseline.sleep_pattern':'5–6 hours, inconsistent'}});assert.equal(p.status,'deepen');assert.deepEqual(p.selectionDeepening.requirements.map(x=>x.evidenceKey),['baseline.activity_level'])});
+test('unsupported secondary concern does not create needless deepening burden',()=>{const p=buildPlan({ranked:[driver('poor_sleep'),driver('low_activity',{confidence:.3})]},{capacity:'medium'});assert.equal(p.status,'deepen');assert.deepEqual(p.selectionDeepening.requirements.map(x=>x.evidenceKey),['baseline.sleep_pattern'])});
+test('safety and consent outrank normal selection questioning',()=>{const a=buildPlan({ranked:[driver('poor_sleep')]},{safetyHold:true});assert.equal(a.status,'escalate');assert.equal(a.selectionDeepening,undefined);const b=buildPlan({ranked:[driver('poor_sleep')]},{consent:false});assert.equal(b.reason,'member_consent_required');assert.equal(b.selectionDeepening,undefined)});
+test('no capacity still requires selection evidence before capacity hold',()=>{assert.equal(buildPlan({ranked:[driver('poor_sleep')]},{capacity:'none'}).status,'deepen');assert.equal(buildPlan({ranked:[driver('poor_sleep')]},{capacity:'none',selectionEvidence:{'baseline.sleep_pattern':'5–6 hours'}}).reason,'capacity_hold')});
+test('selection evidence completion permits bounded composition',()=>{const p=buildPlan({ranked:[driver('poor_sleep'),driver('low_activity')]},{capacity:'medium',selectionEvidence:{'baseline.sleep_pattern':'5–6 hours','baseline.activity_level':'one short walk weekly'}});assert.equal(p.status,'active');assert.ok(p.active.length>=1&&p.active.length<=2)});
+test('financial need for visibility favors a money snapshot',()=>{const p=first('money_pressure',{'financial.current_snapshot':'Understand where my money is going'});assert.equal(p.status,'active');assert.equal(p.active[0].id,'money_snapshot');assert.ok(p.active[0].selectionFit.score>0)});
+test('specific debt or bill need redirects financial action choice',()=>{const p=first('money_pressure',{'financial.current_snapshot':'Take action on a specific bill or debt'});assert.equal(p.status,'active');assert.equal(p.active[0].id,'financial_next_step')});
+test('income need excludes generic money-management interventions',()=>{const p=first('money_pressure',{'financial.current_snapshot':'Increase income'});assert.equal(p.status,'observe');assert.equal(p.reason,'no_eligible_authorized_action')});
+test('irregular sleep pattern favors stabilizing the sleep window',()=>{const p=first('poor_sleep',{'baseline.sleep_pattern':'Usually 5–6 hours with a very inconsistent bedtime'});assert.equal(p.status,'active');assert.equal(p.active[0].id,'stabilize_sleep_window')});
+test('selection evidence is visible in candidate rationale and traceable fit',()=>{const p=first('money_pressure',{'financial.current_snapshot':'Get clear on cash, bills and due dates'});assert.equal(p.active[0].id,'money_snapshot');assert.ok(p.active[0].rationale.includes('financial need fit'));assert.ok(p.active[0].selectionFit.reasons.includes('financial need fit'))});
