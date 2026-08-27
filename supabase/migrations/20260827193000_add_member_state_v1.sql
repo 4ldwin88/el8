@@ -45,7 +45,7 @@ begin
   next_schema := next_state->>'schemaVersion';
   next_revision := (next_state->>'revision')::bigint;
   if next_schema <> '1.0.0' then raise exception 'unsupported member state schema: %', next_schema; end if;
-  if next_revision <> expected_revision + 1 then raise exception 'revision must advance exactly once'; end if;
+  if next_revision <= expected_revision then raise exception 'revision must advance'; end if;
 
   update public.el8_member_state
      set schema_version = next_schema,
