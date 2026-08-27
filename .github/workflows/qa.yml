@@ -5,7 +5,10 @@ on:
   pull_request:
     branches: [development, main]
   push:
-    branches: [development, main]
+    branches:
+      - main
+      - development
+      - experiment/adaptive-plan
 
 permissions:
   contents: read
