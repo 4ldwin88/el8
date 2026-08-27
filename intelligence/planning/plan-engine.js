@@ -1,44 +1,37 @@
-// EL8 Plan Composer — MVP.
-// Planning selects a small, feasible action set from established evidence.
-// Review owns interpretation of outcomes and sends only simple replanning constraints back here.
-import { LIBRARY, candidatesForDriver } from './intervention-library.js';
-import { applyPlanDeepening } from './plan-deepening.js';
-import { missingSelectionRequirements } from './selection-evidence.js';
+// EL8 Plan Composer — canonical Problem Registry path.
+// Discovery establishes supported problems; Planning selects purposeful interventions from the
+// versioned Problem–Intervention–Impact registry. Dimensions never select actions directly.
+import {REGISTRY,REGISTRY_VERSION} from './problem-intervention-registry.js';
+import {problemHypothesesFromDiscovery,eligibleRegistryInterventions} from './problem-registry-adapter.js';
 
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
-const MIN_ACTION_CONFIDENCE=.55;
-const normalizeEvidence=(input={})=>(input.ranked||input.drivers||[]).map((x,i)=>typeof x==='string'?{id:x,confidence:null,rank:i+1}:{rank:i+1,...x,confidence:x.confidence??x.score??x.evidenceConfidence??null});
-const adherenceEstimate=(c={})=>{const raw=c.adherence??c.recentAdherence??c.adherenceScore;return raw==null?.6:clamp(Number(raw),0,1)};
-const driverFeasibility=(d={})=>d.feasibility?.values||d.feasibility||{};
-const mergedContext=(d={},c={})=>{const f=driverFeasibility(d);return{...c,...f,capacity:f.capacity??c.capacity,supports:[...(c.supports||[]),...(d.feasibility?.supports||[])],constraints:[...(c.constraints||[]),...(d.feasibility?.constraints||[])]}};
-const frictionBudget=(c={})=>clamp((c.capacity==='low'?1.6:c.capacity==='high'?4.4:3)+((adherenceEstimate(c)-.6)*2.5),1,5);
-const confidenceSufficient=(d={})=>Number.isFinite(Number(d.confidence))&&Number(d.confidence)>=MIN_ACTION_CONFIDENCE;
-const text=v=>String(v??'').trim().toLowerCase();
-function selectionFit(driver,action,context={}){const e=context.selectionEvidence||{},v=k=>text(e[k]);let score=0,reasons=[];const add=(n,r)=>{score+=n;if(r)reasons.push(r)};if(driver.id==='low_activity'&&v('baseline.activity_level'))add(action.id==='activity_baseline'?2:action.id==='walk'?1:0,'current activity fit');if(driver.id==='work_instability'&&v('work.current_income_route'))add(action.id==='income_action'?3:0,'member-selected income route');return{score,reasons}}
-function isEligible(d,a,c={}){if(!confidenceSufficient(d))return false;const fit=mergedContext(d,c),readiness=clamp(Number(d.readiness??fit.readiness??3),1,5);if(readiness<Number(a.eligibility?.minReadiness??1))return false;const blocked=new Set([...(c.contraindications||[]),...(c.constraints||[])].map(String));if((a.contraindications||[]).some(x=>blocked.has(String(x))))return false;if(c.rejectedActionIds?.includes(a.id))return false;if(c.adaptationConstraint==='different_mechanism'&&(c.previousMechanisms||[]).includes(a.mechanism))return false;if(c.adaptationConstraint==='reduce_burden'&&c.previousMaxEffort!=null&&Number(a.effort)>Number(c.previousMaxEffort))return false;return true}
-function score(d,a,c={}){const fit=mergedContext(d,c),importance=clamp(Number(d.memberImportance??d.importance??3),1,5),effort=clamp(Number(a.effort),1,5),budget=frictionBudget(fit);return +(importance+clamp(Number(d.confidence)||0,0,1)*5+(6-effort)-Math.max(0,effort-budget)*2.25+selectionFit(d,a,c).score).toFixed(3)}
-function candidate(d,a,p,c={}){return{...a,driver:d.id,confidence:+Number(d.confidence).toFixed(3),priority:p,status:'backlog',progress:0,friction:{effort:Number(a.effort),budget:+frictionBudget(mergedContext(d,c)).toFixed(2)},rationale:'Selected from current evidence, member fit, capacity and feasibility; this action remains a testable hypothesis.'}}
+export const MIN_ACTION_CONFIDENCE=.55;
+const confidenceSufficient=h=>Number.isFinite(Number(h.confidence))&&Number(h.confidence)>=MIN_ACTION_CONFIDENCE;
 const activeLimit=c=>c.capacity==='none'?0:c.capacity==='low'?1:2;
-function buildCandidates(e,c){return e.flatMap(d=>candidatesForDriver(d.id).filter(a=>isEligible(d,a,c)).map(a=>candidate(d,a,score(d,a,c),c))).sort((a,b)=>b.priority-a.priority)}
-function selectCovered(backlog,evidence,limit){const active=[],used=new Set();for(const d of evidence){if(active.length>=limit)break;const i=backlog.findIndex(a=>a.driver===d.id&&!used.has(a.id));if(i>=0){const [a]=backlog.splice(i,1);active.push(a);used.add(a.id)}}while(active.length<limit&&backlog.length){const a=backlog.shift();if(!used.has(a.id)){active.push(a);used.add(a.id)}}return active.map(x=>({...x,status:'active'}))}
-
-export function buildPlan(discovery={},context={}){
-  if(context.safetyHold||discovery.safetyHold)return{status:'escalate',reason:'safety_hold',active:[],backlog:[]};
-  if(context.consent===false)return{status:'observe',reason:'member_consent_required',active:[],backlog:[]};
-  const evidence=normalizeEvidence(discovery),supported=evidence.filter(confidenceSufficient);
-  if(!supported.length)return{status:'observe',reason:'insufficient_evidence',active:[],backlog:[],reviewDays:7};
-  const missing=missingSelectionRequirements(supported,context.selectionEvidence||{});
-  if(missing.length)return{status:'deepen',reason:'selection_evidence_required',active:[],backlog:[],selectionDeepening:{required:true,requirements:missing}};
-  const trace={rejectedActionIds:[...(context.rejectedActionIds||[])],adaptationConstraint:context.adaptationConstraint||null};
-  const backlog=buildCandidates(supported,context);
-  if(!backlog.length)return{status:'observe',reason:'no_eligible_authorized_action',active:[],backlog:[],reviewDays:7,evidenceUsed:supported,decisionTrace:trace};
-  const limit=activeLimit(context);
-  if(!limit)return{status:'observe',reason:'capacity_hold',active:[],backlog,reviewDays:7,evidenceUsed:supported,decisionTrace:trace};
-  // Coverage beats global action score: when capacity allows, each supported confirmed focus gets
-  // one active action before any focus receives a second action.
-  const active=selectCovered(backlog,supported,limit);
-  const coveredDrivers=[...new Set(active.map(a=>a.driver))];
-  const uncoveredDrivers=supported.map(d=>d.id).filter(id=>!coveredDrivers.includes(id));
-  return applyPlanDeepening({status:'active',reason:'evidence_informed_priority',active,actions:active,backlog,history:[],reviewDays:Math.min(...active.map(a=>a.reviewDays)),selectionEvidence:{...(context.selectionEvidence||{})},evidenceUsed:supported,decisionTrace:{...trace,selectedActionIds:active.map(x=>x.id),coveredDrivers,uncoveredDrivers,coverageRule:'one-action-per-supported-focus-before-second-action'},memberFit:{recentAdherence:+adherenceEstimate(context).toFixed(2),frictionBudget:+frictionBudget(context).toFixed(2),capacity:context.capacity||'medium'}},{...(context.selectionEvidence||{}),...(context.evidence||{})});
+const purposeRank={ESCALATE:0,DEEPEN:1,RESOLVE:2,ACT:3,CONNECT:3,TRACK:4,LEARN:5};
+function needsMechanism(problem,h){return (problem?.deepeningRequirements||[]).length>0&&!h.mechanism_id;}
+function reviewDays(rule={}){const s=String(rule.window||'').toLowerCase();const m=s.match(/(\d+)\s*[–-]\s*(\d+)\s*days?/);if(m)return Number(m[1]);const d=s.match(/(\d+)\s*days?/);return d?Number(d[1]):null;}
+function component(h,intervention,status='backlog'){
+ const problem=REGISTRY.problems[h.problem_id];
+ return{plan_component_id:`${h.problem_id}:${intervention.id}`,problem_id:h.problem_id,problem_label:problem.label,mechanism_id:h.mechanism_id||null,intervention_id:intervention.id,registry_version:REGISTRY_VERSION,purpose:intervention.purpose,title:intervention.memberFacingName,rationale:intervention.rationale||`Selected to address ${problem.label} using the current evidence and member-confirmed focus.`,evidence_strength:intervention.evidenceStrength,action_templates:[...(intervention.actionTemplates||[])],measurement:{...(intervention.measurement||{})},review_rule:{...(intervention.reviewRule||{})},reviewDays:reviewDays(intervention.reviewRule),expected_affected_area_hypotheses:[...(problem.crossDimensionalHypotheses||[])],confidence:+Number(h.confidence).toFixed(3),member_importance:h.member_importance,status,progress:0,decision_trace:{problem_id:h.problem_id,discovery_evidence_ids:[...(h.evidence_ids||[])],suppression_evidence:[...(h.suppression_evidence||[])],contradiction_evidence:[...(h.contradiction_evidence||[])],registry_version:REGISTRY_VERSION}};
 }
-export{LIBRARY,MIN_ACTION_CONFIDENCE};
+function candidatesFor(h,context={}){
+ const rejected=[...(context.rejectedInterventionIds||[]),...(context.rejectedActionIds||[])];
+ return eligibleRegistryInterventions(h.problem_id,{mechanismId:h.mechanism_id,rejectedInterventionIds:rejected}).filter(i=>!(context.contraindications||[]).includes(i.id)).sort((a,b)=>(purposeRank[a.purpose]??99)-(purposeRank[b.purpose]??99)).map(i=>component(h,i));
+}
+function selectCovered(groups,limit){const active=[],backlog=[];for(const g of groups){if(active.length<limit&&g.items.length){active.push({...g.items[0],status:'active'});backlog.push(...g.items.slice(1));}else backlog.push(...g.items);}return{active,backlog};}
+export function buildPlan(discovery={},context={}){
+ if(context.safetyHold||discovery.safetyHold)return{status:'escalate',reason:'safety_hold',active:[],backlog:[],registry_version:REGISTRY_VERSION};
+ if(context.consent===false)return{status:'observe',reason:'member_consent_required',active:[],backlog:[],registry_version:REGISTRY_VERSION};
+ const hypotheses=problemHypothesesFromDiscovery(discovery),supported=hypotheses.filter(confidenceSufficient);
+ if(!supported.length)return{status:'observe',reason:'insufficient_evidence',active:[],backlog:[],registry_version:REGISTRY_VERSION};
+ const unresolved=supported.filter(h=>needsMechanism(REGISTRY.problems[h.problem_id],h));
+ if(unresolved.length)return{status:'deepen',reason:'problem_mechanism_required',active:[],backlog:[],registry_version:REGISTRY_VERSION,selectionDeepening:{required:true,requirements:unresolved.map(h=>({problem_id:h.problem_id,purpose:'DEEPEN',reason:'A decision-changing mechanism is still unresolved.'}))},evidenceUsed:supported};
+ const groups=supported.map(h=>({h,items:candidatesFor(h,context)})).filter(g=>g.items.length);
+ if(!groups.length)return{status:'observe',reason:'no_eligible_registry_intervention',active:[],backlog:[],registry_version:REGISTRY_VERSION,evidenceUsed:supported};
+ const limit=activeLimit(context);if(!limit)return{status:'observe',reason:'capacity_hold',active:[],backlog:groups.flatMap(g=>g.items),registry_version:REGISTRY_VERSION,evidenceUsed:supported};
+ const {active,backlog}=selectCovered(groups,limit),coveredProblems=[...new Set(active.map(x=>x.problem_id))],uncoveredProblems=supported.map(h=>h.problem_id).filter(id=>!coveredProblems.includes(id));
+ const windows=active.map(x=>x.reviewDays).filter(Number.isFinite);
+ return{status:'active',reason:'registry_evidence_informed_priority',registry_version:REGISTRY_VERSION,active,actions:active,backlog,history:[],reviewDays:windows.length?Math.min(...windows):null,evidenceUsed:supported,decisionTrace:{selectedInterventionIds:active.map(x=>x.intervention_id),coveredProblems,uncoveredProblems,coverageRule:'one-purposeful-component-per-supported-focus-before-second-component',rejectedInterventionIds:[...(context.rejectedInterventionIds||[]),...(context.rejectedActionIds||[])]},memberFit:{capacity:context.capacity||'medium'}};
+}
+export const LIBRARY=REGISTRY.interventions;
