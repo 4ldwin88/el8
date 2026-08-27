@@ -13,8 +13,6 @@ const evidence=planningEvidenceFromDiscovery(discoveryOutput,priorities);
 assert.deepEqual(evidence.map(x=>x.id),priorities);
 assert.equal(evidence[0].confidence,.82);
 
-// Confirmed priorities are not sufficient authority to prescribe an intervention.
-// This fixture represents acceptance of EL8's recommendation, not an unexplained override.
 const needsSelectionEvidence=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:priorities,confirmedPriorities:priorities,baselineHandoff});
 assert.equal(needsSelectionEvidence.status,'deepen');
 assert.equal(needsSelectionEvidence.reason,'selection_evidence_required');
@@ -26,10 +24,7 @@ assert.equal(deepenView.actions.length,0);
 assert.equal(deepenView.selectionDeepening.required,true);
 assert.equal(deepenView.selectionDeepening.requirements.length,2);
 
-const selectionEvidence={
-  'financial.current_snapshot':'Increase income',
-  'baseline.sleep_pattern':'Usually 5–6 hours with an inconsistent bedtime'
-};
+const selectionEvidence={'financial.current_snapshot':'Increase income','baseline.sleep_pattern':'Usually 5–6 hours with an inconsistent bedtime'};
 const plan=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:priorities,confirmedPriorities:priorities,baselineHandoff,selectionEvidence});
 assert.equal(plan.status,'active');
 assert.ok(plan.active.length>=1&&plan.active.length<=2);
@@ -49,4 +44,18 @@ const lowCapacity=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriori
 assert.equal(lowCapacity.status,'active');
 assert.ok(lowCapacity.active.length<=1);
 
-console.log('onboarding → canonical Adaptive Plan selection-deepening tests passed');
+// The onboarding bridge must not drop Review's simple replanning constraints.
+const activityDiscovery={trace:{states:[{concernId:'low_activity',evidenceConfidence:.9,memberImportance:3,feasibility:{values:{capacity:'medium'}}}]}};
+const activityEvidence={'baseline.activity_level':'Some intentional activity'};
+const first=buildOnboardingAdaptivePlan({discoveryOutput:activityDiscovery,recommendedPriorities:['low_activity'],confirmedPriorities:['low_activity'],selectionEvidence:activityEvidence,capacity:'low'});
+assert.equal(first.status,'active');
+const old=first.active[0];
+const replacement=buildOnboardingAdaptivePlan({discoveryOutput:activityDiscovery,recommendedPriorities:['low_activity'],confirmedPriorities:['low_activity'],selectionEvidence:activityEvidence,capacity:'low',rejectedActionIds:[old.id],adaptationConstraint:'different_mechanism',previousMechanisms:[old.mechanism]});
+assert.equal(replacement.status,'active');
+assert.notEqual(replacement.active[0].id,old.id);
+assert.notEqual(replacement.active[0].mechanism,old.mechanism);
+const simpler=buildOnboardingAdaptivePlan({discoveryOutput:activityDiscovery,recommendedPriorities:['low_activity'],confirmedPriorities:['low_activity'],selectionEvidence:activityEvidence,capacity:'high',adaptationConstraint:'reduce_burden',previousMaxEffort:Number(old.effort)});
+assert.equal(simpler.status,'active');
+assert.ok(Number(simpler.active[0].effort)<=Number(old.effort));
+
+console.log('onboarding → canonical Adaptive Plan selection-deepening and Review-constraint tests passed');
