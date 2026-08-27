@@ -10,8 +10,8 @@ const priorities=['money_pressure','poor_sleep'];
 const baselineHandoff={signals:{feasibility:{overall_load:'Manageable'}}};
 
 const evidence=planningEvidenceFromDiscovery(discoveryOutput,priorities);
-assert.deepEqual(evidence.map(x=>x.id),priorities);
-assert.equal(evidence[0].confidence,.82);
+assert.deepEqual(evidence.map(x=>x.concernId),priorities);
+assert.equal(evidence[0].evidenceConfidence,.82);
 
 const needsSelectionEvidence=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:priorities,confirmedPriorities:priorities,baselineHandoff});
 assert.equal(needsSelectionEvidence.status,'deepen');
@@ -58,4 +58,11 @@ const simpler=buildOnboardingAdaptivePlan({discoveryOutput:activityDiscovery,rec
 assert.equal(simpler.status,'active');
 assert.ok(Number(simpler.active[0].effort)<=Number(old.effort));
 
-console.log('onboarding → canonical Adaptive Plan selection-deepening and Review-constraint tests passed');
+// Regression: a canonical parent focus remains plannable when Discovery retained a more-specific child state.
+const parentFocusOutput={trace:{states:[{concernId:'physical_condition',sourceConcernId:'health',evidenceConfidence:.88,memberImportance:3,evidenceRefs:['health:1']}]},plan:{focus:[{concernId:'health',label:'Health',evidenceConfidence:.88,memberSelected:true,evidenceRefs:['health:1']}]}};
+const parentEvidence=planningEvidenceFromDiscovery(parentFocusOutput,['health']);
+assert.equal(parentEvidence.length,1);
+assert.equal(parentEvidence[0].concernId,'health');
+assert.equal(parentEvidence[0].evidenceConfidence,.88);
+
+console.log('onboarding → canonical Adaptive Plan selection-deepening, focus normalization and Review-constraint tests passed');
