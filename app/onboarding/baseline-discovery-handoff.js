@@ -11,6 +11,7 @@ export function buildBaselineDiscoveryHandoff(derived={}){
  const indicators=derived.indicator_signals&&typeof derived.indicator_signals==='object'?derived.indicator_signals:{};
  const indicatorSignals=Object.entries(indicators).map(([id,s])=>Object.freeze({id,label:s?.label||id,value:Number(s?.value)||null,concerns:Object.freeze([...(s?.concerns||[])]),dimension:s?.dimension||null}));
  const lowIndicatorConcerns=indicatorSignals.filter(s=>s.value!=null&&s.value<=2).flatMap(s=>s.concerns);
+ const positiveIndicatorConcerns=new Set(indicatorSignals.filter(s=>s.value!=null&&s.value>=4).flatMap(s=>s.concerns));
  const priorityConcerns=Array.isArray(derived.member_priority_concerns)?derived.member_priority_concerns.filter(Boolean):[];
  const topics=Array.isArray(derived.concern_topics)?derived.concern_topics.filter(x=>x?.concernId&&x?.topic):[];
  const constraints=Array.isArray(derived.constraints)?derived.constraints:derived.constraints?[derived.constraints]:[];
@@ -22,11 +23,16 @@ export function buildBaselineDiscoveryHandoff(derived={}){
  const candidateDimensions=uniq([...dimensionSignals.filter(x=>x.attention).map(x=>x.dimension),...explicitDimensions]);
  const legacyMapped=uniq(candidateDimensions.flatMap(d=>DIMENSION_CONCERN_MAP[d]||[]));
  const signalNative=direct.length>0||indicatorSignals.length>0||topics.length>0;
- const candidateConcerns=uniq(signalNative?[...direct,...lowIndicatorConcerns,...priorityConcerns,...topics.map(x=>x.concernId)]:legacyMapped);
+ // Positive indicators suppress generic/direct concern inference. Explicit member priority, a low
+ // indicator, or a concrete baseline topic may reopen the concern because those signals can change
+ // prioritization or intervention selection.
+ const explicitConcernSet=new Set([...lowIndicatorConcerns,...priorityConcerns,...topics.map(x=>x.concernId)]);
+ const inferredDirect=direct.filter(id=>!positiveIndicatorConcerns.has(id)||explicitConcernSet.has(id));
+ const candidateConcerns=uniq(signalNative?[...inferredDirect,...lowIndicatorConcerns,...priorityConcerns,...topics.map(x=>x.concernId)]:legacyMapped);
  return Object.freeze({
-  version:'baseline-discovery-handoff-v4-signal-native',
+  version:'baseline-discovery-handoff-v5-positive-suppression',
   candidateDimensions:Object.freeze(candidateDimensions),candidateConcerns:Object.freeze(candidateConcerns),
-  signals:Object.freeze({indicatorSignals:Object.freeze(indicatorSignals),drivers:Object.freeze([...drivers]),supports:Object.freeze([...supports]),priorityConcerns:Object.freeze([...priorityConcerns]),concernTopics:Object.freeze(topics.map(x=>Object.freeze({...x}))),feasibility:Object.freeze({...derived.feasibility}),constraints:Object.freeze([...constraints]),legacy:Object.freeze({dimensionSignals:Object.freeze(dimensionSignals),impact,worsening,priority,overallChange:derived.overall_change||null})}),
+  signals:Object.freeze({indicatorSignals:Object.freeze(indicatorSignals),drivers:Object.freeze([...drivers]),supports:Object.freeze([...supports]),priorityConcerns:Object.freeze([...priorityConcerns]),concernTopics:Object.freeze(topics.map(x=>Object.freeze({...x}))),suppressedPositiveConcerns:Object.freeze([...positiveIndicatorConcerns].filter(id=>!explicitConcernSet.has(id))),feasibility:Object.freeze({...derived.feasibility}),constraints:Object.freeze([...constraints]),legacy:Object.freeze({dimensionSignals:Object.freeze(dimensionSignals),impact,worsening,priority,overallChange:derived.overall_change||null})}),
   uncertainty:Object.freeze({source:signalNative?'signal-native':'legacy-dimension-fallback',requiresDiscoveryConfirmation:candidateConcerns.length>0})
  })
 }
