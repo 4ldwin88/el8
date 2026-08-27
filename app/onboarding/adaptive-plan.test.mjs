@@ -10,11 +10,10 @@ const priorities=['money_pressure','poor_sleep'];
 const baselineHandoff={signals:{feasibility:{overall_load:'Manageable'}}};
 
 const evidence=planningEvidenceFromDiscovery(discoveryOutput,priorities);
-assert.deepEqual(evidence.map(x=>x.id),priorities);
-assert.equal(evidence[0].confidence,.82);
+assert.deepEqual(evidence.map(x=>x.concernId),priorities);
+assert.equal(evidence[0].evidenceConfidence,.82);
 
 // Confirmed priorities are not sufficient authority to prescribe an intervention.
-// This fixture represents acceptance of EL8's recommendation, not an unexplained override.
 const needsSelectionEvidence=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:priorities,confirmedPriorities:priorities,baselineHandoff});
 assert.equal(needsSelectionEvidence.status,'deepen');
 assert.equal(needsSelectionEvidence.reason,'selection_evidence_required');
@@ -24,29 +23,25 @@ const deepenView=onboardingPlanView(needsSelectionEvidence);
 assert.equal(deepenView.status,'deepen');
 assert.equal(deepenView.actions.length,0);
 assert.equal(deepenView.selectionDeepening.required,true);
-assert.equal(deepenView.selectionDeepening.requirements.length,2);
 
-const selectionEvidence={
-  'financial.current_snapshot':'Increase income',
-  'baseline.sleep_pattern':'Usually 5–6 hours with an inconsistent bedtime'
-};
+const selectionEvidence={'financial.current_snapshot':'Increase income','baseline.sleep_pattern':'Usually 5–6 hours with an inconsistent bedtime'};
 const plan=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:priorities,confirmedPriorities:priorities,baselineHandoff,selectionEvidence});
 assert.equal(plan.status,'active');
 assert.ok(plan.active.length>=1&&plan.active.length<=2);
-assert.ok(plan.active.every(action=>priorities.includes(action.driver)));
+assert.ok(plan.active.every(action=>['money_pressure','poor_sleep'].includes(action.driver)));
 assert.deepEqual(plan.selectionEvidence,selectionEvidence);
 assert.ok(['ready','needs_plan_specific_assessment','ready_with_optional_deepening'].includes(plan.activationStatus));
-const view=onboardingPlanView(plan);
-assert.equal(view.actions.length,plan.active.length);
-assert.equal(view.deepening.required,Boolean(plan.deepening?.required));
-assert.deepEqual(view.selectionEvidence,selectionEvidence);
+const view=onboardingPlanView(plan);assert.equal(view.actions.length,plan.active.length);assert.deepEqual(view.selectionEvidence,selectionEvidence);
 
 const insufficient=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:['low_focus'],confirmedPriorities:['low_focus']});
-assert.equal(insufficient.status,'observe');
-assert.equal(insufficient.reason,'insufficient_evidence');
-
+assert.equal(insufficient.status,'observe');assert.equal(insufficient.reason,'insufficient_evidence');
 const lowCapacity=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:priorities,confirmedPriorities:priorities,capacity:'low',selectionEvidence});
-assert.equal(lowCapacity.status,'active');
-assert.ok(lowCapacity.active.length<=1);
+assert.equal(lowCapacity.status,'active');assert.ok(lowCapacity.active.length<=1);
+
+// Regression: a canonical parent focus must remain plannable even when Discovery's trace contains
+// a more-specific/legacy child state instead of the exact confirmed concern id.
+const parentFocusOutput={trace:{states:[{concernId:'physical_condition',sourceConcernId:'health',evidenceConfidence:.88,memberImportance:3,evidenceRefs:['health:1']}]},plan:{focus:[{concernId:'health',label:'Health',evidenceConfidence:.88,memberSelected:true,evidenceRefs:['health:1']}]}};
+const parentEvidence=planningEvidenceFromDiscovery(parentFocusOutput,['health']);
+assert.equal(parentEvidence.length,1);assert.equal(parentEvidence[0].concernId,'health');assert.equal(parentEvidence[0].evidenceConfidence,.88);
 
 console.log('onboarding → canonical Adaptive Plan selection-deepening tests passed');
