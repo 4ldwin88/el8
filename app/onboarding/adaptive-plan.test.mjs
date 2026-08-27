@@ -6,25 +6,47 @@ const discoveryOutput={trace:{states:[
   {concernId:'poor_sleep',evidenceConfidence:.76,memberImportance:2,feasibility:{values:{capacity:'medium'}}},
   {concernId:'low_focus',evidenceConfidence:.2,memberImportance:1}
 ]}};
+const priorities=['money_pressure','poor_sleep'];
+const baselineHandoff={signals:{feasibility:{overall_load:'Manageable'}}};
 
-const evidence=planningEvidenceFromDiscovery(discoveryOutput,['money_pressure','poor_sleep']);
-assert.deepEqual(evidence.map(x=>x.id),['money_pressure','poor_sleep']);
+const evidence=planningEvidenceFromDiscovery(discoveryOutput,priorities);
+assert.deepEqual(evidence.map(x=>x.id),priorities);
 assert.equal(evidence[0].confidence,.82);
 
-const plan=buildOnboardingAdaptivePlan({discoveryOutput,confirmedPriorities:['money_pressure','poor_sleep'],baselineHandoff:{signals:{feasibility:{overall_load:'Manageable'}}}});
+// Confirmed priorities are not sufficient authority to prescribe an intervention.
+const needsSelectionEvidence=buildOnboardingAdaptivePlan({discoveryOutput,confirmedPriorities:priorities,baselineHandoff});
+assert.equal(needsSelectionEvidence.status,'deepen');
+assert.equal(needsSelectionEvidence.reason,'selection_evidence_required');
+assert.equal(needsSelectionEvidence.active.length,0);
+assert.deepEqual(needsSelectionEvidence.selectionDeepening.requirements.map(x=>x.evidenceKey).sort(),['baseline.sleep_pattern','financial.current_snapshot']);
+const deepenView=onboardingPlanView(needsSelectionEvidence);
+assert.equal(deepenView.status,'deepen');
+assert.equal(deepenView.actions.length,0);
+assert.equal(deepenView.selectionDeepening.required,true);
+assert.equal(deepenView.selectionDeepening.requirements.length,2);
+
+// Only after decision-changing evidence is supplied may the canonical composer choose actions.
+const selectionEvidence={
+  'financial.current_snapshot':'Increase income',
+  'baseline.sleep_pattern':'Usually 5–6 hours with an inconsistent bedtime'
+};
+const plan=buildOnboardingAdaptivePlan({discoveryOutput,confirmedPriorities:priorities,baselineHandoff,selectionEvidence});
 assert.equal(plan.status,'active');
 assert.ok(plan.active.length>=1&&plan.active.length<=2);
-assert.ok(plan.active.every(action=>['money_pressure','poor_sleep'].includes(action.driver)));
+assert.ok(plan.active.every(action=>priorities.includes(action.driver)));
+assert.deepEqual(plan.selectionEvidence,selectionEvidence);
 assert.ok(['ready','needs_plan_specific_assessment','ready_with_optional_deepening'].includes(plan.activationStatus));
 const view=onboardingPlanView(plan);
 assert.equal(view.actions.length,plan.active.length);
 assert.equal(view.deepening.required,Boolean(plan.deepening?.required));
+assert.deepEqual(view.selectionEvidence,selectionEvidence);
 
 const insufficient=buildOnboardingAdaptivePlan({discoveryOutput,confirmedPriorities:['low_focus']});
 assert.equal(insufficient.status,'observe');
 assert.equal(insufficient.reason,'insufficient_evidence');
 
-const lowCapacity=buildOnboardingAdaptivePlan({discoveryOutput,confirmedPriorities:['money_pressure','poor_sleep'],capacity:'low'});
+const lowCapacity=buildOnboardingAdaptivePlan({discoveryOutput,confirmedPriorities:priorities,capacity:'low',selectionEvidence});
+assert.equal(lowCapacity.status,'active');
 assert.ok(lowCapacity.active.length<=1);
 
-console.log('onboarding → canonical Adaptive Plan bridge tests passed');
+console.log('onboarding → canonical Adaptive Plan selection-deepening tests passed');
