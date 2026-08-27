@@ -9,10 +9,15 @@ function iso(value, fallback) {
   return fallback;
 }
 function unique(values) { return [...new Set(values.filter(Boolean))]; }
+
+// Canonical status follows Discovery's explicit resolution semantics. Numerical
+// evidence confidence remains descriptive metadata; it never decides whether a
+// problem is established.
 function problemStatus(state) {
-  if (state.excluded) return 'CONTRADICTED';
-  if ((state.evidenceConfidence ?? 0) >= 0.58) return 'SUPPORTED';
-  if ((state.evidenceConfidence ?? 0) > 0) return 'SUSPECTED';
+  if (state.excluded || state.resolutionState === 'nonIssue') return 'CONTRADICTED';
+  if (state.resolutionState === 'sufficient') return 'SUPPORTED';
+  if (state.resolutionState === 'deferred') return 'DEFERRED';
+  if (state.resolutionState === 'escalated') return 'ESCALATED';
   return 'UNRESOLVED';
 }
 function projectDiscoveryTrace(trace, { memberStateRevision, at = new Date().toISOString(), revalidationPolicy = 'relationship-v1' } = {}) {
@@ -23,27 +28,21 @@ function projectDiscoveryTrace(trace, { memberStateRevision, at = new Date().toI
   const states = Array.isArray(trace.states) ? trace.states : [];
   const evidence = observations.map((o, index) => ({
     id: o.id || `discovery:${o.questionId || 'observation'}:${index}`,
-    kind: 'DISCOVERY_OBSERVATION',
-    value: o.answerValue ?? null,
-    provenance: 'DISCOVERY_ANSWER',
-    recordedAt: iso(o.timestamp, at),
-    questionId: o.questionId || null,
-    concernId: o.concernId || null,
+    kind: 'DISCOVERY_OBSERVATION', value: o.answerValue ?? null,
+    provenance: 'DISCOVERY_ANSWER', recordedAt: iso(o.timestamp, at),
+    questionId: o.questionId || null, concernId: o.concernId || null,
     effects: Array.isArray(o.effects) ? o.effects : [],
   }));
   const evidenceIds = evidence.map((e) => e.id);
 
   const problemUpdates = states.map((s) => ({
-    id: `problem:${s.concernId}`,
-    legacyConcernId: s.concernId,
-    status: problemStatus(s),
-    confidence: s.evidenceConfidence ?? null,
+    id: `problem:${s.concernId}`, legacyConcernId: s.concernId,
+    status: problemStatus(s), confidence: s.evidenceConfidence ?? null,
+    discoveryResolution: s.resolutionState || null,
     temporality: s.temporality || 'unknown',
     evidenceRefs: unique(observations.filter((o) => o.concernId === s.concernId || o.effects?.some((e) => e.target === s.concernId)).map((o, i) => o.id || `discovery:${o.questionId || 'observation'}:${i}`)),
   }));
 
-  // Only explicit relationship effects become hypotheses. Concern co-occurrence
-  // alone is not treated as evidence of causality.
   const relationshipEffects = observations.flatMap((o, oi) => (o.effects || []).filter((e) => e.type === 'relationship' && e.from && e.to).map((e, ei) => ({ o, oi, e, ei })));
   const hypothesisUpdates = relationshipEffects.map(({ o, oi, e, ei }) => ({
     id: e.id || `hypothesis:${e.from}:${e.to}:${o.id || oi}:${ei}`,
@@ -56,15 +55,7 @@ function projectDiscoveryTrace(trace, { memberStateRevision, at = new Date().toI
     revalidateAfter: e.memberConfirmed ? null : e.revalidateAfter || at,
   }));
 
-  return {
-    memberStateRevision,
-    evidenceRefs: evidenceIds,
-    evidence,
-    problemUpdates,
-    hypothesisUpdates,
-    dimensionUpdates: [],
-    deepeningRequests: [],
-  };
+  return { memberStateRevision, evidenceRefs: evidenceIds, evidence, problemUpdates, hypothesisUpdates, dimensionUpdates: [], deepeningRequests: [] };
 }
 
 module.exports = { projectDiscoveryTrace };
