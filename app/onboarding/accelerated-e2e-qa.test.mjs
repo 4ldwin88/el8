@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildOnboardingAdaptivePlan} from './adaptive-plan.js';
-import {assertPlanReadyForActivation} from './persistence.js';
+import {assertPlanReadyForActivation} from './activation-readiness.js';
 
 const discoveryOutput={trace:{states:[{concernId:'money_pressure',label:'Money',resolutionState:'sufficient',evidenceConfidence:.9,memberImportance:'high',memberPrioritySelected:true,immediacyClass:'time-sensitive',readiness:3,feasibility:{constraints:[],supports:[],values:{capacity:'low'},evidenceRefs:['d:money']},evidenceRefs:['d:money']}]},plan:{focus:[{concernId:'money_pressure',label:'Money',evidenceConfidence:.9,memberSelected:true}]},baselineHandoff:{signals:{feasibility:{overall_load:'Difficult'},constraints:[]}}};
 const confirmedPriorities=['money_pressure'];
-const build=(selectionEvidence={},evidence={})=>buildOnboardingAdaptivePlan({discoveryOutput,confirmedPriorities,baselineHandoff:discoveryOutput.baselineHandoff,selectionEvidence,evidence});
+const build=(selectionEvidence={},evidence={})=>buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:confirmedPriorities,confirmedPriorities,baselineHandoff:discoveryOutput.baselineHandoff,selectionEvidence,evidence});
 
 test('accelerated E2E: Discovery cannot skip intervention-selection evidence',()=>{const p=build();assert.equal(p.status,'deepen');assert.equal(p.reason,'selection_evidence_required');assert.throws(()=>assertPlanReadyForActivation(p))});
 
