@@ -5,16 +5,17 @@
   "scripts": {
     "test:contracts": "node intelligence/contracts/contracts.test.js",
     "test:state": "node intelligence/state/state-contract.test.js",
+    "test:member-state": "node --test intelligence/member-state/*.test.js",
     "test:safety": "node intelligence/safety/policy.test.js && node --test intelligence/safety/gate.test.mjs intelligence/safety/lifecycle-integration.test.mjs",
     "test:prioritization": "node intelligence/prioritization/prioritization.test.js",
-    "test:planning": "node --test intelligence/planning/plan-engine.test.js intelligence/planning/plan-deepening.test.js intelligence/planning/intervention-library.test.js intelligence/planning/scenario-matrix.test.js app/plan/reassessment-model.test.mjs app/plan/reassessment-deepening.test.mjs app/plan/reassessment-evidence.test.mjs intelligence/review/review-engine.test.mjs intelligence/review/deepen-disengagement.test.mjs intelligence/review/accelerated-closed-loop.test.mjs",
+    "test:planning": "node intelligence/planning/problem-intervention-registry.test.js && node --test intelligence/planning/problem-registry-adapter.test.js intelligence/planning/plan-engine.test.js intelligence/planning/plan-deepening.test.js intelligence/planning/intervention-library.test.mjs intelligence/planning/scenario-matrix.test.js intelligence/planning/canonical-plan-engine.test.js app/plan/reassessment-model.test.mjs app/plan/reassessment-deepening.test.mjs app/plan/reassessment-evidence.test.mjs intelligence/review/review-engine.test.mjs intelligence/review/deepen-disengagement.test.mjs intelligence/review/accelerated-closed-loop.test.mjs",
     "test:outcomes": "node intelligence/outcomes/outcomes.test.js",
     "test:discovery": "node intelligence/discovery/discovery-runtime.test.mjs",
     "test:intelligence-test": "node app/research/intelligence-test-contract.test.mjs",
     "test:onboarding": "node --test app/onboarding/flow.test.mjs app/onboarding/adaptive-plan.test.mjs app/onboarding/priority-override.test.mjs app/onboarding/canonical-planning-pipeline.test.mjs app/onboarding/initial-plan-bridge.test.mjs app/onboarding/accelerated-e2e-qa.test.mjs",
     "test:insights": "node app/insights/daily-evidence.test.mjs && node app/insights/dimension-history.test.mjs",
-    "test:profile": "node app/profile/history.test.mjs",
+    "test:profile": "node --test app/profile/history.test.mjs app/profile/canonical-qa-runner.test.mjs app/profile/canonical-qa-lifecycle.test.mjs",
     "test:persistence:live": "node tests/persistence-concurrency.test.mjs",
-    "test": "npm run test:contracts && npm run test:state && npm run test:safety && npm run test:discovery && npm run test:intelligence-test && npm run test:onboarding && npm run test:prioritization && npm run test:planning && npm run test:outcomes && npm run test:insights && npm run test:profile"
+    "test": "npm run test:contracts && npm run test:state && npm run test:member-state && npm run test:safety && npm run test:discovery && npm run test:intelligence-test && npm run test:onboarding && npm run test:prioritization && npm run test:planning && npm run test:outcomes && npm run test:insights && npm run test:profile"
   }
 }
