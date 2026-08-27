@@ -41,6 +41,12 @@ Before deleting an obsolete artifact:
 
 A transitional adapter is not permanent architecture. It must document what consumes it and the condition that permits deletion.
 
+## Completed reduction boundaries
+
+- Adaptive onboarding Planning bridge retired after its selection/deepening, priority-override, activation-readiness, rejection/adaptation, capacity and accelerated E2E invariants moved to canonical Member State / Planning QA.
+- Canonical activation readiness now lives under `intelligence/planning/activation-readiness.js`.
+- Distinct Baseline → Discovery onboarding boundary tests remain; they do not own intervention selection.
+
 ## Current cleanup order
 
 1. Trace executable modules reachable from the canonical Member State loop.
