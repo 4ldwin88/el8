@@ -17,7 +17,7 @@ export function reassessmentCandidates({kind='reassess',sourcePlan,responses={},
   const supported=(drivers||[]).filter(d=>d?.id&&Number(d.confidence)>=.55).filter(d=>!dimension||!d.dimension||String(d.dimension).toLowerCase()===String(dimension).toLowerCase());
   if(!supported.length)return {status:'observe',reason:'insufficient_driver_evidence',active:[],backlog:[]};
   const capacity=responses.capacity==='one_small_action'?'low':'medium';
-  return buildPlan({ranked:supported},{capacity,consent:true,rejectedActionIds,evidence:responses.evidence||{}});
+  return buildPlan({ranked:supported},{capacity,consent:true,rejectedActionIds,selectionEvidence:responses.selectionEvidence||{},evidence:responses.evidence||{}});
 }
 
 export function deriveReassessmentDecision({kind='reassess',sourcePlan,responses={},candidateActions=[],drivers=[],rejectedActionIds=[]}={}){
@@ -27,7 +27,7 @@ export function deriveReassessmentDecision({kind='reassess',sourcePlan,responses
   const dimension=responses.new_dimension||sourcePlan.dimension;
   const maxActions=responses.capacity==='one_small_action'?1:2;
   const composed=drivers.length?reassessmentCandidates({kind,sourcePlan,responses,drivers,rejectedActionIds}):null;
-  if(composed&&composed.status!=='active')return {ready:false,reason:composed.reason,dimension,maxActions,evidenceUsed:composed.evidenceUsed||[]};
+  if(composed&&composed.status!=='active')return {ready:false,reason:composed.reason,dimension,maxActions,selectionDeepening:composed.selectionDeepening||null,evidenceUsed:composed.evidenceUsed||[]};
   const candidates=(composed?.active||candidateActions).filter(a=>!dimension||!a.dimension||String(a.dimension).toLowerCase()===String(dimension).toLowerCase()).slice(0,maxActions);
   if(!candidates.length)return {ready:false,reason:'candidate_action_required',dimension,maxActions};
   const interventions=candidates.map((a,i)=>({id:a.id||`adaptive-${i+1}`,action:a.action||a.title,dimensions:a.dimensions||[a.dimension||dimension].filter(Boolean),driver:a.driver||null,supportingDrivers:a.supportingDrivers||[],confidence:a.confidence??null,rationale:a.rationale||null,measurement:a.measurement||null,successSignal:a.successSignal||null,deepeningRequirements:a.deepeningRequirements||[]}));
