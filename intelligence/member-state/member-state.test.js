@@ -1,99 +1,16 @@
 'use strict';
+const assert=require('node:assert/strict');const test=require('node:test');
+const{createMemberState,assertMemberState,DIMENSIONS}=require('./member-state');const{applyMemberStateUpdate}=require('./member-state-update');
+const at='2026-08-27T14:00:00.000Z';
+const update=(state,type,payload,source='qa')=>applyMemberStateUpdate(state,{type,payload,source,at,expectedRevision:state.revision});
 
-const assert = require('node:assert/strict');
-const test = require('node:test');
-const {
-  createMemberState,
-  assertMemberState,
-  DIMENSIONS,
-} = require('./member-state');
-const { applyMemberStateUpdate } = require('./member-state-update');
-
-test('creates one complete canonical state across all eight dimensions', () => {
-  const state = createMemberState({ memberId: 'T0001', now: '2026-08-27T12:00:00.000Z' });
-  assert.equal(state.memberId, 'T0001');
-  assert.deepEqual(Object.keys(state.dimensions), [...DIMENSIONS]);
-  assert.equal(state.revision, 0);
-  assert.equal(state.engagementBurden.throttle.active, false);
-  assertMemberState(state);
-});
-
-test('updates are immutable, attributable and revisioned', () => {
-  const state = createMemberState({ memberId: 'T0001', now: '2026-08-27T12:00:00.000Z' });
-  const next = applyMemberStateUpdate(state, {
-    type: 'EVIDENCE_RECORDED',
-    at: '2026-08-27T12:01:00.000Z',
-    source: 'track.manual',
-    reason: 'member submitted evidence',
-    payload: {
-      id: 'ev-1',
-      kind: 'MEMBER_REPORT',
-      value: 'walked 20 minutes',
-      provenance: 'MANUAL',
-      confidence: 'DIRECT_MEMBER_REPORT',
-    },
-  });
-
-  assert.equal(state.evidence.length, 0);
-  assert.equal(next.evidence.length, 1);
-  assert.equal(next.revision, 1);
-  assert.equal(next.history[0].source, 'track.manual');
-});
-
-test('capacity throttling is durable state, not hidden engine behavior', () => {
-  const state = createMemberState({ memberId: 'T0001' });
-  const next = applyMemberStateUpdate(state, {
-    type: 'CAPACITY_THROTTLE_UPDATED',
-    at: '2026-08-27T12:02:00.000Z',
-    source: 'feedback.capacity-policy',
-    payload: {
-      active: true,
-      policyVersion: 'capacity-v1',
-      reasonCodes: ['ACCUMULATED_BURDEN'],
-      activatedAt: '2026-08-27T12:02:00.000Z',
-    },
-  });
-
-  assert.equal(next.engagementBurden.throttle.active, true);
-  assert.deepEqual(next.engagementBurden.throttle.reasonCodes, ['ACCUMULATED_BURDEN']);
-});
-
-test('Explore consideration remains passive until explicitly promoted', () => {
-  const state = createMemberState({ memberId: 'T0001' });
-  const next = applyMemberStateUpdate(state, {
-    type: 'CONSIDERATION_UPDATED',
-    at: '2026-08-27T12:03:00.000Z',
-    source: 'explore.save',
-    payload: {
-      id: 'consider-1',
-      itemRef: 'module:sleep-basics',
-      status: 'SAVED',
-      savedAt: '2026-08-27T12:03:00.000Z',
-    },
-  });
-
-  assert.equal(next.considerations[0].status, 'SAVED');
-  assert.equal(next.activePlan.interventions.length, 0);
-});
-
-test('hypotheses preserve confidence and revalidation metadata', () => {
-  const state = createMemberState({ memberId: 'T0001' });
-  const next = applyMemberStateUpdate(state, {
-    type: 'HYPOTHESIS_UPDATED',
-    at: '2026-08-27T12:04:00.000Z',
-    source: 'discovery',
-    payload: {
-      id: 'hyp-1',
-      relationship: ['occupational', 'emotional'],
-      status: 'SUSPECTED',
-      confidence: 0.45,
-      provenance: ['ev-1'],
-      lastValidatedAt: null,
-      revalidationPolicy: 'relationship-policy-v1',
-      revalidateAfter: '2026-09-10T12:04:00.000Z',
-    },
-  });
-
-  assert.equal(next.hypotheses[0].status, 'SUSPECTED');
-  assert.equal(next.hypotheses[0].revalidationPolicy, 'relationship-policy-v1');
-});
+test('creates one complete canonical state across all eight dimensions',()=>{const s=createMemberState({memberId:'T0001',now:at});assert.deepEqual(Object.keys(s.dimensions),[...DIMENSIONS]);assert.equal(s.revision,0);assertMemberState(s)});
+test('updates are immutable attributable and revisioned',()=>{const s=createMemberState({memberId:'T0001',now:at});const n=update(s,'EVIDENCE_RECORDED',{id:'ev-1',kind:'MEMBER_REPORT',value:'walked 20 minutes',provenance:'MANUAL',recordedAt:at});assert.equal(s.evidence.length,0);assert.equal(n.evidence.length,1);assert.equal(n.revision,1);assert.equal(n.history[0].previousRevision,0)});
+test('stale writes are rejected instead of overwriting newer member truth',()=>{const s=createMemberState({memberId:'T0001',now:at});const n=update(s,'PROFILE_UPDATED',{goals:['sleep']});assert.throws(()=>applyMemberStateUpdate(n,{type:'PROFILE_UPDATED',payload:{goals:['money']},source:'stale-engine',at,expectedRevision:0}),/revision conflict/)});
+test('evidence requires provenance and time',()=>{const s=createMemberState({memberId:'T0001'});assert.throws(()=>update(s,'EVIDENCE_RECORDED',{id:'ev-x'}),/provenance/)});
+test('inferred hypotheses require bounded confidence and revalidation metadata',()=>{const s=createMemberState({memberId:'T0001'});assert.throws(()=>update(s,'HYPOTHESIS_UPDATED',{id:'h1',status:'SUSPECTED',confidence:1.2,provenance:[],revalidationPolicy:'v1',revalidateAfter:at}),/0\.\.1/);assert.throws(()=>update(s,'HYPOTHESIS_UPDATED',{id:'h1',status:'SUSPECTED',confidence:.5,provenance:[]}),/revalidationPolicy/);const n=update(s,'HYPOTHESIS_UPDATED',{id:'h1',status:'SUSPECTED',confidence:.5,provenance:['ev-1'],revalidationPolicy:'relationship-v1',revalidateAfter:at});assert.equal(n.hypotheses[0].confidence,.5)});
+test('member agency is explicit before Planning can own interventions',()=>{let s=createMemberState({memberId:'T0001'});s=update(s,'PRIORITY_UPDATED',{id:'priority:p03',status:'RECOMMENDED'});assert.throws(()=>update(s,'PLAN_UPDATED',{planId:'p1',interventions:[{id:'i1',priorityId:'priority:p03'}]}),/accepted member priority/);s=update(s,'PRIORITY_UPDATED',{id:'priority:p03',status:'ACCEPTED',memberDecisionAt:at});s=update(s,'PLAN_UPDATED',{planId:'p1',interventions:[{id:'i1',priorityId:'priority:p03'}]});assert.equal(s.activePlan.interventions[0].id,'i1')});
+test('rejected or postponed priorities require explicit member decision provenance',()=>{const s=createMemberState({memberId:'T0001'});assert.throws(()=>update(s,'PRIORITY_UPDATED',{id:'priority:p03',status:'REJECTED'}),/memberDecisionAt/)});
+test('capacity throttling is durable state',()=>{const s=createMemberState({memberId:'T0001'});const n=update(s,'CAPACITY_THROTTLE_UPDATED',{active:true,policyVersion:'capacity-v1',reasonCodes:['ACCUMULATED_BURDEN'],activatedAt:at},'feedback.capacity-policy');assert.equal(n.engagementBurden.throttle.active,true)});
+test('Explore consideration remains passive until explicitly promoted',()=>{const s=createMemberState({memberId:'T0001'});const n=update(s,'CONSIDERATION_UPDATED',{id:'c1',itemRef:'module:sleep-basics',status:'SAVED',savedAt:at},'explore.save');assert.equal(n.considerations[0].status,'SAVED');assert.equal(n.activePlan.interventions.length,0)});
+test('learning is evidence-linked and attributable',()=>{const s=createMemberState({memberId:'T0001'});assert.throws(()=>update(s,'LEARNING_RECORDED',{id:'l1',learnedAt:at}),/evidenceRefs/);const n=update(s,'LEARNING_RECORDED',{id:'l1',learnedAt:at,evidenceRefs:['ev-1'],outcome:'improved'},'feedback');assert.equal(n.learning[0].outcome,'improved')});
