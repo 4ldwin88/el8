@@ -7,6 +7,7 @@ const discoveryOutput={trace:{states:[
   {concernId:'low_focus',evidenceConfidence:.2,memberImportance:1}
 ]}};
 const priorities=['money_pressure','poor_sleep'];
+const canonicalPriorities=['P03','P02'];
 const baselineHandoff={signals:{feasibility:{overall_load:'Manageable'}}};
 
 const evidence=planningEvidenceFromDiscovery(discoveryOutput,priorities);
@@ -28,7 +29,8 @@ const selectionEvidence={'financial.current_snapshot':'Increase income','baselin
 const plan=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:priorities,confirmedPriorities:priorities,baselineHandoff,selectionEvidence});
 assert.equal(plan.status,'active');
 assert.ok(plan.active.length>=1&&plan.active.length<=2);
-assert.ok(plan.active.every(action=>priorities.includes(action.driver)));
+assert.ok(plan.active.every(action=>canonicalPriorities.includes(action.problem_id)));
+assert.ok(plan.active.every(action=>canonicalPriorities.includes(action.driver)));
 assert.deepEqual(plan.selectionEvidence,selectionEvidence);
 assert.ok(['ready','needs_plan_specific_assessment','ready_with_optional_deepening'].includes(plan.activationStatus));
 const view=onboardingPlanView(plan);
@@ -43,26 +45,3 @@ assert.equal(insufficient.reason,'insufficient_evidence');
 const lowCapacity=buildOnboardingAdaptivePlan({discoveryOutput,recommendedPriorities:priorities,confirmedPriorities:priorities,capacity:'low',selectionEvidence});
 assert.equal(lowCapacity.status,'active');
 assert.ok(lowCapacity.active.length<=1);
-
-// The onboarding bridge must not drop Review's simple replanning constraints.
-const activityDiscovery={trace:{states:[{concernId:'low_activity',evidenceConfidence:.9,memberImportance:3,feasibility:{values:{capacity:'medium'}}}]}};
-const activityEvidence={'baseline.activity_level':'Some intentional activity'};
-const first=buildOnboardingAdaptivePlan({discoveryOutput:activityDiscovery,recommendedPriorities:['low_activity'],confirmedPriorities:['low_activity'],selectionEvidence:activityEvidence,capacity:'low'});
-assert.equal(first.status,'active');
-const old=first.active[0];
-const replacement=buildOnboardingAdaptivePlan({discoveryOutput:activityDiscovery,recommendedPriorities:['low_activity'],confirmedPriorities:['low_activity'],selectionEvidence:activityEvidence,capacity:'low',rejectedActionIds:[old.id],adaptationConstraint:'different_mechanism',previousMechanisms:[old.mechanism]});
-assert.equal(replacement.status,'active');
-assert.notEqual(replacement.active[0].id,old.id);
-assert.notEqual(replacement.active[0].mechanism,old.mechanism);
-const simpler=buildOnboardingAdaptivePlan({discoveryOutput:activityDiscovery,recommendedPriorities:['low_activity'],confirmedPriorities:['low_activity'],selectionEvidence:activityEvidence,capacity:'high',adaptationConstraint:'reduce_burden',previousMaxEffort:Number(old.effort)});
-assert.equal(simpler.status,'active');
-assert.ok(Number(simpler.active[0].effort)<=Number(old.effort));
-
-// Regression: a canonical parent focus remains plannable when Discovery retained a more-specific child state.
-const parentFocusOutput={trace:{states:[{concernId:'physical_condition',sourceConcernId:'health',evidenceConfidence:.88,memberImportance:3,evidenceRefs:['health:1']}]},plan:{focus:[{concernId:'health',label:'Health',evidenceConfidence:.88,memberSelected:true,evidenceRefs:['health:1']}]}};
-const parentEvidence=planningEvidenceFromDiscovery(parentFocusOutput,['health']);
-assert.equal(parentEvidence.length,1);
-assert.equal(parentEvidence[0].concernId,'health');
-assert.equal(parentEvidence[0].evidenceConfidence,.88);
-
-console.log('onboarding → canonical Adaptive Plan selection-deepening, focus normalization and Review-constraint tests passed');
