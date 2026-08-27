@@ -1,9 +1,7 @@
 // Canonical EL8 Outcome representation.
-// Outcomes record what happened after one independently justified action. They preserve
-// adherence, observed benefit and context separately so Planning can learn without
-// inventing a package-level success/failure state or directly mutating Member State.
+// Outcomes are evidence records only. Review owns interpretation and adaptation decisions.
 
-export const OUTCOME_SCHEMA_VERSION = '0.2.0';
+export const OUTCOME_SCHEMA_VERSION = '0.3.0';
 export const OUTCOME_STATUS = Object.freeze(['completed', 'partially_completed', 'not_completed', 'unknown']);
 export const BENEFIT_DIRECTION = Object.freeze(['improved', 'unchanged', 'worsened', 'unknown']);
 export const BARRIER_CODES = Object.freeze(['burden', 'irrelevance', 'forgotten', 'external_barrier', 'access', 'schedule', 'other']);
@@ -60,15 +58,4 @@ export function createOutcome({
     evidenceRefs: [...evidenceRefs],
     recordedAt,
   };
-}
-
-export function interpretOutcome(outcome = {}) {
-  if (outcome.safetyChanged) return { adaptation: 'escalate', attribution: 'safety_change' };
-  if (outcome.contextChanged) return { adaptation: 'reprioritize', attribution: 'context_change' };
-  if (outcome.measurementSufficient === false) return { adaptation: 'deepen_measurement', attribution: 'measurement_insufficiency' };
-  if (outcome.adherence != null && outcome.adherence < 0.5) return { adaptation: 'simplify_or_reschedule', attribution: 'adherence_or_barrier' };
-  if ((outcome.barrierCodes || []).length) return { adaptation: 'simplify_or_reschedule', attribution: 'adherence_or_barrier' };
-  if (outcome.adherence != null && outcome.adherence >= 0.7 && outcome.benefitDirection === 'improved') return { adaptation: 'maintain', attribution: null };
-  if (outcome.adherence != null && outcome.adherence >= 0.7 && ['unchanged', 'worsened'].includes(outcome.benefitDirection)) return { adaptation: 'reassess', attribution: 'action_or_hypothesis' };
-  return { adaptation: 'continue_observation', attribution: 'insufficient_observation' };
 }
