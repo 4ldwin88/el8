@@ -17,7 +17,7 @@ export function planningEvidenceFromDiscovery(output={},confirmedPriorities=[]){
   return confirmedPriorities.map(String).map(raw=>{
     const id=DRIVER_MAP[raw]||raw;
     const exact=states.find(s=>String(s.concernId)===id);
-    if(exact)return exact;
+    if(exact)return canonicalState({...exact,memberPrioritySelected:true});
     const recommended=focus.find(f=>String(DRIVER_MAP[f.concernId]||f.concernId)===id);
     if(recommended)return canonicalState({...recommended,memberPrioritySelected:true});
     const related=states.filter(s=>String(DRIVER_MAP[s.sourceConcernId]||s.sourceConcernId||'')===id||String(DRIVER_MAP[s.parentConcernId]||s.parentConcernId||'')===id).sort((a,b)=>confidenceOf(b)-confidenceOf(a));
