@@ -64,7 +64,9 @@ function validatePayload(type, payload, state) {
       if (!CONSIDERATION_STATUS.includes(payload.status)) throw new Error('invalid consideration status'); break;
     case 'LEARNING_RECORDED':
       requireString(payload.id, 'learning id'); requireString(payload.learnedAt, 'learning learnedAt');
-      requireRefs(payload.evidenceRefs || [], 'learning evidenceRefs'); break;
+      requireRefs(payload.evidenceRefs, 'learning evidenceRefs');
+      if (!payload.evidenceRefs.length) throw new Error('learning evidenceRefs must contain at least one evidence reference');
+      break;
     default: break;
   }
 }
