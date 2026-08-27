@@ -31,3 +31,5 @@ jobs:
         run: npm run test:safety
       - name: Discovery regression
         run: npm run test:discovery
+      - name: Profile and browser canonical QA
+        run: npm run test:profile
