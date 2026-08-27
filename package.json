@@ -12,7 +12,7 @@
     "test:outcomes": "node intelligence/outcomes/outcomes.test.js",
     "test:discovery": "node intelligence/discovery/discovery-runtime.test.mjs",
     "test:intelligence-test": "node app/research/intelligence-test-contract.test.mjs",
-    "test:onboarding": "node --test app/onboarding/flow.test.mjs app/onboarding/canonical-planning-pipeline.test.mjs app/onboarding/initial-plan-bridge.test.mjs",
+    "test:onboarding": "node --test app/onboarding/flow.test.mjs app/onboarding/baseline-discovery-handoff.test.js app/onboarding/canonical-planning-pipeline.test.mjs",
     "test:insights": "node app/insights/daily-evidence.test.mjs && node app/insights/dimension-history.test.mjs",
     "test:profile": "node --test app/profile/history.test.mjs app/profile/canonical-qa-runner.test.mjs app/profile/canonical-qa-lifecycle.test.mjs",
     "test:persistence": "node --test intelligence/member-state/supabase-persistence.test.js app/auth/member-state-session.test.js",
