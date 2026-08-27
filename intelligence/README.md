@@ -1,62 +1,79 @@
 # EL8 Intelligence Engine
 
-## Purpose
+## MVP purpose
 
-The Intelligence Engine is the broader decision and coordination layer for EL8. Discovery is one subsystem of the Intelligence Engine, not a synonym for the whole engine.
+The Intelligence Engine is EL8's decision loop. The current goal is not to build the most sophisticated wellness intelligence architecture possible; it is to establish the smallest coherent architecture that can prove the EL8 closed loop with real members and remain cleanly extensible later.
 
-The Intelligence Engine owns the decision lifecycle from understanding a member through deciding what EL8 should do next and learning from the result.
+The MVP must reliably answer: what is going on, what matters now, what should the member do, what happened, and what should change next?
 
-## Canonical architecture
+## Canonical MVP architecture
 
-1. **Discovery** — understand the member, identify concerns and drivers, resolve uncertainty, and gather sufficient evidence.
-2. **State** — maintain traceable member/concern state derived from evidence rather than opaque scores.
-3. **Prioritization** — determine what deserves attention now, including member priority, urgency, dependencies, burden, and safety.
-4. **Planning** — convert prioritized concerns into a focused member plan.
-5. **Intervention** — select appropriate actions/interventions and manage their lifecycle.
-6. **Outcomes / Learning** — evaluate results and improve future decisions without silently changing canonical meaning.
-7. **Safety / escalation** — override ordinary routing when explicit safety conditions require it.
-8. **Orchestration / validation** — coordinate lifecycle execution and prove canonical behavior without becoming a second domain model.
+1. **Discovery** — understand the member, establish concerns, resolve decision-relevant uncertainty, and gather sufficient evidence.
+2. **Member State / Evidence** — maintain traceable facts, concerns, hypotheses and provenance. State is shared infrastructure, not another decision engine.
+3. **Prioritization** — rank established concerns by what matters now: member importance, urgency, materiality and useful cross-dimension leverage.
+4. **Planning** — select a small feasible set of evidence-supported actions. Planning owns action selection and may ask only for information capable of changing or safely activating the selected action.
+5. **Outcome evidence** — record what happened: completion/adherence, benefit, burden, barriers, changed context and provenance. Outcomes do not decide what EL8 should do next.
+6. **Review** — interpret outcome evidence and decide whether to keep, deepen, simplify, replace or reassess. Replanning constraints sent back to Planning should stay simple.
+7. **Focused reassessment** — return to Discovery only when circumstances changed or existing evidence is genuinely insufficient. Do not restart broad onboarding by default.
+8. **Safety** — may interrupt ordinary flow whenever explicit canonical safety conditions require it.
+
+The ordinary loop is:
+
+`Discovery → Member State → Prioritization → Planning → Action → Outcome evidence → Review → Planning or focused Reassessment`
+
+Safety is a cross-cutting gate, not a competing wellness score or parallel planner.
+
+## MVP boundaries
+
+For the MVP, there is one decision authority per question:
+
+- Discovery: **What is going on, and do we know enough?**
+- Prioritization: **What matters most now?**
+- Planning: **What should the member do?**
+- Outcomes: **What happened?**
+- Review: **What should change next?**
+- Safety: **Can ordinary flow continue?**
+
+Do not introduce a second adaptation engine, intervention-routing engine, outcome interpreter, generic handoff framework, or parallel scoring model to answer the same questions.
+
+Member-facing plans should normally contain one or two active actions, not simultaneous optimization across all eight dimensions. Additional questions must earn their burden by being decision-useful.
+
+## Future extension policy
+
+Future capability is welcome when evidence from MVP use justifies it. Likely extension seams include richer personalization, longitudinal learning, more sophisticated intervention eligibility, provider/professional routing, integrations, predictive models, experimentation, and more advanced cross-dimensional reasoning.
+
+Those possibilities are **not MVP requirements**. Do not pre-build them as dormant production subsystems. Preserve clean contracts and provenance now so they can be added later without rewriting the core loop.
+
+When an experimental implementation is retired, Git history is the archive. Preserve a separate future specification only when it contains durable design knowledge that would be expensive or ambiguous to reconstruct. Do not maintain executable legacy architecture merely because it may someday be useful.
 
 ## Current repository boundary
 
-`intelligence/discovery/**` is the canonical Discovery implementation. Its current component version is **Discovery v3**. Canonical entry files use capability names such as `discovery-engine.js` and `discovery-controller.js`; development-history labels such as “Round 3” are not canonical API names.
+`intelligence/discovery/**` is canonical Discovery. Shared evidence/safety contracts live under `intelligence/contracts/**`; canonical Member State and taxonomy live under `intelligence/state/**`; `intelligence/prioritization/**`, `intelligence/planning/**`, `intelligence/outcomes/**`, and `intelligence/review/**` own their respective MVP decisions.
 
-Shared contracts live under `intelligence/contracts/**`; canonical Member State and taxonomy live under `intelligence/state/**`. Prioritization, Planning, Interventions, and Outcomes consume those canonical boundaries.
+Member-facing reassessment orchestration may live under `app/plan/**`, but it must reuse canonical Discovery and Planning rather than becoming another intelligence model.
 
-Historical repository files outside the canonical subsystem folders may still exist for product, migration, or earlier prototype purposes. Their presence does not make their APIs, scores, constants, object shapes, or historical development labels authoritative Intelligence contracts.
-
-## Versioning standard
-
-EL8 separates release/test versions from component versions.
-
-- **Product or research-test versions** describe a complete tested experience, for example Intelligence Test `v0.2.1`.
-- **Component versions** describe a canonical subsystem contract, for example Baseline `v3.1`, Discovery `v3`, or Planning `v1`.
-- **Implementation names** describe capability and responsibility, not development history. Prefer `discovery-engine`, `discovery-controller`, `question-bank`, and similar capability names.
-- Do not combine unrelated version dimensions into labels such as `round3-v0.2.1`.
-- A component version changes only when its contract or behavior changes materially; a research-test patch does not automatically rename every component.
-- Historical review artifacts may retain their original historical terminology when needed for provenance, but current authority must identify the canonical modern name.
+Historical files do not become authoritative merely because they remain in Git history or older commits.
 
 ## Design rules
 
-- Discovery gathers and resolves evidence; it does not own the entire Intelligence Engine.
+- One canonical implementation per capability.
 - Evidence retains provenance.
 - Derived state remains traceable to evidence.
-- Ambiguity remains explicit until resolved; do not hide uncertainty inside arbitrary wellness scores.
-- Member-facing plans remain focused rather than forcing all eight dimensions into active work.
-- Safety escalation may override normal burden and prioritization rules when explicitly triggered.
-- Internal ranking calculations may support decisions but are not Member State or member wellness scores.
-- Tests and simulations validate canonical behavior; they do not define member truth.
-- Canonical files should be cohesive and reasonably sized.
-- Stable and development environments should consume the same canonical engine contracts while remaining independently deployable and independently authenticated.
+- Ambiguity stays explicit until resolving it is useful.
+- Internal ranking may support a decision but is not member wellness truth.
+- No aggregate wellness score is required for the MVP.
+- Member rejection and consent are hard constraints, not soft ranking hints.
+- Capacity and burden constrain Planning rather than becoming Prioritization truth.
+- Review interprets outcomes; Planning does not review itself.
+- Reassessment is focused and evidence-driven.
+- Safety can override ordinary routing.
+- Tests should primarily prove member-visible/canonical behavior rather than obsolete implementation internals.
+- Delete duplication instead of preserving compatibility with superseded internal APIs.
 
 ## Canonical validation
 
-The repository-level `npm test` gate exercises shared contracts, Member State, Discovery, Prioritization, Planning, Interventions, and Outcomes. Discovery also has its dedicated regression workflow rooted at `intelligence/discovery/**`.
+`npm test` is the repository-level automated MVP gate. It covers shared contracts/state, Safety, Discovery, Prioritization, Planning, focused reassessment, Outcomes, Review and relevant member-flow regression.
 
-Legacy behavior is not kept merely for compatibility. A behavior survives only when it is required, semantically valid, rebuilt against canonical contracts where necessary, and covered by canonical QA.
+Passing automation is necessary but not sufficient. Before promotion, the closed loop must also be exercised through accelerated end-to-end QA so we can test assessment → plan → action/outcome → review → adaptation without waiting real-world days between steps.
 
-## Naming
-
-Use **Intelligence Engine** for the overall EL8 decision system.
-
-Use **Discovery** for the subsystem responsible for understanding the member and producing sufficient, traceable evidence/state for downstream intelligence functions. Use **Discovery v3** when a version is required. “Round 3” refers only to the historical development iteration that produced v3 and should not be used as a current component or API name.
+Legacy behavior survives only when it remains semantically valid for the MVP, is implemented through the canonical boundaries above, and is covered by useful QA.
