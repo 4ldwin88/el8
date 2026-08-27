@@ -1,18 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {initialPlanFromBaseline} from './initial-plan-bridge.js';
+import {buildBaselineDiscoveryHandoff} from './baseline-discovery-handoff.js';
 import {createDiscoveryFromBaseline,planningHandoffFromDiscovery} from './canonical-planning-pipeline.js';
 import {appendObservation,setResolution} from '../../intelligence/discovery/discovery-controller.js';
 import {buildPlan} from '../../intelligence/planning/plan-engine.js';
 
-const baseline=()=>initialPlanFromBaseline({condition_baseline:{Financial:'Struggling'},member_priority:'Financial',functional_impact:['Financial'],worsening:['Financial'],feasibility:{time:'<5 min',overall_load:'Difficult'}});
+const baseline=()=>buildBaselineDiscoveryHandoff({condition_baseline:{Financial:'Struggling'},member_priority:'Financial',functional_impact:['Financial'],worsening:['Financial'],feasibility:{time:'<5 min',overall_load:'Difficult'}});
 const establishMoney=s=>{appendObservation(s,{concernId:'money',questionId:'discovery-money',effects:[{type:'evidence',target:'money',polarity:'supports',strength:.9},{type:'importance',target:'money',value:'high'},{type:'member-priority',target:'money',value:true},{type:'immediacy',target:'money',value:'time-sensitive'},{type:'readiness',target:'money',value:3}]});setResolution(s,'money','sufficient',{driverKnown:true});return s};
 
-test('Baseline alone cannot activate an intervention',()=>{const b=baseline();assert.equal(b.status,'requires_discovery_handoff');assert.equal(b.selectedActionIds.length,0);assert.equal(b.candidateActions.length,0)});
+test('Baseline alone cannot activate an intervention',()=>{const b=baseline();assert.ok(b.candidateConcerns.includes('money'));assert.equal(b.selectedActionIds,undefined);assert.equal(b.candidateActions,undefined)});
 
 test('Baseline seed creates canonical Discovery session with member and feasibility context',()=>{const s=createDiscoveryFromBaseline(baseline());assert.ok(s);assert.deepEqual(s.concernIds,['money']);assert.equal(s.facts.memberPriorityConcern,'money');assert.equal(s.facts.baselineDimension,'Financial');assert.equal(s.facts.baselineFeasibility.capacity,'low')});
 
-test('unclear Baseline does not fabricate a Discovery session',()=>{const b=initialPlanFromBaseline({condition_baseline:{Physical:'Okay'},member_priority:'No preference'});assert.equal(createDiscoveryFromBaseline(b),null)});
+test('unclear Baseline does not fabricate a Discovery session',()=>{const b=buildBaselineDiscoveryHandoff({condition_baseline:{Physical:'Okay'},member_priority:'No preference'});assert.equal(createDiscoveryFromBaseline(b),null)});
 
 test('Discovery must establish evidence before Planning can activate anything',()=>{const s=createDiscoveryFromBaseline(baseline());setResolution(s,'money','sufficient',{driverKnown:true});const h=planningHandoffFromDiscovery(s);const p=buildPlan(h,{capacity:'low',selectionEvidence:{'financial.current_snapshot':'Understand where my money is going'}});assert.equal(p.status,'observe');assert.equal(p.reason,'insufficient_evidence')});
 
