@@ -1,0 +1,10 @@
+import test from'node:test';import assert from'node:assert/strict';import{reviewPlan}from'./review-engine.js';
+const plan={status:'active',active:[{id:'money_snapshot'}],reviewDays:7};
+test('working sustainable action is kept',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'high',outcome:'improved',burden:'low'}}).decision,'keep'));
+test('known execution barrier leads to simplification',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'low',outcome:'unchanged',burden:'high',barrierKnown:true}}).decision,'simplify'));
+test('executed action without benefit is replaced',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'high',outcome:'unchanged',burden:'low'}}).decision,'replace'));
+test('missing causal evidence deepens rather than guesses',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'low',outcome:'unchanged',burden:'low',barrierKnown:false}}).decision,'deepen'));
+test('changed circumstances route back to reassessment',()=>{const r=reviewPlan({plan,evidence:{adherence:'high',outcome:'improved',circumstancesChanged:true}});assert.equal(r.decision,'reassess');assert.equal(r.requiresDiscovery,true)});
+test('accelerated QA does not require elapsed reviewDays',()=>{const r=reviewPlan({plan,evidence:{adherence:'high',outcome:'improved',burden:'low',qaSimulated:true}});assert.equal(r.decision,'keep');assert.equal(plan.reviewDays,7)});
+test('review refuses non-active plans',()=>assert.throws(()=>reviewPlan({plan:{status:'observe'},evidence:{}})));
+console.log('canonical accelerated plan review QA passed');
