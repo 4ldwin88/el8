@@ -1,6 +1,0 @@
-priorities.html: legacy baseline_handoff + adaptive-plan assumptions
-selection-deepening.html: verify against canonical prioritization/deepening
-plan.html: verify canonical Planning authority
-activation-deepening.html: verify canonical activation transaction
-complete.html: add canonical accelerated review/adaptation trace
-member-state-projection.js: currently couples baseline establishment to confirmed priorities
