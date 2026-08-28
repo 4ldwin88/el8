@@ -26,24 +26,33 @@ const selectionEvidence = {
   'baseline.sleep_pattern': 'Timing changes a lot'
 };
 
-test('Discovery pauses ordinary questions when contextual Safety needs clarification', () => {
+test('Discovery pauses ordinary questions when semantic Safety context needs clarification', () => {
   const s = discovery.session({
     concernIds: ['poor_sleep'],
-    safetyContextualSignals: { functionalDeterioration: .8, severeSleepChange: .8 }
+    safetyContextualSignals: { observedSafetyConcern: true }
   });
   const step = discovery.next(s);
   assert.equal(step.type, 'safety');
   assert.equal(step.safety.status, 'confirmation_required');
 });
 
-test('Discovery retains contextual uncertainty after negative direct confirmation', () => {
+test('Discovery retains semantic contextual uncertainty after negative direct confirmation', () => {
   const s = discovery.session({
     concernIds: ['poor_sleep'],
-    safetyContextualSignals: { functionalDeterioration: .8, severeSleepChange: .8 },
+    safetyContextualSignals: { observedSafetyConcern: true },
     safetyConfirmation: { immediateDanger: false, intent: false, canStaySafe: true }
   });
   assert.equal(s.safety.status, 'continue_with_constraints');
   assert.equal(s.safety.unresolvedContext, true);
+  assert.notEqual(discovery.next(s).type, 'safety');
+});
+
+test('generic numeric context cannot manufacture a Discovery Safety pause', () => {
+  const s = discovery.session({
+    concernIds: ['poor_sleep'],
+    safetyContextualSignals: { functionalDeterioration: .99, severeSleepChange: .99 }
+  });
+  assert.equal(s.safety.status, 'clear_for_ordinary_flow');
   assert.notEqual(discovery.next(s).type, 'safety');
 });
 
