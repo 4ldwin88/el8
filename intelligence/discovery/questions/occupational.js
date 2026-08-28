@@ -1,26 +1,70 @@
-import { Q, scale } from './core.js';
+import { Q } from './core.js';
 
-// Occupational owns work/school stability, fit, load and schedule. Explicit bridges
-// between dimensions live in cross-dimensional.js. Feasibility probes capture the
-// constraints Planning must respect without deciding the intervention here.
+// Occupational owns work/school stability, demands, control and schedule. The question
+// design is informed by established occupational-health constructs (for example job
+// security, demands, autonomy/control, role clarity and work-life interference), but
+// these EL8-authored items are not a COPSOQ, NIOSH WellBQ or other validated instrument.
+// They describe conditions and constraints; they do not diagnose causes or construct a plan.
 export const OCCUPATIONAL_QUESTIONS = Object.freeze([
-  Q('W1', 'driver-probe', 'How stable does work or school feel right now?', ['work_instability'], scale('work_instability'), 0.18),
-  Q('W2', 'driver-probe', 'Are you worried that your work, hours, role, or income could change soon?', ['work_instability'], [
-    ['no', 'No', { work_instability: -0.65 }], ['little', 'A little', { work_instability: 0.25 }], ['yes', 'Yes', { work_instability: 0.7 }], ['na', 'Not applicable', { work_instability: -0.4 }],
-  ], 0.2),
-  Q('W3', 'discriminator', 'What part of work or school is hardest right now?', ['work_instability', 'schedule_disruption'], [
-    ['stability', 'Not knowing what will happen', { work_instability: 0.6 }], ['schedule', 'Hours or schedule', { schedule_disruption: 0.6 }], ['load', 'Too much to do', { stress: 0.25, low_energy: 0.2 }], ['fit', 'It does not feel like a good fit', { lack_direction: 0.3 }], ['none', 'Nothing major', { work_instability: -0.45, schedule_disruption: -0.35 }],
-  ], 0.22),
-  Q('W4', 'confirmation', 'If work became stable tomorrow, would a lot of the current pressure ease?', ['work_instability'], [
-    ['yes', 'Yes', { work_instability: 0.55 }], ['some', 'Some of it', { work_instability: 0.25 }], ['no', 'Not much', { work_instability: -0.35 }], ['unsure', 'Not sure', {}],
-  ], 0.2),
-  Q('W5', 'feasibility-probe', 'What could limit your ability to improve the work or school situation right now? Select any that fit.', ['work_instability'], [
-    ['time', 'Time or schedule', { schedule_disruption: 0.15 }], ['money', 'I cannot afford a gap or reduction in income', { money_pressure: 0.2 }], ['transport', 'Transportation or location', {}], ['care', 'Caregiving or family responsibilities', { schedule_disruption: 0.12 }], ['credentials', 'Skills, credentials, or experience requirements', {}], ['health', 'Health, energy, or accessibility', { physical_condition: 0.1, low_energy: 0.1 }], ['suitable_job', 'Finding a suitable job or opportunity', { work_instability: 0.2, lack_direction: 0.08 }], ['opportunity', 'Not enough suitable opportunities available', { work_instability: 0.15 }], ['none', 'Nothing obvious', {}],
+  Q('W1', 'state-probe', 'Which best describes your work or school situation right now?', ['work_instability'], [
+    ['stable', 'Stable and expected to continue', { work_instability: -0.55 }],
+    ['some_uncertainty', 'Mostly stable, with some uncertainty', { work_instability: 0.2 }],
+    ['unstable', 'Hours, role, work, or schooling are uncertain', { work_instability: 0.6 }],
+    ['none_wanted', 'I do not currently have work or school and want it', { work_instability: 0.7 }],
+    ['none_by_choice', 'I am not working or in school by choice right now', {}],
+    ['na', 'Not applicable to me right now', {}],
+  ], 0.16),
+  Q('W2', 'state-probe', 'In the past 4 weeks, how often did you worry about losing work, hours, a role, or another important source of work or school stability?', ['work_instability'], [
+    ['never', 'Never', { work_instability: -0.35 }],
+    ['rarely', 'Rarely', { work_instability: 0.1 }],
+    ['sometimes', 'Sometimes', { work_instability: 0.35 }],
+    ['often', 'Often', { work_instability: 0.65 }],
+    ['na', 'Not applicable', {}],
+  ], 0.18),
+  Q('W3', 'discriminator', 'What is making work or school difficult right now? Select any that fit.', ['work_instability', 'schedule_disruption'], [
+    ['uncertainty', 'Uncertainty about whether it will continue', { work_instability: 0.5 }],
+    ['schedule', 'Hours or schedule', { schedule_disruption: 0.5 }],
+    ['workload', 'More work or school demands than I can reasonably keep up with', { stress: 0.2, low_energy: 0.1 }],
+    ['role_clarity', 'Unclear expectations or responsibilities', { work_instability: 0.15 }],
+    ['control', 'Too little control over how or when I do the work', { schedule_disruption: 0.2 }],
+    ['development', 'Too little opportunity to use or develop my skills', {}],
+    ['conflict', 'Conflict or difficult relationships there', { relationship_strain: 0.25 }],
+    ['meaning_fit', 'The work or schooling does not fit what I want from it', {}],
+    ['other', 'Something else', {}],
+    ['none', 'Nothing major', { work_instability: -0.25, schedule_disruption: -0.2 }],
+    ['unsure', 'Not sure', {}],
+  ], 0.2, 'multi'),
+  Q('W4', 'impact-probe', 'In the past 4 weeks, how often did work or school demands interfere with the time or energy you needed outside of work or school?', ['work_instability', 'schedule_disruption'], [
+    ['never', 'Never', { schedule_disruption: -0.25 }],
+    ['rarely', 'Rarely', { schedule_disruption: 0.05 }],
+    ['sometimes', 'Sometimes', { schedule_disruption: 0.3, stress: 0.1 }],
+    ['often', 'Often', { schedule_disruption: 0.55, stress: 0.15 }],
+    ['na', 'Not applicable', {}],
+  ], 0.16),
+  Q('W5', 'feasibility-probe', 'What could limit your ability to change or improve the work or school situation right now? Select any that fit.', ['work_instability'], [
+    ['time', 'Time or schedule', { schedule_disruption: 0.15 }],
+    ['money', 'I cannot afford a gap or reduction in income', { money_pressure: 0.2 }],
+    ['transport', 'Transportation or location', {}],
+    ['care', 'Caregiving or family responsibilities', { schedule_disruption: 0.12 }],
+    ['credentials', 'Skills, credentials, or experience requirements', {}],
+    ['health', 'Health, energy, or accessibility', { physical_condition: 0.1, low_energy: 0.1 }],
+    ['opportunity', 'Not enough suitable opportunities available', { work_instability: 0.15 }],
+    ['other', 'Something else', {}],
+    ['none', 'Nothing obvious', {}],
+    ['unsure', 'Not sure', {}],
   ], 0.12, 'multi'),
-  Q('SC1', 'driver-probe', 'How much control do you have over your daily schedule?', ['schedule_disruption'], [
-    ['good', 'A lot', { schedule_disruption: -0.55 }], ['some', 'Some', { schedule_disruption: 0.15 }], ['little', 'A little', { schedule_disruption: 0.4 }], ['very_little', 'Very little', { schedule_disruption: 0.6 }],
-  ], 0.18),
-  Q('SC2', 'confirmation', 'Does your schedule regularly push sleep, meals, or routines off track?', ['schedule_disruption'], [
-    ['no', 'No', { schedule_disruption: -0.6 }], ['sometimes', 'Sometimes', { schedule_disruption: 0.3 }], ['often', 'Often', { schedule_disruption: 0.7 }],
-  ], 0.18),
+  Q('SC1', 'control-probe', 'How much control do you usually have over when you work, study, or handle your main daily responsibilities?', ['schedule_disruption'], [
+    ['lot', 'A lot', { schedule_disruption: -0.45 }],
+    ['some', 'Some', { schedule_disruption: 0.1 }],
+    ['little', 'A little', { schedule_disruption: 0.35 }],
+    ['none', 'Almost none', { schedule_disruption: 0.55 }],
+    ['na', 'Not applicable', {}],
+  ], 0.16),
+  Q('SC2', 'impact-probe', 'In the past 7 days, how often did your schedule interfere with sleep, regular meals, or another routine that matters to you?', ['schedule_disruption'], [
+    ['never', 'Never', { schedule_disruption: -0.4 }],
+    ['once', 'Once', { schedule_disruption: 0.1 }],
+    ['few', 'A few days', { schedule_disruption: 0.35 }],
+    ['most', 'Most days', { schedule_disruption: 0.65 }],
+    ['na', 'Not applicable', {}],
+  ], 0.16),
 ]);
