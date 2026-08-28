@@ -1,12 +1,11 @@
-// Canonical Baseline -> Discovery handoff.
-// Baseline supplies observations, member-stated drivers/supports and plan constraints.
-// Discovery owns causal investigation and concern resolution. Dimension mapping is retained only
-// as a compatibility fallback for older completed Baselines; new MVP Baselines are signal-native.
+// Discovery opening snapshot -> adaptive Discovery handoff.
+// The opening snapshot is evidence collection inside Discovery, not a separate Baseline stage.
+// Legacy dimension-shaped evidence is retained only as a compatibility fallback for older sessions.
 export const DIMENSION_CONCERN_MAP=Object.freeze({Physical:['health','sleep','energy'],Emotional:['stress'],Intellectual:['focus','direction'],Social:['relationships','support'],Spiritual:['direction'],Occupational:['work'],Financial:['money'],Environmental:['home']});
 const ATTENTION=new Set(['Struggling','Needs attention']);
 const POSITIVE=new Set(['Going well','Very strong']);
 const uniq=xs=>[...new Set(xs.filter(Boolean))];
-export function buildBaselineDiscoveryHandoff(derived={}){
+export function buildDiscoverySnapshotHandoff(derived={}){
  const direct=Array.isArray(derived.candidate_concerns)?derived.candidate_concerns.filter(Boolean):[];
  const indicators=derived.indicator_signals&&typeof derived.indicator_signals==='object'?derived.indicator_signals:{};
  const indicatorSignals=Object.entries(indicators).map(([id,s])=>Object.freeze({id,label:s?.label||id,value:Number(s?.value)||null,concerns:Object.freeze([...(s?.concerns||[])]),dimension:s?.dimension||null}));
@@ -23,14 +22,11 @@ export function buildBaselineDiscoveryHandoff(derived={}){
  const candidateDimensions=uniq([...dimensionSignals.filter(x=>x.attention).map(x=>x.dimension),...explicitDimensions]);
  const legacyMapped=uniq(candidateDimensions.flatMap(d=>DIMENSION_CONCERN_MAP[d]||[]));
  const signalNative=direct.length>0||indicatorSignals.length>0||topics.length>0;
- // Positive indicators suppress generic/direct concern inference. Explicit member priority, a low
- // indicator, or a concrete baseline topic may reopen the concern because those signals can change
- // prioritization or intervention selection.
  const explicitConcernSet=new Set([...lowIndicatorConcerns,...priorityConcerns,...topics.map(x=>x.concernId)]);
  const inferredDirect=direct.filter(id=>!positiveIndicatorConcerns.has(id)||explicitConcernSet.has(id));
  const candidateConcerns=uniq(signalNative?[...inferredDirect,...lowIndicatorConcerns,...priorityConcerns,...topics.map(x=>x.concernId)]:legacyMapped);
  return Object.freeze({
-  version:'baseline-discovery-handoff-v5-positive-suppression',
+  version:'discovery-snapshot-handoff-v1',
   candidateDimensions:Object.freeze(candidateDimensions),candidateConcerns:Object.freeze(candidateConcerns),
   signals:Object.freeze({indicatorSignals:Object.freeze(indicatorSignals),drivers:Object.freeze([...drivers]),supports:Object.freeze([...supports]),priorityConcerns:Object.freeze([...priorityConcerns]),concernTopics:Object.freeze(topics.map(x=>Object.freeze({...x}))),suppressedPositiveConcerns:Object.freeze([...positiveIndicatorConcerns].filter(id=>!explicitConcernSet.has(id))),feasibility:Object.freeze({...derived.feasibility}),constraints:Object.freeze([...constraints]),legacy:Object.freeze({dimensionSignals:Object.freeze(dimensionSignals),impact,worsening,priority,overallChange:derived.overall_change||null})}),
   uncertainty:Object.freeze({source:signalNative?'signal-native':'legacy-dimension-fallback',requiresDiscoveryConfirmation:candidateConcerns.length>0})
