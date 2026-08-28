@@ -4,11 +4,6 @@ export const IMMEDIACY = Object.freeze(['routine','time-sensitive','acute']);
 export const TEMPORALITY = Object.freeze(['current','recurring','historical','resolved','unknown']);
 export const SOURCE_TYPES = Object.freeze(['direct','inferred','derived']);
 
-export function clampConfidence(value) {
-  if (!Number.isFinite(value)) return 0;
-  return Math.max(0, Math.min(1, value));
-}
-
 export function assertEffect(effect) {
   if (!effect || !EFFECT_TYPES.includes(effect.type)) throw new Error(`Invalid effect type: ${effect?.type}`);
   if (!SOURCE_TYPES.includes(effect.sourceType ?? 'direct')) throw new Error('Invalid effect sourceType');
