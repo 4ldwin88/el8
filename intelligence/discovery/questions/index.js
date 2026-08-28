@@ -8,9 +8,11 @@ import { ENVIRONMENTAL_QUESTIONS } from './environmental.js';
 import { INTELLECTUAL_QUESTIONS } from './intellectual.js';
 import { SPIRITUAL_QUESTIONS } from './spiritual.js';
 import { CROSS_DIMENSIONAL_QUESTIONS } from './cross-dimensional.js';
+import { SAFETY_QUESTIONS } from './safety.js';
 
 // Canonical candidate bank. Each EL8 dimension owns its own small module.
 // Explicit multi-dimension bridge questions live in cross-dimensional.js.
+// Safety clarification is a bounded cross-cutting path; disposition remains owned by Safety.
 // Cross-dimensional answer effects remain valid regardless of source ownership.
 export const DISCOVERY_QUESTIONS = Object.freeze([
   ...CORE_QUESTIONS,
@@ -23,6 +25,7 @@ export const DISCOVERY_QUESTIONS = Object.freeze([
   ...INTELLECTUAL_QUESTIONS,
   ...SPIRITUAL_QUESTIONS,
   ...CROSS_DIMENSIONAL_QUESTIONS,
+  ...SAFETY_QUESTIONS,
 ]);
 
 const ids = new Set();
