@@ -9,12 +9,18 @@ assert.equal(semanticCoverage(question,confirmed).complete,true);
 assert.equal(questionRedundantWithFacts(question,confirmed),true);
 assert.equal(isQuestionEligible(question,state,[],confirmed),false);
 
-const weak={f1:{...confirmed.f1,memberConfirmed:false,reliability:.4}};
-assert.equal(questionRedundantWithFacts(question,weak),false);
-assert.equal(isQuestionEligible(question,state,[],weak),true);
+const numericLow={f1:{...confirmed.f1,memberConfirmed:false,reliability:.4}};
+assert.equal(questionRedundantWithFacts(question,numericLow),false);
+assert.equal(isQuestionEligible(question,state,[],numericLow),true);
 
-const strong={f1:{...confirmed.f1,memberConfirmed:false,reliability:.8}};
-assert.equal(questionRedundantWithFacts(question,strong),true);
+const numericHigh={f1:{...confirmed.f1,memberConfirmed:false,reliability:.99}};
+assert.equal(questionRedundantWithFacts(question,numericHigh),false,'numeric reliability alone must not establish semantic authority');
+
+const authoritative={f1:{...confirmed.f1,memberConfirmed:false,reliability:.2,authoritative:true}};
+assert.equal(questionRedundantWithFacts(question,authoritative),true,'explicit authority can suppress redundant questioning regardless of a numeric score');
+
+const validated={f1:{...confirmed.f1,memberConfirmed:false,validationStatus:'validated'}};
+assert.equal(questionRedundantWithFacts(question,validated),true);
 
 const superseded={f1:{...confirmed.f1,currentStatus:'superseded'}};
 assert.equal(questionRedundantWithFacts(question,superseded),false);
@@ -23,4 +29,4 @@ const partialQuestion={...question,semanticKeys:['financial.debt_burden.present'
 assert.deepEqual(semanticCoverage(partialQuestion,confirmed).missingKeys,['financial.debt_burden.impact']);
 assert.equal(questionRedundantWithFacts(partialQuestion,confirmed),false);
 
-console.log('semantic question coverage tests passed');
+console.log('semantic question coverage authority tests passed');
