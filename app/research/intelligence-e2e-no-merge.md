@@ -1,0 +1,1 @@
+Merge gate: downstream canonical reconciliation incomplete. This marker can be removed when Member State baseline establishment, Prioritization, Planning, Activation, and accelerated Review/Adaptation are wired through canonical modules and regression-gated.
