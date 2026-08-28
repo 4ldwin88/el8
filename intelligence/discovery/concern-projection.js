@@ -10,14 +10,15 @@ function sufficiencyRequirements(evidence){
   if(!contract)continue;
   const requirement=typeof contract==='string'?{id:contract}:{...contract};
   if(!requirement.id)continue;
-  const existing=requirements.get(requirement.id)??{id:requirement.id,label:requirement.label??requirement.id,required:requirement.required!==false,satisfied:false,evidenceRefs:[]};
+  const existing=requirements.get(requirement.id)??{id:requirement.id,label:requirement.label??requirement.id,required:requirement.required!==false,satisfied:false,evidenceRefs:[],...(Array.isArray(requirement.resolutionStates)?{resolutionStates:[...requirement.resolutionStates]}:{})};
   existing.required=requirement.required!==false;
   existing.label=requirement.label??existing.label;
+  if(Array.isArray(requirement.resolutionStates))existing.resolutionStates=[...requirement.resolutionStates];
   if(effect.polarity!=='neutral'&&effect.currentStatus!=='retracted')existing.satisfied=true;
   if(effect.questionId&&!existing.evidenceRefs.includes(effect.questionId))existing.evidenceRefs.push(effect.questionId);
   requirements.set(requirement.id,existing);
  }
- return Object.freeze([...requirements.values()].map(x=>Object.freeze({...x,evidenceRefs:Object.freeze(x.evidenceRefs)})));
+ return Object.freeze([...requirements.values()].map(x=>Object.freeze({...x,...(Array.isArray(x.resolutionStates)?{resolutionStates:Object.freeze(x.resolutionStates)}:{}),evidenceRefs:Object.freeze(x.evidenceRefs)})));
 }
 function feasibilityProjection(effects,concernId){const relevant=effects.filter(e=>e.target===concernId&&(FEASIBILITY_TYPES.has(e.type)||e.feasibility));const values={};for(const effect of relevant){const source=effect.feasibility&&typeof effect.feasibility==='object'?effect.feasibility:null;if(source)Object.assign(values,source);if(effect.key)values[effect.key]=effect.value}return Object.freeze({constraints:Object.freeze(relevant.filter(e=>['constraint','barrier'].includes(e.type)).map(e=>e.value??e.key).filter(Boolean)),supports:Object.freeze(relevant.filter(e=>e.type==='support').map(e=>e.value??e.key).filter(Boolean)),values:Object.freeze(values),evidenceRefs:Object.freeze(relevant.map(e=>e.questionId).filter(Boolean))})}
 export function deriveConcernState(observationLog,concernId){
