@@ -47,18 +47,41 @@ test('unresolved safety with no clarification question requests escalation',()=>
  assert.equal(decision.type,'escalate-safety');
 });
 
-test('low-information ordinary question is suppressed',()=>{
- const states=[{concernId:'c1',resolutionState:'narrowing',memberImportanceRank:2,driverKnown:true}];
- const decision=selectNextQuestion({candidates:[q('weak',{expectedUncertaintyReduction:.03})],states});
+test('numeric information score alone cannot justify an ordinary question',()=>{
+ const states=[{concernId:'c1',resolutionState:'triaged',memberImportanceRank:2,driverKnown:true,uncertain:false}];
+ const decision=selectNextQuestion({candidates:[q('high-score',{expectedUncertaintyReduction:.99})],states});
  assert.equal(decision.type,'none');
- assert.equal(decision.reason,'decision-value-sufficient');
+ assert.equal(decision.reason,'decision-relevance-sufficient');
 });
 
-test('decision-critical question can cross ordinary information threshold',()=>{
- const states=[{concernId:'c1',resolutionState:'narrowing',memberImportanceRank:2,driverKnown:true}];
- const decision=selectNextQuestion({candidates:[q('critical',{expectedUncertaintyReduction:.03,decisionCritical:true})],states});
+test('unresolved uncertainty remains decision relevant even with a low numeric score',()=>{
+ const states=[{concernId:'c1',resolutionState:'narrowing',memberImportanceRank:2,driverKnown:false}];
+ const decision=selectNextQuestion({candidates:[q('uncertainty',{expectedUncertaintyReduction:.01})],states});
+ assert.equal(decision.type,'question');
+ assert.equal(decision.question.id,'uncertainty');
+ assert.equal(decision.reason,'unresolved-uncertainty');
+});
+
+test('decision-critical question remains eligible without a numeric threshold',()=>{
+ const states=[{concernId:'c1',resolutionState:'triaged',memberImportanceRank:2,driverKnown:true}];
+ const decision=selectNextQuestion({candidates:[q('critical',{expectedUncertaintyReduction:0,decisionCritical:true})],states});
  assert.equal(decision.type,'question');
  assert.equal(decision.question.id,'critical');
+ assert.equal(decision.reason,'decision-critical');
+});
+
+test('member importance orders equally relevant unresolved questions without an override margin',()=>{
+ const states=[{concernId:'c1',resolutionState:'narrowing',memberImportanceRank:3,driverKnown:false},{concernId:'c2',resolutionState:'narrowing',memberImportanceRank:1,driverKnown:false}];
+ const decision=selectNextQuestion({candidates:[q('member-priority',{concernId:'c1',expectedUncertaintyReduction:.01}),q('lower-priority-high-score',{concernId:'c2',expectedUncertaintyReduction:.99})],states});
+ assert.equal(decision.question.id,'member-priority');
+ assert.equal(decision.allocation.priorityTier,3);
+});
+
+test('already asked candidate is not selected again',()=>{
+ const states=[{concernId:'c1',resolutionState:'narrowing',memberImportanceRank:2,driverKnown:false}];
+ const asked=q('asked');
+ const decision=selectNextQuestion({candidates:[asked,q('fresh')],states,recentQuestions:[asked]});
+ assert.equal(decision.question.id,'fresh');
 });
 
 test('outer guardrail bounds unresolved ordinary discovery',()=>{
