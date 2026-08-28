@@ -11,9 +11,10 @@ export function appendObservation(session,observation){session.observationLog=Ob
 export function mergeFacts(session,facts={}){session.facts={...(session.facts||{}),...facts};return session}
 export function deriveStates(session){return deriveAllConcernStates(session.observationLog,session.concernIds).map(s=>({...s,resolutionState:session.resolutionStates?.[s.concernId]??'triaged',driverKnown:session.driverKnown?.[s.concernId]??false}))}
 function orientationAsked(session){return session.asked.filter(id=>session.questionBank.find(q=>q.id===id)?.role==='orientation').length}
+function explicitNoConcernIntent(session){return ['maintain','nothing'].includes(session.facts?.discoveryIntent)}
 function nextOrientationQuestion(session){
  const asked=orientationAsked(session);
- if(asked>0&&session.concernIds.length>0)return null;
+ if(asked>0&&(session.concernIds.length>0||explicitNoConcernIntent(session)))return null;
  if(session.orientationLimit!==null&&asked>=session.orientationLimit)return null;
  return session.questionBank.filter(q=>q.role==='orientation'&&!session.asked.includes(q.id)&&q.orientationEligible!==false)
   .sort((a,b)=>(b.openingPriority??0)-(a.openingPriority??0)||(a.burden??0)-(b.burden??0)||a.id.localeCompare(b.id))[0]??null;
@@ -26,13 +27,14 @@ function recoveryCandidates(session,states){const open=unresolved(states).sort((
 function redundantStateProbe(q,states){if(q.role!=='state-probe')return false;const ids=q.concernIds?.length?q.concernIds:[q.concernId].filter(Boolean);if(!ids.length)return false;return ids.every(id=>{const s=states.find(x=>x.concernId===id);return s&&Number(s.evidenceConfidence??0)>=.75&&(s.evidenceRefs?.length??0)>0})}
 function positiveCandidates(session,states){return eligibleQuestions(session.questionBank.filter(q=>q.path==='positive'&&!session.asked.includes(q.id)),states,session.observationLog,session.facts||{}).map(q=>({...q,eligible:true}))}
 function allResolvedNonIssue(states){return states.length>0&&states.every(s=>s.resolutionState==='nonIssue')}
+function nextPositiveQuestion(session,states=[]){const candidates=positiveCandidates(session,states);if(!candidates.length)return null;return candidates.sort((a,b)=>(a.burden??0)-(b.burden??0)||a.id.localeCompare(b.id))[0]}
 export function nextDiscoveryStep(session){
  if(session.phase==='orient'){
   const q=nextOrientationQuestion(session);
   if(q){session.asked=[...session.asked,q.id];session.questionsAsked++;return{type:'question',question:q,reason:'orientation-candidate',states:deriveStates(session)}}
   session.phase='narrow';
  }
- if(session.phase==='narrow'&&session.concernIds.length===0){const q=gatewayQuestion(session);if(q){session.asked=[...session.asked,q.id];session.questionsAsked++;return{type:'question',question:q,reason:'gateway-candidate',states:[]}}session.incomplete=true;return{type:'finish',stop:{reason:'no-material-concern-established',incomplete:true},states:[]}}
+ if(session.phase==='narrow'&&session.concernIds.length===0){if(explicitNoConcernIntent(session)){if(session.facts.discoveryIntent==='nothing')return{type:'finish',stop:{reason:'member-reports-no-current-discovery-need',incomplete:false},states:[]};const q=nextPositiveQuestion(session,[]);if(q){session.asked=[...session.asked,q.id];session.questionsAsked++;return{type:'question',question:q,reason:'positive-goal-path',states:[]}}return{type:'finish',stop:{reason:'positive-path-sufficient',incomplete:false},states:[]}}const q=gatewayQuestion(session);if(q){session.asked=[...session.asked,q.id];session.questionsAsked++;return{type:'question',question:q,reason:'gateway-candidate',states:[]}}session.incomplete=true;return{type:'finish',stop:{reason:'no-material-concern-established',incomplete:true},states:[]}}
  if(session.phase==='narrow')session.phase='deepen';
  const states=deriveStates(session);
  if(allResolvedNonIssue(states)){const decision=selectNextQuestion({candidates:positiveCandidates(session,states),states,recentQuestions:session.asked.map(id=>session.questionBank.find(q=>q.id===id)).filter(Boolean),facts:session.facts||{}});if(decision.type==='question'){session.asked=[...session.asked,decision.question.id];session.questionsAsked++;return{...decision,states}}if(decision.reason==='positive-path-sufficient')return{type:'finish',stop:{reason:decision.reason,incomplete:false},states}}
