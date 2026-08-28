@@ -6,20 +6,18 @@ function related(a,b){const aa=targetSet(a),bb=targetSet(b);for(const id of aa)i
 function recentRelatedPenalty(q,recentQuestions,config){if(!recentQuestions?.length)return 0;const recent=recentQuestions.slice(-config.RECENT_RELATED_WINDOW);return recent.some(prev=>related(q,prev))?config.RECENT_RELATED_PENALTY:0}
 function questionsForConcern(concernId,recentQuestions=[]){return recentQuestions.filter(q=>targetSet(q).has(concernId)).length}
 function allocationEligible(q,state,recentQuestions,config){if(!state)return true;if((state.memberImportanceRank??0)>config.LOW_IMPORTANCE_MAX_RANK)return true;if(state.memberPrioritySelected)return true;return questionsForConcern(state.concernId,recentQuestions)<config.LOW_IMPORTANCE_MAX_QUESTIONS}
-function safetyQuestion(q,ids){return q.path==='safety'||q.safetyPriority>0||ids.has(q.concernId)}
+// Safety clarification is an explicit path. Sharing a concern id with a safety concern
+// must never let an ordinary question masquerade as a Safety question.
+function safetyQuestion(q){return q.path==='safety'}
 function positiveQuestion(q){return q.path==='positive'||q.role==='goal-probe'||q.role==='growth-probe'||q.role==='strength-probe'}
-function noMaterialConcern(states){return states.length>0&&states.every(s=>s.resolutionState==='nonIssue'||s.memberReportsConcern===false||s.concernEstablished===false)}
+// Positive Discovery requires an affirmative resolved non-issue state. Unknown or merely
+// unestablished concern evidence is not evidence that the member is doing well.
+function noMaterialConcern(states){return states.length>0&&states.every(s=>s.resolutionState==='nonIssue')}
 function decisionRelevant(q,value,config){return q.decisionCritical===true||q.path==='safety'||q.path==='positive'||value>=config.MIN_DECISION_VALUE}
 export function selectNextQuestion({candidates,states,recentQuestions=[],config=SCHEDULER_CONFIG}){
  const stateById=new Map(states.map(s=>[s.concernId,s]));
- // Safety is a separate clarification path. Repeated concerning evidence never competes
- // with ordinary wellness questions: clarify until escalation can be ruled in/out, and
- // escalate rather than silently returning to the normal interview when clarification is exhausted.
  const safetyConcerns=states.filter(s=>(s.safetyEscalationLevel??0)>0&&!['escalated','nonIssue'].includes(s.resolutionState));
- if(safetyConcerns.length){const ids=new Set(safetyConcerns.map(s=>s.concernId));const eligibleSafety=candidates.filter(q=>safetyQuestion(q,ids)&&q.eligible!==false&&!q.depthBudgetExhausted);if(!eligibleSafety.length)return{type:'escalate-safety',question:null,reason:'unresolved-safety-no-eligible-question'};eligibleSafety.sort((a,b)=>(b.safetyPriority??0)-(a.safetyPriority??0)||a.id.localeCompare(b.id));return{type:'question',question:eligibleSafety[0],reason:'safety-clarification-path'}}
- // Absence of problems is not absence of a use case. Once concerns are genuinely resolved
- // as non-issues, Discovery may ask a small positive-path question about what the member
- // wants to maintain, improve or pursue instead of manufacturing a deficit.
+ if(safetyConcerns.length){const eligibleSafety=candidates.filter(q=>safetyQuestion(q)&&q.eligible!==false&&!q.depthBudgetExhausted);if(!eligibleSafety.length)return{type:'escalate-safety',question:null,reason:'unresolved-safety-no-eligible-question'};eligibleSafety.sort((a,b)=>(b.safetyPriority??0)-(a.safetyPriority??0)||a.id.localeCompare(b.id));return{type:'question',question:eligibleSafety[0],reason:'safety-clarification-path'}}
  if(noMaterialConcern(states)){const positive=candidates.filter(q=>positiveQuestion(q)&&q.eligible!==false&&!q.depthBudgetExhausted&&!recentQuestions.some(prev=>prev.id===q.id));if(positive.length){positive.sort((a,b)=>informationValue(b)-informationValue(a)||a.id.localeCompare(b.id));return{type:'question',question:positive[0],score:informationValue(positive[0]),reason:'positive-goal-path'}}return{type:'none',question:null,reason:'positive-path-sufficient'}}
  const eligible=candidates.filter(q=>q.eligible!==false&&!q.depthBudgetExhausted&&allocationEligible(q,stateById.get(q.concernId),recentQuestions,config));if(!eligible.length)return{type:'none',question:null,reason:'no-eligible-question'};
  const value=q=>informationValue(q)-recentRelatedPenalty(q,recentQuestions,config);const tier=q=>stateById.get(q.concernId)?.memberImportanceRank??0;const topTier=Math.max(...eligible.map(tier));const inTier=eligible.filter(q=>tier(q)===topTier).map(q=>({q,value:value(q)})).filter(x=>decisionRelevant(x.q,x.value,config)).sort((a,b)=>b.value-a.value||a.q.id.localeCompare(b.q.id));
