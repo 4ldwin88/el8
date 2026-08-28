@@ -1,26 +1,16 @@
 // Browser compatibility edge for the onboarding journey.
 // Translates already-resolved Discovery output + explicit member focus into canonical Planning input.
 // This module does not rank priorities or select interventions; canonical Planning retains that authority.
+import {canonicalMemberProblemId} from './canonical-problem-map.js';
 
-const PROBLEM_BY_CONCERN=Object.freeze({
-  physical_condition:'problem:low_activity',low_activity:'problem:low_activity',low_energy:'problem:low_activity',
-  poor_sleep:'problem:poor_sleep',
-  money:'problem:financial_strain',money_pressure:'problem:financial_strain',
-  work_pressure:'problem:income_gap',work_instability:'problem:income_gap',
-  low_direction:'problem:execution_gap',lack_direction:'problem:execution_gap',low_focus:'problem:execution_gap',schedule_disruption:'problem:execution_gap',
-  stress:'problem:stress',
-  relationship_strain:'problem:social_disconnection',low_support:'problem:social_disconnection',
-  home_instability:'problem:environment_friction'
-});
 const clone=x=>JSON.parse(JSON.stringify(x));
-const problemId=x=>PROBLEM_BY_CONCERN[x]||(/^problem:/.test(String(x||''))?x:`problem:${x}`);
-const priorityId=x=>`priority:${String(x||'').replace(/^priority:/,'')}`;
+const priorityId=x=>`priority:${String(x||'').replace(/^priority:/,'').replace(/^problem:/,'')}`;
 function rows(output={}){return output.trace?.states||output.ranked||output.selected||output.priorityCandidates||output.candidates||[]}
-function findRow(output,id){return rows(output).find(x=>[x.concernId,x.sourceConcernId,x.id,x.driver,x.problemId].includes(id))||null}
+function findRow(output,id){const canonical=canonicalMemberProblemId(id);return rows(output).find(x=>{const values=[x.concernId,x.sourceConcernId,x.id,x.driver,x.problemId];return values.includes(id)||values.some(value=>canonicalMemberProblemId(value)===canonical)})||null}
 export function canonicalPlanningInputFromBrowser({discoveryOutput,confirmedPriorities,memberStateRevision}){
  if(!discoveryOutput||!Array.isArray(confirmedPriorities)||!confirmedPriorities.length)throw new Error('Discovery output and confirmed priorities are required');
  if(!Number.isInteger(memberStateRevision)||memberStateRevision<0)throw new Error('Canonical Member State revision is required');
- const problems=confirmedPriorities.map((id,index)=>{const row=findRow(discoveryOutput,id)||{};const pid=problemId(row.problemId||row.id||id);return{priorityId:priorityId(id),problemId:pid,evidenceRefs:[...(row.evidenceRefs||row.observationRefs||[])],priorLearning:[]}});
+ const problems=confirmedPriorities.map(id=>{const pid=canonicalMemberProblemId(id);if(!pid)throw new Error(`Unsupported confirmed priority: ${id}`);const row=findRow(discoveryOutput,id)||{};return{priorityId:priorityId(pid),problemId:pid,evidenceRefs:[...(row.evidenceRefs||row.observationRefs||[])],priorLearning:[]}});
  const feasibility=discoveryOutput.baselineHandoff?.signals?.feasibility||discoveryOutput.baselineHandoff?.signals?.legacy?.feasibility||{};
  const capacity=discoveryOutput.baselineHandoff?.signals?.feasibility?.capacity||discoveryOutput.baselineCapacity||(['Overwhelming','Difficult'].includes(feasibility.overall_load)||feasibility.time==='<5 min'?'low':'medium');
  return{memberStateRevision,confirmedPriorityIds:problems.map(x=>x.priorityId),memberChoice:{mode:'EXPLICIT_ACCEPTANCE'},problems,priorityOrder:problems.map((x,i)=>({priorityId:x.priorityId,rank:i+1})),priorityOrderResolved:true,constraints:{profile:[],capacity,manageability:feasibility.overall_load||null,throttle:{active:false},safety:{disposition:'ORDINARY_FLOW'}}};
