@@ -1,15 +1,14 @@
 // Production browser projection from completed Discovery into canonical Member State.
 // Discovery supplies the evidence and supported problems that define the initial member snapshot.
 // Baseline is that immutable snapshot at completed Discovery; Prioritization is a later decision.
+import {canonicalMemberProblemId} from './canonical-problem-map.js';
 
 const DIMENSIONS=['physical','emotional','social','intellectual','spiritual','occupational','financial','environmental'];
-const PROBLEM_BY_CONCERN=Object.freeze({physical_condition:'problem:low_activity',low_activity:'problem:low_activity',low_energy:'problem:low_activity',poor_sleep:'problem:poor_sleep',money:'problem:financial_strain',money_pressure:'problem:financial_strain',work_pressure:'problem:income_gap',work_instability:'problem:income_gap',low_direction:'problem:execution_gap',lack_direction:'problem:execution_gap',low_focus:'problem:execution_gap',schedule_disruption:'problem:execution_gap',stress:'problem:stress',relationship_strain:'problem:social_disconnection',low_support:'problem:social_disconnection',home_instability:'problem:environment_friction'});
-const problemId=id=>PROBLEM_BY_CONCERN[id]||(/^problem:/.test(String(id||''))?id:`problem:${id}`);
 const candidateRows=output=>output?.trace?.states||output?.ranked||output?.selected||output?.priorityCandidates||output?.candidates||[];
 export function projectOnboardingMemberState({memberId,discoveryOutput,now=new Date().toISOString()}){
  if(!memberId||!discoveryOutput)throw new Error('memberId and completed Discovery output are required');
  const evidence=[],problems=[];
- for(const row of candidateRows(discoveryOutput)){const id=row.concernId||row.sourceConcernId||row.id;if(!id)continue;const refs=[...(row.evidenceRefs||row.observationRefs||[])];for(const ref of refs)if(!evidence.some(x=>x.id===ref))evidence.push({id:ref,provenance:'DISCOVERY',recordedAt:now,concernId:id});const pid=problemId(row.problemId||id);if(!problems.some(x=>x.id===pid))problems.push({id:pid,status:'SUPPORTED',evidenceRefs:refs,sourceConcernId:id})}
+ for(const row of candidateRows(discoveryOutput)){const id=row.concernId||row.sourceConcernId||row.id;if(!id)continue;const refs=[...(row.evidenceRefs||row.observationRefs||[])];for(const ref of refs)if(!evidence.some(x=>x.id===ref))evidence.push({id:ref,provenance:'DISCOVERY',recordedAt:now,concernId:id});const pid=canonicalMemberProblemId(row.problemId||id);if(!pid)continue;if(!problems.some(x=>x.id===pid))problems.push({id:pid,status:'SUPPORTED',evidenceRefs:refs,sourceConcernId:id})}
  const feasibility=discoveryOutput.baselineHandoff?.signals?.feasibility||{},capacity=feasibility.capacity||(['Overwhelming','Difficult'].includes(feasibility.overall_load)||feasibility.time==='<5 min'?'low':'medium');
  const baselineEvidenceRefs=[...new Set(evidence.map(x=>x.id))];
  const dimensions=Object.fromEntries(DIMENSIONS.map(d=>[d,{scope:'MONITORED',condition:null,confidence:null,evidenceRefs:[],updatedAt:null}]));
