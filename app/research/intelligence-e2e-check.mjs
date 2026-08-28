@@ -1,0 +1,1 @@
+for(const file of['intelligence-test-contract.test.mjs','intelligence-e2e-version.test.mjs','intelligence-e2e-architecture.test.mjs','intelligence-e2e-browser-imports.test.mjs','intelligence-e2e-boundary.test.mjs','intelligence-e2e-baseline-semantics.test.mjs'])await import(`./${file}`);
