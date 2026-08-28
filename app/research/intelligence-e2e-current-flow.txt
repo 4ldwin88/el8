@@ -1,0 +1,10 @@
+CURRENT BRANCH FLOW
+Introduction
+→ Discovery opening snapshot (production-shaped handoff)
+→ Adaptive Discovery (canonical browser runtime)
+→ Discovery output / priority candidates
+→ [NEXT RECONCILIATION: initial Member State baseline before priority confirmation]
+→ Prioritization
+→ Planning
+→ Activation
+→ Accelerated Review / Adaptation
