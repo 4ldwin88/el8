@@ -1,1 +1,0 @@
-The Intelligence E2E test is being reconciled as an adapter over canonical Intelligence v0.1. `intelligence-test/reconciliation-status.json` records the current boundary. Do not merge a tester-only implementation of downstream domain logic to make the browser journey appear complete; reconcile the canonical Member State/Prioritization/Planning boundary first.

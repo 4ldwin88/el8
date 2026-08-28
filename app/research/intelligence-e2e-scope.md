@@ -1,1 +1,0 @@
-This PR intentionally does not pretend the downstream E2E is reconciled yet. It repairs the entry/runtime boundary and exposes the next canonical defect: Member State baseline establishment is coupled to confirmed priorities. The next commits must repair that canonical boundary, then rewire Prioritization/Planning/Activation/Review in order.
