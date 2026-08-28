@@ -1,5 +1,4 @@
 export const EFFECT_TYPES = Object.freeze(['evidence','safety','immediacy','readiness','importance','member-priority','feasibility','constraint','barrier','support','access','capacity']);
-export const RESOLUTION_STATES = Object.freeze(['unscoped','triaged','narrowing','sufficient','deferred','escalated','nonIssue']);
 export const IMMEDIACY = Object.freeze(['routine','time-sensitive','acute']);
 export const TEMPORALITY = Object.freeze(['current','recurring','historical','resolved','unknown']);
 export const SOURCE_TYPES = Object.freeze(['direct','inferred','derived']);
