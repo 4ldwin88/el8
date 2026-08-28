@@ -1,0 +1,1 @@
+import assert from'node:assert/strict';import{INTELLIGENCE_TEST_VERSION,INTELLIGENCE_TEST_ENGINE_VERSION}from'./intelligence-test-version.js';assert.equal(INTELLIGENCE_TEST_VERSION,'Intelligence v0.1');assert.equal(INTELLIGENCE_TEST_ENGINE_VERSION,'Intelligence v0.1');console.log('Intelligence E2E canonical version regression passed');
