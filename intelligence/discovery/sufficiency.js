@@ -1,15 +1,24 @@
 const terminal = new Set(['established','dismissed']);
 
-function requirementApplies(requirement,resolutionState){
+export function requirementApplies(requirement,resolutionState){
   const states=requirement?.resolutionStates;
   if(!Array.isArray(states)||states.length===0)return true;
   return states.includes(resolutionState);
 }
 
+export function applicableRequirements(state){
+  const requirements=Array.isArray(state?.sufficiencyRequirements)?state.sufficiencyRequirements:[];
+  return requirements.filter(requirement=>requirementApplies(requirement,state?.resolutionState));
+}
+
+export function unresolvedRequiredEvidence(state){
+  return applicableRequirements(state).filter(requirement=>requirement?.required!==false&&requirement?.satisfied!==true);
+}
+
 function requiredEvidenceAudit(state) {
   const requirements = Array.isArray(state.sufficiencyRequirements) ? state.sufficiencyRequirements : [];
-  const applicable = requirements.filter(requirement => requirementApplies(requirement,state.resolutionState));
-  const unresolved = applicable.filter(requirement => requirement?.required !== false && requirement?.satisfied !== true);
+  const applicable = applicableRequirements(state);
+  const unresolved = unresolvedRequiredEvidence(state);
   return {complete: unresolved.length === 0, unresolved, requirements, applicable};
 }
 
