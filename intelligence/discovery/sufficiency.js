@@ -1,4 +1,4 @@
-const terminal = new Set(['established','dismissed','deferred']);
+const terminal = new Set(['established','dismissed']);
 
 function requiredEvidenceAudit(state) {
   const requirements = Array.isArray(state.sufficiencyRequirements) ? state.sufficiencyRequirements : [];
@@ -20,9 +20,10 @@ export function coverageAudit(states) {
   return {complete: unresolved.length === 0, unresolved, audits};
 }
 
-export function stoppingDecision({states, questionsAsked, outerGuardrail = null}) {
+export function stoppingDecision({states, questionsAsked, outerGuardrail = null, memberStopped = false}) {
   const coverage = coverageAudit(states);
   if (coverage.complete) return {stop:true, reason:'sufficient-coverage', incomplete:false};
+  if (memberStopped) return {stop:true, reason:'member-stopped', incomplete:true, defer:coverage.unresolved.map(s => s.concernId)};
   const hasExplicitGuardrail = Number.isInteger(outerGuardrail) && outerGuardrail >= 0;
   if (hasExplicitGuardrail && questionsAsked >= outerGuardrail) return {stop:true, reason:'outer-guardrail', incomplete:true, defer:coverage.unresolved.map(s => s.concernId)};
   return {stop:false, reason:'coverage-incomplete', unresolved:coverage.unresolved};
