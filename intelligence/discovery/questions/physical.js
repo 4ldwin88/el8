@@ -1,31 +1,47 @@
-import { Q, scale } from './core.js';
+import { Q } from './core.js';
 
 // Physical owns body, activity, sleep, energy and activation investigation. Questions
 // may emit evidence about drivers in other dimensions without changing ownership.
+// State questions use concrete recent experience where possible. Capability/feasibility
+// questions intentionally use the present rather than forcing a recall window.
+const RECENT_STATE = target => [
+  ['well', 'Very well', { [target]: -0.75 }],
+  ['okay', 'Okay', { [target]: -0.25 }],
+  ['strain', 'Not great', { [target]: 0.4 }],
+  ['hard', 'Really struggling', { [target]: 0.8 }],
+  ['unsure', 'Not sure', {}],
+];
+
 export const PHYSICAL_QUESTIONS = Object.freeze([
-  Q('PH0', 'concern-scope', 'Which physical-health areas feel relevant?', ['physical_condition'], [
+  Q('PH0', 'concern-scope', 'Which physical-health areas, if any, would you like EL8 to understand better?', ['physical_condition'], [
     ['body', 'Weight, body composition, or physical condition', { physical_condition: 0.55 }],
     ['activity', 'Exercise, movement, or activity level', { physical_condition: 0.25, low_activity: 0.35 }],
     ['symptoms', 'Physical symptoms or discomfort', { physical_condition: 0.5 }],
-    ['other', 'Something else', {}], ['unsure', 'Not sure', {}],
+    ['other', 'Something else', {}], ['none', 'None of these', {}], ['unsure', 'Not sure', {}],
   ], 0.28, 'multi'),
-  Q('PH1', 'state-probe', 'How has your physical activity been lately?', ['low_activity'], scale('low_activity'), 0.16),
-  Q('PH1A', 'driver-discriminator', 'What kinds of activity are realistically available to you right now?', ['low_activity'], [
+  Q('PH1', 'state-probe', 'In the past 7 days, on how many days were you physically active for at least a short period?', ['low_activity'], [
+    ['six_seven', '6–7 days', { low_activity: -0.65 }],
+    ['three_five', '3–5 days', { low_activity: -0.3 }],
+    ['one_two', '1–2 days', { low_activity: 0.35 }],
+    ['zero', '0 days', { low_activity: 0.7 }],
+    ['unsure', 'Not sure', {}],
+  ], 0.16),
+  Q('PH1A', 'driver-discriminator', 'Which kinds of activity are practical for you right now? Select any that fit.', ['low_activity'], [
     ['outdoor', 'Walking or outdoor activity', { low_activity: 0.04 }],
     ['bodyweight', 'Home or bodyweight activity without equipment', { low_activity: 0.04 }],
-    ['home_equipment', 'Equipment at home', { low_activity: 0.06 }],
+    ['home_equipment', 'Using equipment at home', { low_activity: 0.06 }],
     ['gym', 'Gym or fitness facility', { low_activity: 0.06 }],
-    ['other', 'Another option', {}], ['none', 'None of these are practical right now', {}],
+    ['other', 'Another option', {}], ['none', 'None of these are practical right now', {}], ['unsure', 'Not sure', {}],
   ], 0.12, 'multi'),
-  Q('PH1B', 'feasibility-probe', 'What could limit physical activity for you right now? Select any that fit.', ['low_activity'], [
-    ['time', 'Time or schedule', { schedule_disruption: 0.18 }], ['cost', 'Cost', { money_pressure: 0.12 }], ['space', 'Space or location', { home_instability: 0.08 }], ['mobility', 'Mobility or accessibility', { physical_condition: 0.12 }], ['pain', 'Pain or physical symptoms', { physical_condition: 0.2 }], ['health_guidance', 'I need professional guidance before changing activity', { physical_condition: 0.15 }], ['motivation', 'Motivation or getting started', { low_activation: 0.25 }], ['none', 'Nothing obvious', {}],
+  Q('PH1B', 'feasibility-probe', 'What could make physical activity harder for you right now? Select any that fit.', ['low_activity'], [
+    ['time', 'Time or schedule', { schedule_disruption: 0.18 }], ['cost', 'Cost', { money_pressure: 0.12 }], ['space', 'Space or location', { home_instability: 0.08 }], ['mobility', 'Mobility or accessibility', { physical_condition: 0.12 }], ['pain', 'Pain or physical symptoms', { physical_condition: 0.2 }], ['health_guidance', 'I need professional guidance before changing activity', { physical_condition: 0.15 }], ['motivation', 'Getting started', { low_activation: 0.25 }], ['none', 'Nothing obvious', {}], ['unsure', 'Not sure', {}],
   ], 0.12, 'multi'),
-  Q('PH2', 'state-probe', 'Are weight, body composition, or your physical condition bothering you right now?', ['physical_condition'], [['no','No',{physical_condition:-0.65}],['little','A little',{physical_condition:0.25}],['yes','Yes',{physical_condition:0.7}],['unsure','Not sure',{}]], 0.17),
-  Q('PH2A', 'feasibility-probe', 'If EL8 suggested a physical-health action, what should it account for?', ['physical_condition'], [['cost','Keep cost very low',{money_pressure:0.08}],['time','Keep it short',{schedule_disruption:0.08}],['accessibility','Accessibility or mobility needs',{physical_condition:0.1}],['symptoms','Pain, symptoms, or a health condition',{physical_condition:0.18}],['professional','Professional guidance may be needed',{physical_condition:0.12}],['none','No special limitation',{}]], 0.1, 'multi'),
-  Q('PH3', 'state-probe', 'How hard has it been to get yourself started on things you intend to do?', ['low_activation'], [['easy','Usually easy',{low_activation:-0.65}],['sometimes','Sometimes hard',{low_activation:0.3}],['hard','Often hard',{low_activation:0.7}],['unsure','Not sure',{}]], 0.17),
-  Q('SL1', 'state-probe', 'How has your sleep been lately?', ['poor_sleep'], scale('poor_sleep'), 0.16),
-  Q('SL2', 'discriminator', 'What seems to interfere with sleep most?', ['poor_sleep'], [['schedule','Schedule or timing',{schedule_disruption:0.55}],['stress','Stress or thoughts',{stress:0.45}],['home','Home or surroundings',{home_instability:0.4}],['body','Physical discomfort or health',{poor_sleep:0.25,physical_condition:0.15}],['unsure','Not sure',{}]], 0.2),
-  Q('SL3', 'confirmation', 'When you sleep better, does your energy or focus noticeably improve?', ['poor_sleep'], [['yes','Yes',{poor_sleep:0.35,low_energy:0.15,low_focus:0.1}],['some','Somewhat',{poor_sleep:0.15}],['no','Not really',{poor_sleep:-0.2}]], 0.18),
-  Q('E1', 'state-probe', 'How has your energy been?', ['low_energy'], scale('low_energy'), 0.16),
-  Q('E2', 'discriminator', 'What seems connected to your low energy?', ['low_energy'], [['sleep','Poor sleep',{poor_sleep:0.5}],['schedule','Busy or irregular schedule',{schedule_disruption:0.4}],['stress','Stress',{stress:0.35}],['activity','Not being active enough',{low_activity:0.4}],['body','Health or physical condition',{physical_condition:0.4}],['motivation','Low motivation or difficulty getting started',{low_activation:0.4,lack_direction:0.15}],['other','Something else',{}],['unsure','Not sure',{}]], 0.2, 'multi'),
+  Q('PH2', 'state-probe', 'In the past 7 days, how much have concerns about your weight, body, or physical condition bothered you?', ['physical_condition'], [['no','Not at all',{physical_condition:-0.65}],['little','A little',{physical_condition:0.25}],['yes','Quite a bit',{physical_condition:0.7}],['unsure','Not sure',{}]], 0.17),
+  Q('PH2A', 'feasibility-probe', 'If EL8 suggested a physical-health action, what would it need to account for? Select any that fit.', ['physical_condition'], [['cost','Keep cost very low',{money_pressure:0.08}],['time','Keep it short',{schedule_disruption:0.08}],['accessibility','Accessibility or mobility needs',{physical_condition:0.1}],['symptoms','Pain, symptoms, or a health condition',{physical_condition:0.18}],['professional','Professional guidance may be needed',{physical_condition:0.12}],['none','No special limitation',{}],['unsure','Not sure',{}]], 0.1, 'multi'),
+  Q('PH3', 'state-probe', 'In the past 7 days, how often was it hard to start something you intended to do?', ['low_activation'], [['easy','Rarely or never',{low_activation:-0.65}],['sometimes','Sometimes',{low_activation:0.3}],['hard','Often',{low_activation:0.7}],['unsure','Not sure',{}]], 0.17),
+  Q('SL1', 'state-probe', 'In the past 7 days, how would you rate your sleep overall?', ['poor_sleep'], RECENT_STATE('poor_sleep'), 0.16),
+  Q('SL2', 'discriminator', 'In the past 7 days, what most often made it harder to sleep well?', ['poor_sleep'], [['schedule','Sleep timing or schedule',{schedule_disruption:0.55}],['stress','Stress or thoughts',{stress:0.45}],['home','Noise, light, temperature, or other surroundings',{home_instability:0.4}],['body','Physical discomfort or health symptoms',{poor_sleep:0.25,physical_condition:0.15}],['other','Something else',{}],['nothing','Nothing obvious',{}],['unsure','Not sure',{}]], 0.2),
+  Q('SL3', 'confirmation', 'On days after you sleep better, what do you usually notice?', ['poor_sleep'], [['energy','More energy',{poor_sleep:0.25,low_energy:0.2}],['focus','Better focus',{poor_sleep:0.25,low_focus:0.15}],['both','More energy and better focus',{poor_sleep:0.35,low_energy:0.15,low_focus:0.1}],['neither','Neither noticeably changes',{poor_sleep:-0.15}],['unsure','Not sure',{}]], 0.18),
+  Q('E1', 'state-probe', 'In the past 7 days, how would you rate your energy during the day?', ['low_energy'], RECENT_STATE('low_energy'), 0.16),
+  Q('E2', 'discriminator', 'In the past 7 days, what seemed most connected with times you had low energy? Select any that fit.', ['low_energy'], [['sleep','Poor sleep',{poor_sleep:0.5}],['schedule','A busy or irregular schedule',{schedule_disruption:0.4}],['stress','Stress',{stress:0.35}],['activity','Being less active than usual',{low_activity:0.4}],['body','Health or physical symptoms',{physical_condition:0.4}],['starting','Difficulty getting started',{low_activation:0.4}],['other','Something else',{}],['nothing','Nothing obvious',{}],['unsure','Not sure',{}]], 0.2, 'multi'),
 ]);
