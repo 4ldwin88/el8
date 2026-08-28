@@ -1,7 +1,7 @@
 # EL8 Repository Target Architecture
 
 Status: Target-state operational architecture
-Reconciled: 2026-08-25
+Reconciled: 2026-08-27
 
 `docs/REPOSITORY-GOVERNANCE.md` controls lifecycle, promotion and environment isolation. This document defines physical/domain placement.
 
@@ -48,8 +48,8 @@ The target must:
 │   └── safety/
 ├── assets/
 ├── admin/
-├── supabase/              # repository-owned backend source/config when present
-├── tests/                 # cross-domain/system validation only
+├── supabase/
+├── tests/
 └── docs/
 ```
 
@@ -58,15 +58,17 @@ Static-hosting entry pages may remain at root when they are genuine deployment r
 ## 3. Member application architecture
 
 - `auth/` — signup, login, logout, recovery and session handling.
-- `onboarding/` — account setup, required preferences, Universal Baseline, Discovery handoff, initial Plan proposal and introduction.
+- `onboarding/` — account setup, Discovery orchestration, member focus confirmation, initial Plan proposal and introduction. Discovery begins with a broad opening snapshot; there is no separate canonical Baseline stage.
 - `shell/` — common navigation/layout. Primary destinations are Home, Plan, Insights and Explore; Profile is avatar-accessed; Track is global.
 - `home/` — today's execution surface and required member inputs.
 - `plan/` — active plan, priorities/focus dimensions, interventions/actions, schedule/calendar, rationale and review state.
-- `insights/` — baseline/current state, trends, dimension details and evidence interpretation.
+- `insights/` — immutable initial baseline/current state, trends, dimension details and evidence interpretation.
 - `explore/` — For You, learning, saved content and professional/expert-services space.
 - `profile/` — member record, history, assessments, membership, connections, settings, notifications and privacy/data.
 - `track/` — speed-first capture and plan-derived quick logs.
 - `workflows/` — supporting flows without a better primary owner.
+
+The initial baseline is established as part of canonical Member State from completed Discovery evidence. It is historical state, not an independent assessment engine or onboarding stage.
 
 ## 4. Capability-donor rule
 
@@ -89,9 +91,9 @@ intelligence/
 
 Canonical chain:
 
-Discovery -> Evidence / State -> Prioritization -> Planning -> Interventions -> Outcomes / Learning
+Discovery -> Evidence / Member State -> Prioritization -> Planning -> Interventions -> Outcomes / Review / Learning
 
-Safety may interrupt the chain. Alternative engines must not sit beside accepted implementations as ambiguous peers.
+Safety may interrupt the chain. Alternative engines must not sit beside accepted implementations as ambiguous peers. The Discovery opening snapshot is an input surface owned by Discovery; it must not become a parallel Baseline engine.
 
 ## 6. Environment assembly
 
