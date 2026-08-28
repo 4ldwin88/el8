@@ -1,17 +1,24 @@
 const terminal = new Set(['established','dismissed']);
 
+function requirementApplies(requirement,resolutionState){
+  const states=requirement?.resolutionStates;
+  if(!Array.isArray(states)||states.length===0)return true;
+  return states.includes(resolutionState);
+}
+
 function requiredEvidenceAudit(state) {
   const requirements = Array.isArray(state.sufficiencyRequirements) ? state.sufficiencyRequirements : [];
-  const unresolved = requirements.filter(requirement => requirement?.required !== false && requirement?.satisfied !== true);
-  return {complete: unresolved.length === 0, unresolved, requirements};
+  const applicable = requirements.filter(requirement => requirementApplies(requirement,state.resolutionState));
+  const unresolved = applicable.filter(requirement => requirement?.required !== false && requirement?.satisfied !== true);
+  return {complete: unresolved.length === 0, unresolved, requirements, applicable};
 }
 
 export function concernSufficiency(state) {
-  if (!state) return {complete:false, reason:'missing-concern-state', unresolved:[], requirements:[]};
+  if (!state) return {complete:false, reason:'missing-concern-state', unresolved:[], requirements:[], applicable:[]};
   const evidence = requiredEvidenceAudit(state);
-  if (!evidence.complete) return {complete:false, reason:'required-evidence-unresolved', unresolved:evidence.unresolved, requirements:evidence.requirements};
-  if (terminal.has(state.resolutionState)) return {complete:true, reason:`concern-${state.resolutionState}`, unresolved:[], requirements:evidence.requirements};
-  return {complete:false, reason:'concern-resolution-unresolved', unresolved:[], requirements:evidence.requirements};
+  if (!evidence.complete) return {complete:false, reason:'required-evidence-unresolved', unresolved:evidence.unresolved, requirements:evidence.requirements, applicable:evidence.applicable};
+  if (terminal.has(state.resolutionState)) return {complete:true, reason:`concern-${state.resolutionState}`, unresolved:[], requirements:evidence.requirements, applicable:evidence.applicable};
+  return {complete:false, reason:'concern-resolution-unresolved', unresolved:[], requirements:evidence.requirements, applicable:evidence.applicable};
 }
 
 export function coverageAudit(states) {
