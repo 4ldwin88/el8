@@ -23,6 +23,7 @@ const SCALE = [
 ];
 
 const scale = target => SCALE.map(([id, label, value]) => [id, label, { [target]: value }]);
+const positive = question => Object.assign(question, { path: 'positive', decisionCritical: true });
 
 export const CORE_QUESTIONS = Object.freeze([
   Q('O1', 'orientation', 'Thinking about the past 7 days, which best describes your day-to-day routine?', [], [
@@ -84,84 +85,43 @@ export const CORE_QUESTIONS = Object.freeze([
     ['unsure', 'Not sure', {}],
   ], 0.35, 'multi'),
 
+  // Positive-path questions are used only after Discovery has enough evidence that
+  // material concerns are absent/resolved. They establish member intent and strengths;
+  // they do not manufacture negative concern evidence merely to produce a plan.
+  positive(Q('PTH1', 'goal-probe', 'It sounds like things are generally going okay. What would make EL8 most useful to you right now?', [], [
+    ['maintain', 'Help me keep what is working', { __positive_goal: 1 }],
+    ['improve', 'Help me improve something that is already okay', { __positive_goal: 1 }],
+    ['goal', 'Help me make progress toward a goal', { __positive_goal: 1 }],
+    ['understand', 'Help me understand my patterns over time', { __positive_goal: 1 }],
+    ['explore', 'Help me explore what I might want to work on', { __positive_goal: 1 }],
+    ['nothing', 'I do not need EL8 to work on anything right now', { __positive_goal: 1 }],
+    ['unsure', 'Not sure yet', {}],
+  ], 0.1)),
+  positive(Q('PTH2', 'strength-probe', 'What is working well that you would most want to protect or build on?', [], [
+    ['health', 'My health, energy, or routines', { __positive_strength: 1 }],
+    ['people', 'Relationships or support', { __positive_strength: 1 }],
+    ['work', 'Work, school, or responsibilities', { __positive_strength: 1 }],
+    ['money', 'Money or financial stability', { __positive_strength: 1 }],
+    ['home', 'Home or daily environment', { __positive_strength: 1 }],
+    ['growth', 'Learning, growth, direction, or purpose', { __positive_strength: 1 }],
+    ['other', 'Something else', { __positive_strength: 1 }],
+    ['unsure', 'Not sure', {}],
+  ], 0.1)),
+
   Q('D1', 'discriminator', 'If one thing improved over the next 7 days, which change would help your daily life most?', [], [
-    ['money', 'Less money pressure', { money_pressure: 0.5 }],
-    ['work', 'Work or school feeling steadier', { work_instability: 0.5 }],
-    ['sleep', 'Sleeping better', { poor_sleep: 0.5 }],
-    ['energy', 'Having more energy', { low_energy: 0.45 }],
-    ['people', 'Relationships or support improving', { relationship_strain: 0.35, low_support: 0.35 }],
-    ['stress', 'Feeling less stressed', { stress: 0.45 }],
-    ['home', 'Home or surroundings feeling easier', { home_instability: 0.45 }],
-    ['direction', 'Feeling clearer about what to do next', { lack_direction: 0.45 }],
-    ['unsure', 'Not sure', {}],
+    ['money', 'Less money pressure', { money_pressure: 0.5 }], ['work', 'Work or school feeling steadier', { work_instability: 0.5 }], ['sleep', 'Sleeping better', { poor_sleep: 0.5 }], ['energy', 'Having more energy', { low_energy: 0.45 }], ['people', 'Relationships or support improving', { relationship_strain: 0.35, low_support: 0.35 }], ['stress', 'Feeling less stressed', { stress: 0.45 }], ['home', 'Home or surroundings feeling easier', { home_instability: 0.45 }], ['direction', 'Feeling clearer about what to do next', { lack_direction: 0.45 }], ['unsure', 'Not sure', {}],
   ], 0.3),
-  Q('D2', 'discriminator', 'Which best describes what is making daily life harder right now?', [], [
-    ['outside', 'Mostly circumstances or events in my life', { work_instability: 0.25, money_pressure: 0.25, relationship_strain: 0.2, home_instability: 0.2 }],
-    ['inside', 'Mostly how I have been feeling or functioning', { stress: 0.25, low_energy: 0.2, low_focus: 0.2, low_activation: 0.15 }],
-    ['both', 'A mix of both', {}],
-    ['unsure', 'Not sure', {}],
-  ], 0.2),
-  Q('D3', 'discriminator', 'When this issue affects you, which area do you usually notice changing first?', [], [
-    ['sleep', 'Sleep', { poor_sleep: 0.45 }],
-    ['energy', 'Energy', { low_energy: 0.4 }],
-    ['mood', 'Mood or stress', { stress: 0.4 }],
-    ['focus', 'Focus', { low_focus: 0.4 }],
-    ['motivation', 'Getting started', { low_activation: 0.4 }],
-    ['money', 'Money decisions', { money_pressure: 0.4 }],
-    ['people', 'Relationships', { relationship_strain: 0.35, low_support: 0.2 }],
-    ['routine', 'Daily routine', { schedule_disruption: 0.3, home_instability: 0.2, low_activity: 0.15 }],
-    ['unsure', 'Not sure', {}],
-  ], 0.25),
-  Q('D4', 'discriminator', 'Which best describes what you are dealing with right now?', [], [
-    ['one', 'Mostly one issue', {}],
-    ['several', 'Several separate issues', {}],
-    ['connected', 'Several issues that seem connected', {}],
-    ['unsure', 'Not sure', {}],
-  ], 0.15),
-  Q('D5', 'discriminator', 'Thinking about the past 7 days, which area have you spent the most time worrying about or trying to deal with?', [], [
-    ['money', 'Money', { money_pressure: 0.5 }],
-    ['work', 'Work or school', { work_instability: 0.5 }],
-    ['people', 'Relationships or support', { relationship_strain: 0.4, low_support: 0.2 }],
-    ['health', 'Health, sleep, or energy', { poor_sleep: 0.2, low_energy: 0.2, physical_condition: 0.2 }],
-    ['home', 'Home or surroundings', { home_instability: 0.4 }],
-    ['future', 'Future plans or direction', { lack_direction: 0.45 }],
-    ['nothing', 'Nothing in particular', {}],
-    ['unsure', 'Not sure', {}],
-  ], 0.25),
+  Q('D2', 'discriminator', 'Which best describes what is making daily life harder right now?', [], [['outside', 'Mostly circumstances or events in my life', { work_instability: 0.25, money_pressure: 0.25, relationship_strain: 0.2, home_instability: 0.2 }], ['inside', 'Mostly how I have been feeling or functioning', { stress: 0.25, low_energy: 0.2, low_focus: 0.2, low_activation: 0.15 }], ['both', 'A mix of both', {}], ['unsure', 'Not sure', {}]], 0.2),
+  Q('D3', 'discriminator', 'When this issue affects you, which area do you usually notice changing first?', [], [['sleep', 'Sleep', { poor_sleep: 0.45 }], ['energy', 'Energy', { low_energy: 0.4 }], ['mood', 'Mood or stress', { stress: 0.4 }], ['focus', 'Focus', { low_focus: 0.4 }], ['motivation', 'Getting started', { low_activation: 0.4 }], ['money', 'Money decisions', { money_pressure: 0.4 }], ['people', 'Relationships', { relationship_strain: 0.35, low_support: 0.2 }], ['routine', 'Daily routine', { schedule_disruption: 0.3, home_instability: 0.2, low_activity: 0.15 }], ['unsure', 'Not sure', {}]], 0.25),
+  Q('D4', 'discriminator', 'Which best describes what you are dealing with right now?', [], [['one', 'Mostly one issue', {}], ['several', 'Several separate issues', {}], ['connected', 'Several issues that seem connected', {}], ['unsure', 'Not sure', {}]], 0.15),
+  Q('D5', 'discriminator', 'Thinking about the past 7 days, which area have you spent the most time worrying about or trying to deal with?', [], [['money', 'Money', { money_pressure: 0.5 }], ['work', 'Work or school', { work_instability: 0.5 }], ['people', 'Relationships or support', { relationship_strain: 0.4, low_support: 0.2 }], ['health', 'Health, sleep, or energy', { poor_sleep: 0.2, low_energy: 0.2, physical_condition: 0.2 }], ['home', 'Home or surroundings', { home_instability: 0.4 }], ['future', 'Future plans or direction', { lack_direction: 0.45 }], ['nothing', 'Nothing in particular', {}], ['unsure', 'Not sure', {}]], 0.25),
 
-  Q('C1', 'contradiction', 'Your answers point in different directions. Which option best describes what you mean?', [], [
-    ['earlier', 'My earlier answer is closer', {}],
-    ['new', 'My newer answer is closer', {}],
-    ['both', 'Both are accurate in different situations', {}],
-    ['unsure', 'I’m not sure', {}],
-  ], 0.18),
-  Q('C2', 'correction', 'Did EL8 misunderstand which area is making daily life harder?', [], [
-    ['no', 'No', {}],
-    ['work', 'Yes — it is not mainly work', { work_instability: -0.8 }],
-    ['money', 'Yes — it is not mainly money', { money_pressure: -0.8 }],
-    ['relationships', 'Yes — it is not mainly relationships', { relationship_strain: -0.8 }],
-    ['support', 'Yes — it is not mainly support', { low_support: -0.8 }],
-    ['home', 'Yes — it is not mainly home', { home_instability: -0.8 }],
-    ['direction', 'Yes — it is not mainly direction', { lack_direction: -0.8 }],
-    ['unsure', 'Not sure', {}],
-  ], 0.18),
+  Q('C1', 'contradiction', 'Your answers point in different directions. Which option best describes what you mean?', [], [['earlier', 'My earlier answer is closer', {}], ['new', 'My newer answer is closer', {}], ['both', 'Both are accurate in different situations', {}], ['unsure', 'I’m not sure', {}]], 0.18),
+  Q('C2', 'correction', 'Did EL8 misunderstand which area is making daily life harder?', [], [['no', 'No', {}], ['work', 'Yes — it is not mainly work', { work_instability: -0.8 }], ['money', 'Yes — it is not mainly money', { money_pressure: -0.8 }], ['relationships', 'Yes — it is not mainly relationships', { relationship_strain: -0.8 }], ['support', 'Yes — it is not mainly support', { low_support: -0.8 }], ['home', 'Yes — it is not mainly home', { home_instability: -0.8 }], ['direction', 'Yes — it is not mainly direction', { lack_direction: -0.8 }], ['unsure', 'Not sure', {}]], 0.18),
 
-  Q('HV1', 'healthy-verification', 'Thinking about the past 7 days, has anything made it meaningfully harder to do your usual daily activities?', [], [
-    ['no', 'No', { work_instability: -0.2, money_pressure: -0.2, relationship_strain: -0.2, low_support: -0.2, home_instability: -0.2, lack_direction: -0.2 }],
-    ['minor', 'Yes, but only a little', {}],
-    ['yes', 'Yes, clearly', {}],
-    ['unsure', 'Not sure', {}],
-  ], 0.14),
-  Q('HV2', 'healthy-verification', 'Do the issues you selected feel manageable without additional help right now?', [], [
-    ['yes', 'Yes', { stress: -0.2, poor_sleep: -0.15, low_energy: -0.15 }],
-    ['mixed', 'Some do and some do not', {}],
-    ['no', 'No', {}],
-    ['unsure', 'Not sure', {}],
-  ], 0.14),
-  Q('X1', 'opt-out', 'Do you want to answer more questions about this right now?', [], [
-    ['yes', 'Yes', {}],
-    ['later', 'Not right now', { __opt_out: 1 }],
-  ], 0.08),
+  Q('HV1', 'healthy-verification', 'Thinking about the past 7 days, has anything made it meaningfully harder to do your usual daily activities?', [], [['no', 'No', { work_instability: -0.2, money_pressure: -0.2, relationship_strain: -0.2, low_support: -0.2, home_instability: -0.2, lack_direction: -0.2 }], ['minor', 'Yes, but only a little', {}], ['yes', 'Yes, clearly', {}], ['unsure', 'Not sure', {}]], 0.14),
+  Q('HV2', 'healthy-verification', 'Do the issues you selected feel manageable without additional help right now?', [], [['yes', 'Yes', { stress: -0.2, poor_sleep: -0.15, low_energy: -0.15 }], ['mixed', 'Some do and some do not', {}], ['no', 'No', {}], ['unsure', 'Not sure', {}]], 0.14),
+  Q('X1', 'opt-out', 'Do you want to answer more questions about this right now?', [], [['yes', 'Yes', {}], ['later', 'Not right now', { __opt_out: 1 }]], 0.08),
 ]);
 
 export { Q, scale };
