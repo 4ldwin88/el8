@@ -10,7 +10,13 @@ assert.match(discovery,/app\/onboarding\/discovery-runtime\.js/,'Intelligence Te
 assert.match(discovery,/projectOnboardingMemberState/,'completed Discovery must establish initial Member State baseline');
 assert.doesNotMatch(discovery,/initialPlanProposal|baseline_handoff/,'Discovery cannot own Planning or legacy Baseline handoff');
 assert.match(priorities,/applyMemberPriorityDecision/,'member priority decision must be a separate Member State transition');
-assert.match(priorities,/buildCanonicalBrowserPlan/,'Prioritization must hand off to canonical Planning');
+assert.match(priorities,/buildCanonicalBrowserPlan/,'accepted priorities must hand off to canonical Planning');
+assert.match(priorities,/planning_outcome:'no_plan_member_choice'/,'member may explicitly finish with no active plan');
+assert.match(priorities,/priorities_completed_without_plan/,'no-plan member choice must be observable in telemetry');
+assert.match(priorities,/external_test_complete=true/,'no-plan outcome must be a valid external completion');
+assert.doesNotMatch(priorities,/Accept at least one supported priority/,'external test must never force priority acceptance');
+assert.match(externalComplete,/no_plan_member_choice/,'external completion must report the no-plan member-choice outcome');
+assert.match(externalComplete,/Discovery → Priority choice/,'no-plan completion must report its actual validated boundary');
 assert.doesNotMatch(plan,/applyCanonicalBrowserPlan/,'external Intelligence Test must not activate the proposed plan');
 assert.doesNotMatch(plan,/review\.html/,'external Intelligence Test must stop before Review');
 assert.match(plan,/external-complete\.html/,'external Intelligence Test must finish at the proposed Plan boundary');
@@ -20,4 +26,4 @@ assert.match(review,/runCanonicalBrowserScenario/,'internal accelerated full-loo
 assert.match(complete,/accelerated_review/,'internal completion must still report canonical closed-loop result');
 assert.match(contract,/stage:'discovery'/,'test contract must start in Discovery');
 assert.doesNotMatch(contract,/stage:'baseline'/,'Baseline cannot be a process stage');
-console.log('External Intelligence Discovery-to-Plan boundary regression passed; internal full-loop harness preserved');
+console.log('External Intelligence Discovery-to-Plan/no-plan boundary regression passed; internal full-loop harness preserved');
