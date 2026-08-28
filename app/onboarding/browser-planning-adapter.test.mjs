@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {canonicalPlanningInputFromBrowser} from './browser-planning-adapter.js';
+import {canonicalMemberProblemId,MEMBER_PROBLEM_IDS} from './canonical-problem-map.js';
 
 const discoveryOutput={
  trace:{states:[{concernId:'poor_sleep',problemId:'problem:poor_sleep',evidenceRefs:['e:sleep-1'],resolutionState:'supported'}]},
@@ -22,8 +23,15 @@ test('browser Planning still accepts mapped Discovery concern IDs at the compati
  assert.deepEqual(input.problems[0].evidenceRefs,['e:sleep-1']);
 });
 
+test('canonical member problem boundary rejects unknown bare and canonical-looking IDs',()=>{
+ assert.ok(MEMBER_PROBLEM_IDS.includes('problem:poor_sleep'));
+ assert.equal(canonicalMemberProblemId('novel_unmapped_concern'),null);
+ assert.equal(canonicalMemberProblemId('problem:novel_unmapped'),null);
+});
+
 test('browser Planning rejects an unmapped confirmed priority instead of inventing a problem',()=>{
  assert.throws(()=>canonicalPlanningInputFromBrowser({discoveryOutput,confirmedPriorities:['novel_unmapped_concern'],memberStateRevision:4}),/Unsupported confirmed priority/);
+ assert.throws(()=>canonicalPlanningInputFromBrowser({discoveryOutput,confirmedPriorities:['problem:novel_unmapped'],memberStateRevision:4}),/Unsupported confirmed priority/);
 });
 
 test('browser Planning requires an explicit canonical Member State revision',()=>{
