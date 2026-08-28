@@ -3,10 +3,10 @@ const priorityId=id=>`priority:${String(id||'').replace(/^priority:/,'')}`;
 function problemFor(state,id){return(state.problems||[]).find(p=>p.sourceConcernId===id||p.id===id||p.id===`problem:${id}`)||null}
 export function applyMemberPriorityDecision(state,confirmedPriorities,{at=new Date().toISOString()}={}){
  if(!state||state.schemaVersion!=='1.0.0'||!Number.isInteger(state.revision))throw new Error('canonical Member State is required');
+ if(state.baseline?.status!=='ESTABLISHED')throw new Error('completed Discovery baseline is required before Prioritization');
  if(!Array.isArray(confirmedPriorities)||!confirmedPriorities.length)throw new Error('confirmed priorities are required');
  const next=clone(state),priorities=[];
  confirmedPriorities.forEach((id,index)=>{const problem=problemFor(state,id);if(!problem||problem.status!=='SUPPORTED')throw new Error(`confirmed priority requires supported problem: ${id}`);priorities.push({id:priorityId(id),problemId:problem.id,status:'ACCEPTED',rank:index+1,memberDecisionAt:at,evidenceRefs:[...(problem.evidenceRefs||[])]})});
  next.priorities=priorities;
- if(!next.baseline||next.baseline.status!=='ESTABLISHED')next.baseline={status:'ESTABLISHED',establishedAt:at,sourceRevision:state.revision+1,dimensionSnapshots:next.baseline?.dimensionSnapshots||{},evidenceRefs:[...new Set((next.evidence||[]).map(x=>x.id))],confirmedPriorityIds:[...confirmedPriorities]};
- next.revision=state.revision+1;next.updatedAt=at;next.history=[...(next.history||[]),{revision:next.revision,previousRevision:state.revision,type:'PRIORITIES_UPDATED',at,source:'prioritization:member-confirmation',baselineEstablished:next.baseline?.status==='ESTABLISHED'}];return next;
+ next.revision=state.revision+1;next.updatedAt=at;next.history=[...(next.history||[]),{revision:next.revision,previousRevision:state.revision,type:'PRIORITIES_UPDATED',at,source:'prioritization:member-confirmation'}];return next;
 }
