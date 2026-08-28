@@ -1,0 +1,13 @@
+// Canonical bridge from an activated intervention/action to the minimum evidence it warrants.
+// Planning declares measurement needs; capture surfaces instantiate them. Missing data remains unknown.
+export const ACTION_EVIDENCE_ASSIGNMENT_VERSION='0.1.0';
+const MODES=new Set(['quick_log','track','check_in','integration']);
+const clone=x=>JSON.parse(JSON.stringify(x));
+export function assignActionEvidence({planId,intervention,priority=null,problem=null,dimensions=[],at=new Date().toISOString()}={}){
+ if(!planId)throw new Error('planId is required');if(!intervention?.id)throw new Error('intervention is required');
+ const measurement=clone(intervention.measurement||{}),templates=Array.isArray(intervention.actionTemplates)?intervention.actionTemplates:[];
+ const requested=Array.isArray(measurement.capture)?measurement.capture:measurement.capture?[measurement.capture]:[];
+ const assignments=requested.map((capture,index)=>{const mode=String(capture.mode||capture.type||'quick_log');if(!MODES.has(mode))throw new Error(`unsupported evidence capture mode: ${mode}`);return{id:`evidence-assignment:${planId}:${intervention.id}:${index+1}`,schemaVersion:ACTION_EVIDENCE_ASSIGNMENT_VERSION,planId,interventionId:intervention.id,actionId:capture.actionId||intervention.id,priorityId:intervention.priorityId||priority?.id||null,problemId:intervention.problemId||problem?.id||null,dimensions:[...new Set(capture.dimensions||dimensions||[])],mode,signalType:capture.signalType||measurement.metric||null,prompt:capture.prompt||null,unit:capture.unit||measurement.unit||null,frequency:capture.frequency||measurement.frequency||'as_warranted',required:Boolean(capture.required),rationale:capture.rationale||measurement.rationale||'Evidence is assigned only when it can materially inform review or adaptation.',createdAt:at};});
+ return{schemaVersion:ACTION_EVIDENCE_ASSIGNMENT_VERSION,planId,interventionId:intervention.id,assignments,measurement,actionTemplates:templates,requiresCapture:assignments.length>0};
+}
+export function evidenceProvenance(assignment,{observationId,evidenceId,recordedAt=new Date().toISOString()}={}){if(!assignment?.planId||!assignment?.interventionId)throw new Error('canonical evidence assignment required');return{schemaVersion:ACTION_EVIDENCE_ASSIGNMENT_VERSION,observationId:observationId||null,evidenceId:evidenceId||null,planId:assignment.planId,interventionId:assignment.interventionId,actionId:assignment.actionId,priorityId:assignment.priorityId,problemId:assignment.problemId,dimensions:[...(assignment.dimensions||[])],signalType:assignment.signalType||null,captureMode:assignment.mode,recordedAt};}
