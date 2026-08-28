@@ -1,9 +1,10 @@
+import {unresolvedRequiredEvidence} from './sufficiency.js';
 function targetSet(q){return new Set([q.concernId,...(q.concernIds??[])].filter(Boolean))}
 function safetyQuestion(q){return q.path==='safety'}
 function positiveQuestion(q){return q.path==='positive'||q.role==='goal-probe'||q.role==='growth-probe'||q.role==='strength-probe'}
 function stateForQuestion(q,stateById){for(const id of targetSet(q)){const state=stateById.get(id);if(state)return state}return null}
 function requiredForHandoff(q){return q.requiredForHandoff===true||q.decisionCritical===true}
-function unresolvedRequirementIds(state){return new Set((state?.sufficiencyRequirements??[]).filter(x=>x.required!==false&&x.satisfied!==true).map(x=>x.id))}
+function unresolvedRequirementIds(state){return new Set(unresolvedRequiredEvidence(state).map(x=>x.id))}
 function addressesRequiredEvidence(q,state){const id=q?.sufficiencyRequirement?.id;return Boolean(id&&unresolvedRequirementIds(state).has(id))}
 function unresolvedQuestion(q,state){return state?.resolutionState==='unresolved'&&(requiredForHandoff(q)||q.addressesUnresolvedUncertainty===true||addressesRequiredEvidence(q,state))}
 function optionalBurden(q){return q.burden??0}
