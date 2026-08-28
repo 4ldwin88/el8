@@ -1,4 +1,5 @@
 import { questionRedundantWithFacts, semanticCoverage } from './semantic-question-coverage.js';
+import {unresolvedRequiredEvidence} from './sufficiency.js';
 
 export function contradictionDetected(concernId, observationLog) {
   const effects = observationLog.flatMap(o => o.effects ?? []).filter(e => e.type === 'evidence' && e.target === concernId && e.polarity !== 'neutral');
@@ -6,7 +7,7 @@ export function contradictionDetected(concernId, observationLog) {
 }
 function knownTopics(state){return new Set(state?.baselineTopics??[])}
 function redundantWithBaseline(question,state){const topics=knownTopics(state);if(!topics.size)return false;if(question.id==='W5'&&topics.has('finding_work'))return true;return false}
-function unresolvedRequirementIds(state){return new Set((state?.sufficiencyRequirements??[]).filter(x=>x.required!==false&&x.satisfied!==true).map(x=>x.id))}
+function unresolvedRequirementIds(state){return new Set(unresolvedRequiredEvidence(state).map(x=>x.id))}
 export function addressesUnresolvedRequirement(question,state){const id=question?.sufficiencyRequirement?.id;return Boolean(id&&unresolvedRequirementIds(state).has(id))}
 export function isQuestionEligible(question, state, observationLog, facts = {}) {
   if (!question || !state) return false;
