@@ -1,6 +1,6 @@
 // Discovery opening snapshot -> adaptive Discovery handoff.
 // The opening snapshot is evidence collection inside Discovery, not a separate Baseline stage.
-// Legacy dimension-shaped evidence is retained only as a compatibility fallback for older sessions.
+// Legacy dimension-shaped evidence is read-only compatibility for persisted historical Universal Baseline sessions; new Discovery snapshots must not write it.
 export const DIMENSION_CONCERN_MAP=Object.freeze({Physical:['health','sleep','energy'],Emotional:['stress'],Intellectual:['focus','direction'],Social:['relationships','support'],Spiritual:['direction'],Occupational:['work'],Financial:['money'],Environmental:['home']});
 const ATTENTION=new Set(['Struggling','Needs attention']);
 const POSITIVE=new Set(['Going well','Very strong']);
@@ -14,8 +14,8 @@ export function buildDiscoverySnapshotHandoff(derived={}){
  const priorityConcerns=Array.isArray(derived.member_priority_concerns)?derived.member_priority_concerns.filter(Boolean):[];
  const topics=Array.isArray(derived.concern_topics)?derived.concern_topics.filter(x=>x?.concernId&&x?.topic):[];
  const constraints=Array.isArray(derived.constraints)?derived.constraints:derived.constraints?[derived.constraints]:[];
- const supports=Array.isArray(derived.baseline_summary?.supports)?derived.baseline_summary.supports.filter(Boolean):[];
- const drivers=Array.isArray(derived.baseline_summary?.drivers)?derived.baseline_summary.drivers.filter(Boolean):[];
+ const supports=Array.isArray(derived.supports)?derived.supports.filter(Boolean):Array.isArray(derived.baseline_summary?.supports)?derived.baseline_summary.supports.filter(Boolean):[];
+ const drivers=Array.isArray(derived.drivers)?derived.drivers.filter(Boolean):Array.isArray(derived.baseline_summary?.drivers)?derived.baseline_summary.drivers.filter(Boolean):[];
  const conditions=derived.condition_baseline||{},impact=(derived.functional_impact||[])[0]||null,worsening=(derived.worsening||[])[0]||null,priority=derived.member_priority||null;
  const dimensionSignals=Object.entries(conditions).map(([dimension,condition])=>Object.freeze({dimension,condition,attention:ATTENTION.has(condition),positive:POSITIVE.has(condition),candidateConcerns:DIMENSION_CONCERN_MAP[dimension]||[]}));
  const explicitDimensions=[impact,worsening,priority].filter(x=>x&&DIMENSION_CONCERN_MAP[x]);
