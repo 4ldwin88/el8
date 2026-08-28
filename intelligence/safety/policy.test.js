@@ -1,22 +1,37 @@
 import assert from 'node:assert/strict';
-import { evaluateContextualSafety, evaluateDirectConfirmation } from './policy.js';
+import { evaluateContextualSafety, evaluateDirectConfirmation, SAFETY_POLICY_VERSION } from './policy.js';
+
+assert.equal(SAFETY_POLICY_VERSION, '0.2.0');
 
 {
-  const result = evaluateContextualSafety({ contextualSignals: { overwhelm: 0.4, functioning: 0.3 } });
-  assert.equal(result.needsDirectConfirmation, false);
+  const result = evaluateContextualSafety({ contextualSignals: { overwhelm: 0.99, functioning: 0.99 } });
+  assert.equal(result.needsDirectConfirmation, false, 'generic numeric context must not manufacture a Safety trigger');
   assert.deepEqual(result.signals, []);
 }
 
 {
-  const result = evaluateContextualSafety({ contextualSignals: { overwhelm: 0.95 } });
+  const result = evaluateContextualSafety({ contextualSignals: { explicitSafetyConcern: true } });
   assert.equal(result.needsDirectConfirmation, true);
   assert.equal(result.signals[0].level, 1);
-  assert.equal(result.signals[0].code, 'context_requires_direct_confirmation');
+  assert.equal(result.signals[0].code, 'explicit_safety_concern_requires_confirmation');
 }
 
 {
-  const result = evaluateContextualSafety({ contextualSignals: { overwhelm: 0.7, functioning: 0.7 } });
+  const result = evaluateContextualSafety({ contextualSignals: { directSafetyLanguage: true } });
   assert.equal(result.needsDirectConfirmation, true);
+  assert.equal(result.signals[0].code, 'direct_safety_language_requires_confirmation');
+}
+
+{
+  const result = evaluateContextualSafety({ contextualSignals: { observedSafetyConcern: true } });
+  assert.equal(result.needsDirectConfirmation, true);
+  assert.equal(result.signals[0].code, 'observed_safety_concern_requires_confirmation');
+}
+
+{
+  const result = evaluateContextualSafety({ contextualSignals: { safetyClarificationRequired: true } });
+  assert.equal(result.needsDirectConfirmation, true);
+  assert.equal(result.signals[0].code, 'context_requires_direct_confirmation');
 }
 
 {
@@ -34,4 +49,4 @@ import { evaluateContextualSafety, evaluateDirectConfirmation } from './policy.j
 }
 
 assert.throws(() => evaluateDirectConfirmation({ signalRefs: [] }), /signalRefs must be non-empty/);
-console.log('canonical Safety policy tests passed');
+console.log('canonical Safety semantic-trigger policy tests passed');
