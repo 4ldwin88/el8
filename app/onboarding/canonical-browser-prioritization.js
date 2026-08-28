@@ -14,7 +14,16 @@ export function canonicalPrioritizationInputFromBrowser(memberState){
 
 export function prioritizationDecisionFactorsFromDiscovery(discoveryOutput={}){
   const factors={};
-  for(const row of discoveryOutput?.trace?.states||[]){const id=problemId(row.problemId||row.concernId||row.sourceConcernId||row.id);if(!id)continue;const importance=normalizedImportance(row.memberImportance),evidence=clamp01(row.evidenceConfidence??row.confidence??0);factors[id]={memberImportance:importance??.5,materiality:evidence,urgency:row.urgent||row.safetyRelevant?1:.5,leverage:clamp01(row.leverage??row.crossDimensionalLeverage??.5),readiness:row.memberSelected?1:importance??.5}}
+  for(const row of discoveryOutput?.trace?.states||[]){
+    const id=problemId(row.problemId||row.concernId||row.sourceConcernId||row.id);if(!id)continue;
+    const factor={};
+    const importance=normalizedImportance(row.memberImportance);if(importance!==null)factor.memberImportance=importance;
+    const evidenceRaw=row.evidenceConfidence??row.confidence;if(evidenceRaw!==null&&evidenceRaw!==undefined)factor.materiality=clamp01(evidenceRaw);
+    if(row.urgent===true||row.safetyRelevant===true)factor.urgency=1;
+    const leverageRaw=row.leverage??row.crossDimensionalLeverage;if(leverageRaw!==null&&leverageRaw!==undefined)factor.leverage=clamp01(leverageRaw);
+    if(row.memberSelected===true)factor.readiness=1;
+    if(Object.keys(factor).length)factors[id]={...(factors[id]||{}),...factor};
+  }
   return factors;
 }
 
