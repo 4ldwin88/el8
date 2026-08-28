@@ -1,8 +1,8 @@
 const importanceRank=Object.freeze({low:1,moderate:2,high:3,'very-high':4,1:1,2:2,3:3,4:4});
 function latest(effects,predicate){return[...effects].reverse().find(predicate)}
 const FEASIBILITY_TYPES=new Set(['feasibility','constraint','barrier','support','access','capacity']);
-function evidenceKey(effect){return effect.evidenceKey??effect.construct??effect.topic??effect.target}
-function currentEvidence(evidence){const byKey=new Map();for(const effect of evidence){const key=evidenceKey(effect);if(effect.retracted===true||effect.currentStatus==='retracted'){byKey.delete(key);continue}if(effect.supersedesEvidenceKey)byKey.delete(effect.supersedesEvidenceKey);byKey.set(key,effect)}return[...byKey.values()]}
+function evidenceKey(effect){if(typeof effect.evidenceKey!=='string'||!effect.evidenceKey)return null;return effect.evidenceKey}
+function currentEvidence(evidence){const byKey=new Map(),unkeyed=[];for(const effect of evidence){const key=evidenceKey(effect);if(!key){unkeyed.push(effect);continue}if(effect.retracted===true||effect.currentStatus==='retracted'){byKey.delete(key);continue}if(effect.supersedesEvidenceKey)byKey.delete(effect.supersedesEvidenceKey);byKey.set(key,effect)}return[...byKey.values(),...unkeyed]}
 function sufficiencyRequirements(evidence){
  const requirements=new Map();
  for(const effect of evidence){
