@@ -19,11 +19,26 @@ test('healthy positive path stops when no additional positive question remains',
  assert.equal(decision.reason,'positive-path-sufficient');
 });
 
+test('unknown evidence does not qualify a member for the positive path',()=>{
+ const states=[{concernId:'c1',resolutionState:'triaged',memberReportsConcern:false,concernEstablished:false}];
+ const decision=selectNextQuestion({candidates:[q('ordinary',{decisionCritical:true}),q('growth',{path:'positive',role:'goal-probe'})],states});
+ assert.equal(decision.type,'question');
+ assert.equal(decision.question.id,'ordinary');
+ assert.notEqual(decision.reason,'positive-goal-path');
+});
+
 test('safety clarification preempts ordinary and positive questions',()=>{
  const states=[{concernId:'c1',resolutionState:'narrowing',safetyEscalationLevel:1}];
  const decision=selectNextQuestion({candidates:[q('ordinary'),q('growth',{path:'positive'}),q('safe',{path:'safety',safetyPriority:100,decisionCritical:true})],states});
  assert.equal(decision.question.id,'safe');
  assert.equal(decision.reason,'safety-clarification-path');
+});
+
+test('ordinary question sharing a safety concern id cannot masquerade as Safety clarification',()=>{
+ const states=[{concernId:'c1',resolutionState:'narrowing',safetyEscalationLevel:1}];
+ const decision=selectNextQuestion({candidates:[q('ordinary',{safetyPriority:100})],states});
+ assert.equal(decision.type,'escalate-safety');
+ assert.equal(decision.reason,'unresolved-safety-no-eligible-question');
 });
 
 test('unresolved safety with no clarification question requests escalation',()=>{
