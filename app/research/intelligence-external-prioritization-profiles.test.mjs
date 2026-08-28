@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {buildCanonicalBrowserPriorities,prioritizationDecisionFactorsFromDiscovery} from '../onboarding/canonical-browser-prioritization.js';
+import {projectOnboardingMemberState} from '../onboarding/member-state-projection.js';
 
 const state=(problems,safety={disposition:'ORDINARY_FLOW'})=>({revision:7,problems,safety});
 const problem=(id,{status='SUPPORTED',confidence=.8,evidenceRefs=[`e:${id}`]}={})=>({id,status,confidence,evidenceRefs});
@@ -32,6 +33,24 @@ const problem=(id,{status='SUPPORTED',confidence=.8,evidenceRefs=[`e:${id}`]}={}
 {
  const factors=prioritizationDecisionFactorsFromDiscovery({trace:{states:[{concernId:'poor_sleep',evidenceConfidence:.6}]}});
  assert.deepEqual(factors['problem:poor_sleep'],{materiality:.6});
+}
+
+// Unknown Discovery vocabulary must stop at the browser boundary. It may remain provenance
+// evidence, but it cannot become a durable Member State problem, decision factor, or priority.
+{
+ const discoveryOutput={trace:{states:[
+  {concernId:'poor_sleep',problemId:'problem:poor_sleep',evidenceRefs:['e:sleep'],evidenceConfidence:.7,memberImportance:2},
+  {concernId:'novel_unmapped_concern',evidenceRefs:['e:unknown'],evidenceConfidence:1,memberImportance:3,crossDimensionalLeverage:1},
+  {concernId:'another_unknown',problemId:'problem:novel_unmapped',evidenceRefs:['e:unknown-canonical'],evidenceConfidence:1,memberImportance:3}
+ ]}};
+ const memberState=projectOnboardingMemberState({memberId:'T-UNKNOWN',discoveryOutput,now:'2026-08-28T00:00:00.000Z'});
+ assert.deepEqual(memberState.problems.map(x=>x.id),['problem:poor_sleep']);
+ assert.ok(memberState.evidence.some(x=>x.id==='e:unknown'),'unknown evidence may remain traceable without becoming a supported problem');
+ const factors=prioritizationDecisionFactorsFromDiscovery(discoveryOutput);
+ assert.deepEqual(Object.keys(factors),['problem:poor_sleep']);
+ const out=buildCanonicalBrowserPriorities({memberState,discoveryOutput});
+ assert.deepEqual(out.input.candidates.map(x=>x.problemId),['problem:poor_sleep']);
+ assert.deepEqual(out.result.priorityItems.map(x=>x.problemId),['problem:poor_sleep']);
 }
 
 // Safety interruption blocks ordinary prioritization regardless of profile strength.
