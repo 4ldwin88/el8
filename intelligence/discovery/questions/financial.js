@@ -1,58 +1,75 @@
-import { Q, scale } from './core.js';
+import { Q } from './core.js';
 
-// Financial owns money-pressure questions. Deepening stays selective: these questions
-// distinguish urgency, resilience and plausible drivers rather than constructing a plan.
+// Financial Discovery separates subjective financial strain/well-being from observable
+// financial conditions. A member can have constrained resources without reporting high
+// strain, or report high strain without any single objective condition explaining it.
+// These EL8-authored items are not the CFPB Financial Well-Being Scale and must not be
+// presented or scored as a validated financial-well-being instrument.
 export const FINANCIAL_QUESTIONS = Object.freeze([
-  Q('M1', 'driver-probe', 'How manageable does money feel right now?', ['money_pressure'], scale('money_pressure'), 0.18),
-  Q('M2', 'driver-probe', 'Are bills, debt, or basic expenses creating pressure?', ['money_pressure'], [
-    ['no', 'No', { money_pressure: -0.65 }],
-    ['some', 'Some pressure', { money_pressure: 0.35 }],
-    ['major', 'A lot of pressure', { money_pressure: 0.75 }],
+  Q('M1', 'state-probe', 'During the past 30 days, how often have you felt worried or under pressure because of money?', ['money_pressure'], [
+    ['never', 'Never', { money_pressure: -0.65 }],
+    ['rarely', 'Rarely', { money_pressure: -0.25 }],
+    ['sometimes', 'Sometimes', { money_pressure: 0.3 }],
+    ['often', 'Often', { money_pressure: 0.6 }],
+    ['always', 'Almost always', { money_pressure: 0.8 }],
+    ['unsure', 'Not sure', {}],
   ], 0.18),
-  Q('M3', 'driver-discriminator', 'What is contributing to the money pressure? Select all that fit.', ['money_pressure', 'work_instability'], [
-    ['no_income', 'I do not currently have a job or income', { work_instability: 0.7, money_pressure: 0.55 }],
-    ['low_income', 'My income is too low', { work_instability: 0.3, money_pressure: 0.5 }],
-    ['unstable_income', 'My income is uncertain or irregular', { work_instability: 0.55, money_pressure: 0.45 }],
-    ['expenses', 'Bills or expenses are too high', { money_pressure: 0.6 }],
-    ['debt', 'Debt', { money_pressure: 0.65, stress: 0.2 }],
-    ['acute', 'A major or unexpected expense', { money_pressure: 0.55 }],
+  Q('M2', 'condition-probe', 'Right now, how well are you able to cover your regular required expenses?', ['money_pressure'], [
+    ['comfortably', 'Comfortably', { money_pressure: -0.65 }],
+    ['enough', 'I can cover them, but with little room left', { money_pressure: 0.2 }],
+    ['difficult', 'It is difficult to cover all of them', { money_pressure: 0.6 }],
+    ['short', 'I cannot currently cover all of them', { money_pressure: 0.85 }],
+    ['unsure', 'Not sure', {}],
+  ], 0.18),
+  Q('M3', 'driver-discriminator', 'Which parts of your current financial situation are contributing to the pressure? Select any that fit.', ['money_pressure', 'work_instability'], [
+    ['no_income', 'No current income', { work_instability: 0.7, money_pressure: 0.55 }],
+    ['income_shortfall', 'Income does not cover what I need', { money_pressure: 0.55 }],
+    ['unstable_income', 'Income is uncertain or irregular', { work_instability: 0.55, money_pressure: 0.45 }],
+    ['expenses', 'Regular expenses are difficult to cover', { money_pressure: 0.6 }],
+    ['debt', 'Debt or required debt payments', { money_pressure: 0.65 }],
+    ['unexpected', 'A recent unexpected expense or financial shock', { money_pressure: 0.55 }],
     ['other', 'Something else', {}],
+    ['none', 'None of these', {}],
     ['unsure', 'Not sure', {}],
   ], 0.24, 'multi'),
-  Q('M4', 'confirmation', 'If your money situation improved, would much of the current stress ease?', ['money_pressure'], [
-    ['yes', 'Yes', { money_pressure: 0.5 }],
-    ['some', 'Some', { money_pressure: 0.25 }],
-    ['no', 'Not much', { money_pressure: -0.3 }],
+  Q('M4', 'impact-probe', 'During the past 30 days, how much has your financial situation limited choices that matter to you?', ['money_pressure'], [
+    ['not_at_all', 'Not at all', { money_pressure: -0.3 }],
+    ['little', 'A little', { money_pressure: 0.15 }],
+    ['some', 'Somewhat', { money_pressure: 0.35 }],
+    ['quite', 'Quite a bit', { money_pressure: 0.6 }],
+    ['very', 'Very much', { money_pressure: 0.75 }],
     ['unsure', 'Not sure', {}],
-  ], 0.2),
-  Q('M5', 'urgency-probe', 'How much near-term financial pressure is there?', ['money_pressure'], [
-    ['none', 'None', { money_pressure: -0.45 }],
-    ['manageable', 'Manageable', { money_pressure: 0.15 }],
-    ['risk', 'At risk of missing required payments', { money_pressure: 0.65 }],
-    ['behind', 'Already behind on required payments', { money_pressure: 0.85 }],
+  ], 0.18),
+  Q('M5', 'urgency-probe', 'Which best describes your required payments over the next 30 days?', ['money_pressure'], [
+    ['covered', 'I expect to cover them', { money_pressure: -0.35 }],
+    ['tight', 'I expect to cover them, but it will be tight', { money_pressure: 0.2 }],
+    ['risk', 'I may miss one or more required payments', { money_pressure: 0.65 }],
+    ['behind', 'I am already behind on one or more required payments', { money_pressure: 0.85 }],
+    ['unsure', 'Not sure', {}],
   ], 0.14),
-  Q('M6', 'resilience-probe', 'About how much emergency breathing room do you have in liquid cash?', ['money_pressure'], [
-    ['three_plus', '3+ months', { money_pressure: -0.35 }],
-    ['one_three', '1–3 months', { money_pressure: -0.1 }],
-    ['under_one', 'Less than 1 month', { money_pressure: 0.4 }],
-    ['little_none', 'Little or none', { money_pressure: 0.65 }],
-    ['unsure', 'Unsure', {}],
+  Q('M6', 'resilience-probe', 'If an unexpected necessary expense came up today, how able would you be to cover it without missing other required payments?', ['money_pressure'], [
+    ['able', 'I could cover it', { money_pressure: -0.35 }],
+    ['probably', 'I probably could, but it would be difficult', { money_pressure: 0.1 }],
+    ['unlikely', 'I probably could not', { money_pressure: 0.45 }],
+    ['unable', 'I could not cover it', { money_pressure: 0.7 }],
+    ['unsure', 'Not sure', {}],
   ], 0.14),
-  Q('M7', 'obligation-probe', 'Which required expenses are currently difficult or at risk? Select all that fit.', ['money_pressure'], [
+  Q('M7', 'obligation-probe', 'Which required expenses are currently difficult to cover or at risk of being missed? Select any that fit.', ['money_pressure'], [
     ['housing', 'Housing', { money_pressure: 0.55, home_instability: 0.35 }],
     ['utilities', 'Utilities', { money_pressure: 0.45, home_instability: 0.2 }],
     ['food', 'Food', { money_pressure: 0.5 }],
     ['transport', 'Transportation', { money_pressure: 0.35 }],
     ['healthcare', 'Medication or healthcare', { money_pressure: 0.45, physical_condition: 0.2 }],
     ['debt', 'Debt or minimum payments', { money_pressure: 0.55 }],
-    ['other', 'Another required obligation', { money_pressure: 0.4 }],
+    ['other', 'Another required expense', { money_pressure: 0.4 }],
     ['none', 'None', { money_pressure: -0.25 }],
+    ['unsure', 'Not sure', {}],
   ], 0.2, 'multi'),
-  Q('M8', 'visibility-probe', 'How clear is your current financial picture?', ['money_pressure'], [
-    ['clear', 'Very clear', {}],
-    ['mostly', 'Mostly clear', {}],
-    ['broad', 'I only know the broad picture', { money_pressure: 0.1 }],
-    ['poor', 'Poorly known', { money_pressure: 0.2 }],
-    ['unsure', 'Unsure', {}],
+  Q('M8', 'visibility-probe', 'How clearly do you know what money is coming in, what is due, and what is available right now?', ['money_pressure'], [
+    ['clear', 'Very clearly', {}],
+    ['mostly', 'Mostly clearly', {}],
+    ['partial', 'I know some of it', {}],
+    ['unclear', 'I do not have a clear picture', {}],
+    ['unsure', 'Not sure', {}],
   ], 0.1),
 ]);
