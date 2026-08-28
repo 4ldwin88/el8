@@ -1,19 +1,21 @@
 # EL8 Canonical Architecture Cleanup
 
-Status: final verification pass
+Status: final prototype/document reconciliation
 
 ## Canonical MVP loop
 
-Baseline / Discovery → Member State → Prioritization → Planning → Action → Outcome Evidence → Review → Planning or focused Reassessment
+Discovery → Member State → Prioritization → Planning → Action → Outcome Evidence → Review → Planning or focused Reassessment
 
 Safety may interrupt ordinary flow at any point.
+
+Discovery begins with the broad life-status snapshot retained from the former Baseline questionnaire. The snapshot is evidence collection inside Discovery. It is not a separate canonical stage. Canonical Member State establishes the immutable initial baseline from completed Discovery evidence and confirmed focus.
 
 ## Authority rule
 
 Each decision has one canonical owner:
-- Discovery: gather decision-changing evidence.
-- Member State: durable member truth and provenance boundary.
-- Prioritization: decide what matters now.
+- Discovery: gather decision-changing evidence, including the opening broad snapshot.
+- Member State: durable member truth/provenance boundary and immutable initial baseline snapshot.
+- Prioritization: decide what matters now, subject to explicit member confirmation.
 - Planning: choose bounded feasible interventions and review rules.
 - Review: interpret outcome evidence and decide continue/adapt/reassess.
 - Safety: determine safety interruption/escalation semantics.
@@ -28,7 +30,7 @@ Every executable repository artifact must be classified as one of:
 4. TRANSITIONAL — temporary compatibility boundary with a named canonical replacement and deletion condition.
 5. OBSOLETE — duplicate, superseded, unreachable, or historical executable machinery; delete after unique behavioral coverage is preserved.
 
-Historical implementations belong in Git history, not as indefinitely executable parallel architecture. Historical Intelligence Test material retained in `intelligence-test/` is reference evidence only: its public deployment workflow and legacy Supabase RPC client are retired, so it is not a competing production authority.
+Historical implementations belong in Git history, not as indefinitely executable parallel architecture. Historical Intelligence Test material is reference evidence only and must not become a competing production authority.
 
 ## Deletion gates
 
@@ -51,15 +53,16 @@ A transitional adapter is not permanent architecture. It must document what cons
 - Member-facing prioritization uses qualitative evidence-support semantics; numeric confidence remains internal evidence metadata rather than a member-facing decision threshold.
 - Duplicate canonical QA workflow and obsolete public Intelligence Test deployment/runtime client retired.
 - Canonical activation readiness lives under `intelligence/planning/activation-readiness.js`.
-- Distinct Baseline → Discovery onboarding boundary tests remain; they do not own intervention selection.
+- Separate Baseline member routing has been retired. The useful opening matrix is now the first Discovery surface, while legacy baseline-named adapters remain only where needed to read/migrate existing evidence shapes.
 
-## Remaining verification
+## Final verification
 
-1. Run repository-wide stale-reference searches for retired Planning/reassessment/RPC names and competing threshold logic.
-2. Confirm remaining browser/profile QA routes are either canonical QA or deliberate dependencies rather than parallel decision engines.
-3. Reconcile README/intelligence documentation where it still describes retired executable surfaces.
-4. Run Canonical Repository QA on the final reduced head.
-5. Run the accelerated manual browser E2E flow from the tester QA menu before declaring the cleanup complete.
+1. Confirm every member route enters Discovery through `discovery-snapshot.html`, with `assessment.html` compatibility-only.
+2. Confirm remaining baseline-named modules are bounded evidence-shape compatibility adapters, not a parallel assessment or decision engine.
+3. Confirm browser/profile QA routes validate the canonical loop rather than implementing competing decisions.
+4. Confirm member-facing stage labels and copy consistently show Discovery → Focus → Plan.
+5. Run Canonical Repository QA on the final reconciled head.
+6. Run accelerated manual browser E2E from the tester QA menu before declaring cleanup complete.
 
 ## Completion criteria
 
@@ -69,5 +72,5 @@ Architecture cleanup is complete when:
 - every remaining transitional adapter has an explicit deletion condition;
 - canonical QA covers the behavioral invariants retained from deleted code;
 - the repository dependency graph matches the documented MVP loop;
-- Canonical Repository QA passes on the reduced repository;
+- Canonical Repository QA passes on the reconciled repository;
 - accelerated browser E2E QA can traverse the canonical loop without requiring real-time waiting.
