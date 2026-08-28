@@ -1,15 +1,21 @@
-export async function activateCanonicalOnboarding({userId,memberState,plan,persisted,applyPlan,persistState,completeOnboarding}){
+export async function activateCanonicalOnboarding({userId,memberState,plan,applyPlan,loadState,persistState,completeOnboarding}){
   if(!userId||!memberState||!plan) throw new Error('activation inputs are required');
-  if(typeof applyPlan!=='function'||typeof persistState!=='function'||typeof completeOnboarding!=='function') throw new Error('activation dependencies are required');
+  if(typeof applyPlan!=='function'||typeof loadState!=='function'||typeof persistState!=='function'||typeof completeOnboarding!=='function') throw new Error('activation dependencies are required');
+  let current=await loadState(userId);
+  if(current){
+    if(current.revision!==current.state?.revision) throw new Error('Stored Member State revision mismatch');
+    if(current.state?.activePlan?.status==='ACTIVE'){
+      await completeOnboarding();
+      return current.state;
+    }
+    if(current.revision!==memberState.revision) throw new Error('Member State revision conflict');
+  }else{
+    if(memberState.revision!==0) throw new Error('Member State revision conflict');
+    current=await persistState({userId,expectedRevision:-1,state:memberState});
+  }
   const next=applyPlan(memberState,plan);
-  let current=persisted||null;
-  if(!current) current=await persistState({userId,expectedRevision:-1,state:memberState});
-  if(current.revision===next.revision){
-    const stored=current.state||null;
-    if(!stored||stored.revision!==next.revision) throw new Error('Stored Member State revision mismatch');
-  }else if(current.revision===memberState.revision){
-    current=await persistState({userId,expectedRevision:memberState.revision,state:next});
-  }else throw new Error('Member State revision conflict');
+  current=await persistState({userId,expectedRevision:memberState.revision,state:next});
+  if(current.revision!==next.revision||current.state?.revision!==next.revision) throw new Error('Stored Member State revision mismatch');
   await completeOnboarding();
   return next;
 }
