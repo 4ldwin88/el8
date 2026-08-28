@@ -1,0 +1,8 @@
+{
+  "version": "Intelligence v0.1",
+  "entry": "discovery-snapshot.html",
+  "baseline_semantics": "initial Member State snapshot derived from completed Discovery evidence",
+  "reconciled": ["test-session-runtime", "discovery-opening-snapshot", "adaptive-discovery", "discovery-planning-boundary"],
+  "blocked_until_reconciled": ["member-state-baseline-before-priority-confirmation", "canonical-prioritization", "canonical-planning", "activation", "accelerated-review-adaptation"],
+  "obsolete_candidates": ["baseline.html", "baseline-plan.html"]
+}
