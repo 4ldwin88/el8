@@ -61,7 +61,9 @@ Primary member destinations are Home, Plan, Insights and Explore. Profile is ent
 
 Canonical onboarding progression:
 
-`Personal Information → Baseline → Discovery → First Plan → Introduction → Home`
+`Personal Information → Discovery (opening snapshot + adaptive investigation) → Focus confirmation → First Plan → Introduction → Home`
+
+The opening life-status matrix is the first question of Discovery. It provides broad starting evidence; it is not an independent Baseline stage. When Discovery has sufficient evidence and the member confirms focus, the projection into canonical Member State establishes the immutable initial baseline snapshot. Later evidence updates current state without rewriting that historical baseline.
 
 ## Canonical MVP Intelligence loop
 
@@ -71,14 +73,15 @@ Safety can interrupt ordinary routing through the canonical Safety contract.
 
 The subsystem responsibilities are deliberately narrow:
 
-- Discovery establishes what is happening and whether enough decision-relevant evidence exists.
-- Prioritization decides what matters now.
+- Discovery establishes what is happening and whether enough decision-relevant evidence exists. Its opening snapshot is broad evidence collection, not a separate decision engine.
+- Member State stores durable truth and establishes the initial immutable baseline snapshot from completed Discovery evidence.
+- Prioritization decides what matters now, with explicit member confirmation before Planning owns interventions.
 - Planning chooses a small feasible action set.
 - Outcomes record what happened.
 - Review decides what should change next.
 - Focused reassessment returns upstream only when evidence or circumstances genuinely require it.
 
-Legacy aggregate wellness scores, numeric dimension truth, parallel adaptation engines and duplicate intervention-routing systems are not canonical MVP architecture.
+Legacy aggregate wellness scores, numeric dimension truth, a separate Baseline decision stage, parallel adaptation engines and duplicate intervention-routing systems are not canonical MVP architecture.
 
 ## MVP decision rule
 
