@@ -1,46 +1,46 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {deriveConcernState} from './concern-projection.js';
+import {concernSufficiency} from './sufficiency.js';
+import {adaptQuestion,observationsForAnswer} from './question-bank-adapter.js';
 
 function observation(questionId,effect){return{questionId,concernId:'sleep',effects:[{type:'evidence',target:'sleep',...effect}]}}
 
-test('later member correction replaces an earlier contradiction for the same construct',()=>{
- const state=deriveConcernState([
-  observation('Q1',{evidenceKey:'sleep-current',polarity:'contradicts',certainty:'definitive'}),
-  observation('Q2',{evidenceKey:'sleep-current',polarity:'supports',certainty:'direct'})
- ],'sleep');
- assert.equal(state.excluded,false);
- assert.deepEqual(state.evidenceSummary.contradicts,[]);
- assert.deepEqual(state.evidenceSummary.supports,['Q2']);
+test('later member correction replaces an earlier contradiction for the same construct',()=>{const state=deriveConcernState([observation('Q1',{evidenceKey:'sleep-current',polarity:'contradicts',certainty:'definitive'}),observation('Q2',{evidenceKey:'sleep-current',polarity:'supports',certainty:'direct'})],'sleep');assert.equal(state.excluded,false);assert.deepEqual(state.evidenceSummary.contradicts,[]);assert.deepEqual(state.evidenceSummary.supports,['Q2'])});
+test('later contradiction replaces earlier support for the same construct',()=>{const state=deriveConcernState([observation('Q1',{evidenceKey:'sleep-current',polarity:'supports',certainty:'direct'}),observation('Q2',{evidenceKey:'sleep-current',polarity:'contradicts',certainty:'definitive'})],'sleep');assert.equal(state.excluded,true);assert.deepEqual(state.evidenceSummary.supports,[]);assert.deepEqual(state.evidenceSummary.contradicts,['Q2'])});
+test('explicit retraction removes the current evidence for a construct',()=>{const state=deriveConcernState([observation('Q1',{evidenceKey:'sleep-current',polarity:'contradicts',certainty:'definitive'}),observation('Q2',{evidenceKey:'sleep-current',polarity:'neutral',currentStatus:'retracted'})],'sleep');assert.equal(state.excluded,false);assert.deepEqual(state.evidenceSummary.supports,[]);assert.deepEqual(state.evidenceSummary.contradicts,[]);assert.deepEqual(state.evidenceSummary.neutral,[])});
+test('independent current constructs can retain conflicting evidence without manufacturing exclusion',()=>{const state=deriveConcernState([observation('Q1',{evidenceKey:'sleep-duration',polarity:'contradicts',certainty:'definitive'}),observation('Q2',{evidenceKey:'sleep-quality',polarity:'supports',certainty:'direct'})],'sleep');assert.equal(state.excluded,false);assert.deepEqual(state.evidenceSummary.contradicts,['Q1']);assert.deepEqual(state.evidenceSummary.supports,['Q2'])});
+
+test('state probe evidence explicitly establishes current-state information',()=>{
+ const question=adaptQuestion({id:'T1',role:'state-probe',targets:['poor_sleep'],options:[{id:'hard',label:'Hard',effects:{poor_sleep:.8}}]});
+ const observations=observationsForAnswer(question,'hard',{timestamp:1});
+ const state=deriveConcernState(observations,'sleep');
+ assert.deepEqual(state.sufficiencyRequirements,[{id:'current-state',label:'Current state established',required:true,satisfied:true,evidenceRefs:['T1']}]);
 });
 
-test('later contradiction replaces earlier support for the same construct',()=>{
- const state=deriveConcernState([
-  observation('Q1',{evidenceKey:'sleep-current',polarity:'supports',certainty:'direct'}),
-  observation('Q2',{evidenceKey:'sleep-current',polarity:'contradicts',certainty:'definitive'})
- ],'sleep');
- assert.equal(state.excluded,true);
- assert.deepEqual(state.evidenceSummary.supports,[]);
- assert.deepEqual(state.evidenceSummary.contradicts,['Q2']);
+test('member-reported discriminator is represented as a hypothesis requirement, not causal truth',()=>{
+ const question=adaptQuestion({id:'T2',role:'discriminator',targets:['poor_sleep'],options:[{id:'stress',label:'Stress',effects:{poor_sleep:.4}}]});
+ const state=deriveConcernState(observationsForAnswer(question,'stress',{timestamp:1}),'sleep');
+ assert.equal(state.sufficiencyRequirements[0].id,'member-hypothesis');
+ assert.equal(state.sufficiencyRequirements[0].satisfied,true);
+ assert.equal('causal' in state.sufficiencyRequirements[0],false);
 });
 
-test('explicit retraction removes the current evidence for a construct',()=>{
- const state=deriveConcernState([
-  observation('Q1',{evidenceKey:'sleep-current',polarity:'contradicts',certainty:'definitive'}),
-  observation('Q2',{evidenceKey:'sleep-current',polarity:'neutral',currentStatus:'retracted'})
- ],'sleep');
- assert.equal(state.excluded,false);
- assert.deepEqual(state.evidenceSummary.supports,[]);
- assert.deepEqual(state.evidenceSummary.contradicts,[]);
- assert.deepEqual(state.evidenceSummary.neutral,[]);
+test('not sure does not satisfy a semantic evidence requirement',()=>{
+ const question=adaptQuestion({id:'T3',role:'state-probe',targets:['poor_sleep'],options:[{id:'unsure',label:'Not sure',effects:{poor_sleep:.8}}]});
+ const state=deriveConcernState(observationsForAnswer(question,'unsure',{timestamp:1}),'sleep');
+ assert.equal(state.sufficiencyRequirements[0].id,'current-state');
+ assert.equal(state.sufficiencyRequirements[0].satisfied,false);
 });
 
-test('independent current constructs can retain conflicting evidence without manufacturing exclusion',()=>{
- const state=deriveConcernState([
-  observation('Q1',{evidenceKey:'sleep-duration',polarity:'contradicts',certainty:'definitive'}),
-  observation('Q2',{evidenceKey:'sleep-quality',polarity:'supports',certainty:'direct'})
- ],'sleep');
- assert.equal(state.excluded,false);
- assert.deepEqual(state.evidenceSummary.contradicts,['Q1']);
- assert.deepEqual(state.evidenceSummary.supports,['Q2']);
+test('explicit unsatisfied requirement blocks even an established concern from sufficiency',()=>{
+ const audit=concernSufficiency({resolutionState:'established',sufficiencyRequirements:[{id:'current-state',required:true,satisfied:false}]});
+ assert.equal(audit.complete,false);
+ assert.equal(audit.reason,'required-evidence-unresolved');
+});
+
+test('optional evidence requirement does not block established handoff',()=>{
+ const audit=concernSufficiency({resolutionState:'established',sufficiencyRequirements:[{id:'feasibility',required:false,satisfied:false}]});
+ assert.equal(audit.complete,true);
+ assert.equal(audit.reason,'concern-established');
 });
