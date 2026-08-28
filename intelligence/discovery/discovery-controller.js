@@ -3,7 +3,6 @@ import {eligibleQuestions} from './question-eligibility.js';
 import {selectNextQuestion} from './question-scheduler.js';
 import {needsTriage, buildTriageQuestion} from './triage.js';
 import {stoppingDecision} from './sufficiency.js';
-import {selectPlanConcerns} from './plan-priority.js';
 
 export const DISCOVERY_VERSION='v4';
 export function createDiscoverySession({concernIds=[],questionBank=[],labels={},outerGuardrail=18,facts={}}={}){return{version:DISCOVERY_VERSION,observationLog:[],facts:{...facts},concernIds:[...concernIds],questionBank,labels,asked:[],questionsAsked:0,outerGuardrail,phase:'orient',triaged:false,incomplete:false,resolutionStates:{},driverKnown:{},recoveryAttempts:{},priorityResolutionUsed:false}}
@@ -22,4 +21,3 @@ export function nextDiscoveryStep(session){if(session.phase==='orient'){const q=
 export function markTriaged(session){session.triaged=true;return session}
 export function setResolution(session,concernId,resolutionState,{driverKnown}={}){session.resolutionStates[concernId]=resolutionState;if(driverKnown!==undefined)session.driverKnown[concernId]=Boolean(driverKnown);return session}
 export function recordPriorityResolution(session,concernIds=[]){session.priorityChoices=[...new Set(concernIds)].filter(id=>session.concernIds.includes(id)).slice(0,2);return session}
-export function buildPlan(session,maxPlanSize=3){return selectPlanConcerns(deriveStates(session),maxPlanSize)}
