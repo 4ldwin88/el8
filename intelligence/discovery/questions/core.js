@@ -1,5 +1,6 @@
 // Canonical Discovery candidate question-bank source.
 // Keep cross-cutting questions here; dimension-owned questions live in their own modules.
+// EL8-authored question wording is hypothesis evidence until human comprehension/pilot validation supports promotion.
 
 const Q = (id, role, text, targets = [], options = [], burden = 0.2, mode = 'single') => ({
   id,
@@ -8,6 +9,8 @@ const Q = (id, role, text, targets = [], options = [], burden = 0.2, mode = 'sin
   targets,
   burden,
   mode,
+  evidenceStatus: 'hypothesis',
+  validationRequirements: Object.freeze(['construct-review','cognitive-interview','adversarial-qa','human-pilot']),
   options: options.map(([optionId, label, effects = {}]) => ({ id: optionId, label, effects })),
 });
 
