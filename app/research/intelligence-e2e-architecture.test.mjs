@@ -1,0 +1,13 @@
+import assert from'node:assert/strict';
+import fs from'node:fs';
+const read=p=>fs.readFileSync(new URL(`../../${p}`,import.meta.url),'utf8');
+const index=read('intelligence-test/index.html'),discovery=read('intelligence-test/discovery.html'),snapshot=read('intelligence-test/discovery-snapshot.html'),contract=read('app/research/intelligence-test-contract.js');
+assert.match(index,/discovery-snapshot\.html/,'E2E must enter Discovery, not a Baseline stage');
+assert.doesNotMatch(index,/location\.href=['"]baseline\.html/,'E2E cannot route into standalone Baseline');
+assert.match(snapshot,/buildDiscoverySnapshotHandoff/,'opening snapshot must use the production Discovery handoff');
+assert.match(discovery,/app\/onboarding\/discovery-runtime\.js/,'E2E must exercise canonical browser Discovery runtime');
+assert.doesNotMatch(discovery,/initialPlanProposal/,'Discovery cannot invent Planning output');
+assert.doesNotMatch(discovery,/baseline_handoff/,'E2E cannot depend on legacy Baseline → Discovery plumbing');
+assert.match(contract,/stage:'discovery'/,'test contract must start in Discovery');
+assert.doesNotMatch(contract,/stage:'baseline'/,'Baseline cannot be a process stage');
+console.log('Canonical Intelligence E2E architecture regression passed');
