@@ -4,25 +4,24 @@
 
 import { SAFETY_LEVEL, createSafetySignal, createSafetyDisposition } from '../contracts/safety.js';
 
-export const SAFETY_POLICY_VERSION = '0.1.0';
+export const SAFETY_POLICY_VERSION = '0.2.0';
+
+function contextualConfirmationReason(contextualSignals = {}) {
+  if (contextualSignals.explicitSafetyConcern === true) return 'explicit_safety_concern_requires_confirmation';
+  if (contextualSignals.directSafetyLanguage === true) return 'direct_safety_language_requires_confirmation';
+  if (contextualSignals.observedSafetyConcern === true) return 'observed_safety_concern_requires_confirmation';
+  if (contextualSignals.safetyClarificationRequired === true) return 'context_requires_direct_confirmation';
+  return null;
+}
 
 export function evaluateContextualSafety({ signalId = 'safety:context', sourceComponent = 'safety-policy', contextualSignals = {}, observationRefs = [], evidenceRefs = [], concernRefs = [], detectedAt = null } = {}) {
-  const explicitConcern = contextualSignals.explicitSafetyConcern === true;
-  const strongContext = Object.entries(contextualSignals)
-    .filter(([key]) => key !== 'explicitSafetyConcern')
-    .some(([, value]) => typeof value === 'number' && value >= 0.9);
-  const convergingContext = Object.entries(contextualSignals)
-    .filter(([key]) => key !== 'explicitSafetyConcern')
-    .filter(([, value]) => typeof value === 'number' && value >= 0.65)
-    .length >= 2;
-  const needsDirectConfirmation = explicitConcern || strongContext || convergingContext;
-
-  if (!needsDirectConfirmation) return { needsDirectConfirmation: false, signals: [], rationaleCodes: ['no_confirmation_trigger'] };
+  const reason = contextualConfirmationReason(contextualSignals);
+  if (!reason) return { needsDirectConfirmation: false, signals: [], rationaleCodes: ['no_confirmation_trigger'] };
 
   const signal = createSafetySignal({
     signalId,
     level: SAFETY_LEVEL.ATTENTION,
-    code: explicitConcern ? 'explicit_safety_concern_requires_confirmation' : 'context_requires_direct_confirmation',
+    code: reason,
     sourceComponent,
     observationRefs,
     evidenceRefs,
