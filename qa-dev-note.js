@@ -1,5 +1,5 @@
 import {supabase,getSessionOrRedirect,getMyProfile} from './el8-client.js';
-const INTELLIGENCE_VERSION='Intelligence vX.XX';
+const INTELLIGENCE_VERSION='Intelligence v0.1';
 const session=await getSessionOrRedirect();
 // Mobile opening Discovery matrix override: all five response columns must remain visible at once.
 if(document.querySelector('.matrix')){
@@ -18,6 +18,6 @@ if(session){
     document.head.appendChild(style);
     const box=document.createElement('details');box.className='el8-qa-note';box.open=true;box.innerHTML='<summary>Dev note</summary><textarea rows="3" placeholder="What feels wrong, confusing, or worth changing on this page?"></textarea><button type="button">Save note</button><small>Tester-only · attached to this QA run and page.</small>';document.body.appendChild(box);
     const textarea=box.querySelector('textarea'),button=box.querySelector('button'),status=box.querySelector('small');
-    button.onclick=async()=>{const note=textarea.value.trim();if(!note){status.textContent='Enter a note first.';return}const runId=sessionStorage.getItem('el8_qa_run_id');if(!runId){status.textContent='Open Full E2E MVP QA first to start a recorded run.';return}button.disabled=true;status.textContent='Saving…';const snapshot={url:location.href,title:document.title,discovery:!!sessionStorage.getItem('el8_discovery_output'),confirmedPriorities:JSON.parse(sessionStorage.getItem('el8_confirmed_priorities')||'[]'),plan:JSON.parse(sessionStorage.getItem('el8_adaptive_initial_plan')||'null')};const{error}=await supabase.from('el8_qa_events').insert({run_id:runId,user_id:session.user.id,event_type:'tester_dev_note',step:location.pathname.split('/').pop()||'page',payload:{note,snapshot,intelligenceVersion:INTELLIGENCE_VERSION}});status.textContent=error?'Save failed: '+error.message:'Saved to QA telemetry.';if(!error)textarea.value='';button.disabled=false};
+    button.onclick=async()=>{const note=textarea.value.trim();if(!note){status.textContent='Enter a note first.';return}const runId=sessionStorage.getItem('el8_qa_run_id');if(!runId){status.textContent='Open Full E2E MVP QA first to start a recorded run.';return}button.disabled=true;status.textContent='Saving…';const snapshot={url:location.href,title:document.title,discovery:!!sessionStorage.getItem('el8_discovery_output'),confirmedPriorities:JSON.parse(sessionStorage.getItem('el8_confirmed_priorities')||'[]'),plan:JSON.parse(sessionStorage.getItem('el8_canonical_initial_plan')||'null')};const{error}=await supabase.from('el8_qa_events').insert({run_id:runId,user_id:session.user.id,event_type:'tester_dev_note',step:location.pathname.split('/').pop()||'page',payload:{note,snapshot,intelligenceVersion:INTELLIGENCE_VERSION}});status.textContent=error?'Save failed: '+error.message:'Saved to QA telemetry.';if(!error)textarea.value='';button.disabled=false};
   }
 }
