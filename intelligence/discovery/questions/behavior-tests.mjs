@@ -11,6 +11,13 @@ const requiredIds = [
 for (const id of requiredIds) assert.ok(DISCOVERY_QUESTION_BY_ID[id], `missing canonical question ${id}`);
 assert.equal(new Set(BANK.map(q => q.id)).size, BANK.length);
 
+// EL8-authored wording must not acquire a validation claim from architecture or synthetic QA alone.
+for (const question of BANK) {
+  assert.equal(question.evidenceStatus, 'hypothesis', `${question.id} must remain hypothesis evidence until human validation`);
+  assert.ok(question.validationRequirements.includes('cognitive-interview'), `${question.id} must require cognitive interviewing`);
+  assert.ok(question.validationRequirements.includes('human-pilot'), `${question.id} must require human pilot evidence`);
+}
+
 const gateway = adaptQuestion(DISCOVERY_QUESTION_BY_ID.G1);
 assert.equal(gateway.responseMode, 'multi');
 const gatewayObs = observationsForAnswer(gateway, ['money','sleep','relationships']);
