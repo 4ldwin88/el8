@@ -10,8 +10,11 @@ export const PROBLEM_BY_CONCERN=Object.freeze({
  relationship_strain:'problem:social_disconnection',low_support:'problem:social_disconnection',
  home_instability:'problem:environment_friction'
 });
+export const MEMBER_PROBLEM_IDS=Object.freeze([...new Set(Object.values(PROBLEM_BY_CONCERN))]);
+const MEMBER_PROBLEM_ID_SET=new Set(MEMBER_PROBLEM_IDS);
 export function canonicalMemberProblemId(id){
  if(!id)return null;
- if(/^problem:/.test(String(id)))return String(id);
- return PROBLEM_BY_CONCERN[id]||null;
+ const value=String(id);
+ if(MEMBER_PROBLEM_ID_SET.has(value))return value;
+ return PROBLEM_BY_CONCERN[value]||null;
 }
