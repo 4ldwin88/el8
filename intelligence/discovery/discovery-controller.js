@@ -2,7 +2,7 @@ import {deriveAllConcernStates} from './concern-projection.js';
 import {eligibleQuestions} from './question-eligibility.js';
 import {selectNextQuestion} from './question-scheduler.js';
 import {needsTriage, buildTriageQuestion} from './triage.js';
-import {stoppingDecision} from './sufficiency.js';
+import {stoppingDecision,unresolvedRequiredEvidence} from './sufficiency.js';
 
 export const DISCOVERY_VERSION='v4';
 export const CONCERN_RESOLUTION=Object.freeze({UNRESOLVED:'unresolved',ESTABLISHED:'established',DISMISSED:'dismissed'});
@@ -19,7 +19,7 @@ function gatewayQuestion(session){return session.questionBank.find(q=>q.role==='
 function unresolved(states){return states.filter(s=>!s.excluded&&s.resolutionState===CONCERN_RESOLUTION.UNRESOLVED)}
 function openConcernIds(states){return new Set(unresolved(states).map(s=>s.concernId))}
 function questionTouchesOpenConcern(q,openIds){const ids=q.concernIds?.length?q.concernIds:[q.concernId].filter(Boolean);return !ids.length||ids.some(id=>openIds.has(id))}
-function unresolvedRequirementCount(state){return(state.sufficiencyRequirements??[]).filter(x=>x.required!==false&&x.satisfied!==true).length}
+function unresolvedRequirementCount(state){return unresolvedRequiredEvidence(state).length}
 function recoveryCandidates(session,states){const open=unresolved(states).sort((a,b)=>unresolvedRequirementCount(b)-unresolvedRequirementCount(a)||a.concernId.localeCompare(b.concernId));for(const state of open){if((session.recoveryAttempts[state.concernId]??0)>=1)continue;const candidates=session.questionBank.filter(q=>!['gateway','orientation'].includes(q.role)&&!session.asked.includes(q.id)&&q.concernId===state.concernId&&(!q.prerequisite||q.prerequisite(state,session.observationLog)));const eligible=eligibleQuestions(candidates,[state],session.observationLog,session.facts||{}).sort((a,b)=>(a.burden??0)-(b.burden??0)||(b.specificityLevel??0)-(a.specificityLevel??0)||a.id.localeCompare(b.id));if(eligible.length){session.recoveryAttempts[state.concernId]=(session.recoveryAttempts[state.concernId]??0)+1;return eligible}}return[]}
 function positiveCandidates(session,states){return eligibleQuestions(session.questionBank.filter(q=>q.path==='positive'&&!session.asked.includes(q.id)),states,session.observationLog,session.facts||{}).map(q=>({...q,eligible:true}))}
 function allDismissed(states){return states.length>0&&states.every(s=>s.resolutionState===CONCERN_RESOLUTION.DISMISSED)}
