@@ -22,6 +22,44 @@ const SCALE = [
 const scale = target => SCALE.map(([id, label, value]) => [id, label, { [target]: value }]);
 
 export const CORE_QUESTIONS = Object.freeze([
+  Q('O1', 'orientation', 'Which best describes your usual day right now?', [], [
+    ['structured', 'Pretty structured and predictable', { schedule_disruption: -0.25, low_activation: -0.1 }],
+    ['busy', 'Busy, with a lot to juggle', { schedule_disruption: 0.3, stress: 0.2 }],
+    ['variable', 'It changes a lot from day to day', { schedule_disruption: 0.45 }],
+    ['unstructured', 'Mostly unstructured', { schedule_disruption: 0.35, low_activation: 0.25 }],
+  ], 0.12),
+  Q('O2', 'orientation', 'How active are you in a typical week?', [], [
+    ['very', 'Active most days', { low_activity: -0.6, low_energy: -0.15 }],
+    ['some', 'Active a few times a week', { low_activity: -0.25 }],
+    ['little', 'A little, but not consistently', { low_activity: 0.4 }],
+    ['rare', 'Rarely active right now', { low_activity: 0.7, low_energy: 0.15 }],
+  ], 0.1),
+  Q('O3', 'orientation', 'What tends to pull you forward when life is going well?', [], [
+    ['people', 'People I care about', { low_support: -0.2, lack_direction: -0.1 }],
+    ['progress', 'Making progress toward something', { lack_direction: -0.2, low_activation: -0.1 }],
+    ['enjoyment', 'Fun, hobbies or things I enjoy', { stress: -0.1, low_activation: -0.1 }],
+    ['responsibility', 'Responsibilities or people depending on me', { work_instability: -0.05, lack_direction: -0.1 }],
+    ['meaning', 'Purpose, values or something bigger than me', { lack_direction: -0.3 }],
+    ['unsure', 'I’m not sure right now', { lack_direction: 0.2 }],
+  ], 0.12),
+  Q('O4', 'orientation', 'When things get harder, what usually throws you off first?', [], [
+    ['time', 'Too much to do or not enough time', { schedule_disruption: 0.4, stress: 0.2 }],
+    ['energy', 'Low energy or poor sleep', { low_energy: 0.35, poor_sleep: 0.3 }],
+    ['stress', 'Stress or emotions', { stress: 0.45 }],
+    ['money', 'Money pressure', { money_pressure: 0.45 }],
+    ['people', 'Relationship or people problems', { relationship_strain: 0.4, low_support: 0.15 }],
+    ['motivation', 'Motivation or getting started', { low_activation: 0.4, low_focus: 0.2 }],
+    ['nothing', 'Nothing consistently stands out', {}],
+  ], 0.14),
+  Q('O5', 'orientation', 'What would make EL8 most useful to you right now?', [], [
+    ['feel_better', 'Feel better day to day', { stress: 0.2, low_energy: 0.15 }],
+    ['health', 'Improve my health or energy', { physical_condition: 0.25, low_energy: 0.2 }],
+    ['stability', 'Get life more stable and manageable', { schedule_disruption: 0.2, money_pressure: 0.15, work_instability: 0.15 }],
+    ['progress', 'Make progress on something important', { lack_direction: 0.25, low_activation: 0.15 }],
+    ['balance', 'Get several parts of life into better balance', {}],
+    ['understand', 'Understand what I should focus on first', {}],
+  ], 0.12),
+
   Q('G1', 'gateway', 'What’s been bothering you lately? Select any that fit.', [], [
     ['money', 'Money', { money_pressure: 0.65 }],
     ['work', 'Work or school', { work_instability: 0.55, schedule_disruption: 0.2 }],
