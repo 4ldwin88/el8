@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const html=fs.readFileSync(new URL('../../discovery.html',import.meta.url),'utf8');
-assert.ok(html.includes("INTELLIGENCE_VERSION='Intelligence vX.XX'"));
+assert.ok(html.includes("INTELLIGENCE_VERSION='Intelligence v0.1'"));
 assert.ok(html.includes("component:'Discovery'"));
 assert.ok(html.includes("recordOnboardingEvent('discovery_initialized'"));
 assert.ok(html.includes('render();if(!qa&&!review&&!fromSnapshot){auth().then'));
+assert.ok(!html.includes('Intelligence vX.XX'));
 assert.ok(!html.includes('Discovery v1.7'));
 assert.ok(!html.includes('Loading Discovery…'));
 assert.ok(!html.includes('try{const auth=await getSessionOrRedirect()'));
-console.log('Discovery uses canonical Intelligence QA version and renders before remote auth/recovery');
+console.log('Discovery uses Intelligence v0.1 and renders before remote auth/recovery');
