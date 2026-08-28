@@ -3,10 +3,10 @@
 // EL8-authored question wording is hypothesis evidence until human comprehension/pilot validation supports promotion.
 
 const Q = (id, role, text, targets = [], options = [], burden = 0.2, mode = 'single', metadata = {}) => ({
+  ...metadata,
   id, role, text, targets, burden, mode,
   evidenceStatus: 'hypothesis',
   validationRequirements: Object.freeze(['construct-review','cognitive-interview','adversarial-qa','human-pilot']),
-  ...metadata,
   options: options.map(([optionId, label, effects = {}]) => ({ id: optionId, label, effects })),
 });
 const positive = question => Object.assign(question, { path: 'positive' });
