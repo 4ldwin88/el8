@@ -12,7 +12,9 @@ export function mergeFacts(session,facts={}){session.facts={...(session.facts||{
 export function deriveStates(session){return deriveAllConcernStates(session.observationLog,session.concernIds).map(s=>({...s,resolutionState:session.resolutionStates?.[s.concernId]??'triaged',driverKnown:session.driverKnown?.[s.concernId]??false}))}
 function orientationAsked(session){return session.asked.filter(id=>session.questionBank.find(q=>q.id===id)?.role==='orientation').length}
 function nextOrientationQuestion(session){
- if(session.orientationLimit!==null&&orientationAsked(session)>=session.orientationLimit)return null;
+ const asked=orientationAsked(session);
+ if(asked>0&&session.concernIds.length>0)return null;
+ if(session.orientationLimit!==null&&asked>=session.orientationLimit)return null;
  return session.questionBank.filter(q=>q.role==='orientation'&&!session.asked.includes(q.id)&&q.orientationEligible!==false)
   .sort((a,b)=>(b.openingPriority??0)-(a.openingPriority??0)||(a.burden??0)-(b.burden??0)||a.id.localeCompare(b.id))[0]??null;
 }
