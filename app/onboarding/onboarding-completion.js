@@ -1,9 +1,8 @@
 import { supabase } from '../../el8-client.js';
 
-// Completion is a lifecycle transition only. Canonical plan/state persistence
-// must succeed before this is called; the database guard validates that the
-// authenticated member owns the profile, has an active account, and completed
-// the Universal Baseline before allowing onboarding_status='completed'.
+// Completion is a lifecycle transition only. Canonical Discovery, Member State
+// and plan persistence/activation must succeed before this is called; database
+// policy remains responsible for validating the authenticated profile update.
 export async function completeCanonicalOnboarding(){
   const {data:{user},error:userError}=await supabase.auth.getUser();
   if(userError) throw userError;
