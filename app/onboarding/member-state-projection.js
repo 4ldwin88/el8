@@ -15,7 +15,7 @@ function dimensionConditions(discoveryOutput={}){
  for(const signal of signals.legacy?.dimensionSignals||[]){const dimension=String(signal?.dimension||'').toLowerCase();if(!DIMENSIONS.includes(dimension)||conditions[dimension])continue;const condition=normalizeCondition(signal?.condition);if(condition)conditions[dimension]=condition}
  return conditions;
 }
-function supportedRow(row){if(!row||row.excluded===true)return false;if(row.resolutionState==='dismissed')return false;const refs=(row.evidenceRefs||row.observationRefs||[]).map(String);return refs.some(ref=>ref&&!ref.startsWith('O')&&!ref.startsWith('BASELINE_')&&ref!=='TRIAGE')}
+function supportedRow(row){if(!row||row.excluded===true)return false;if(row.resolutionState!=='established')return false;const refs=(row.evidenceRefs||row.observationRefs||[]).map(String);return refs.some(ref=>ref&&!ref.startsWith('O')&&!ref.startsWith('BASELINE_')&&ref!=='TRIAGE')}
 export function projectOnboardingMemberState({memberId,discoveryOutput,now=new Date().toISOString()}){
  if(!memberId||!discoveryOutput)throw new Error('memberId and completed Discovery output are required');
  const evidence=[],problems=[];
