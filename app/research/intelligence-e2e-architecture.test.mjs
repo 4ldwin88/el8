@@ -1,12 +1,14 @@
 import assert from'node:assert/strict';
 import fs from'node:fs';
 const root=new URL('../../',import.meta.url),read=p=>fs.readFileSync(new URL(p,root),'utf8'),exists=p=>fs.existsSync(new URL(p,root));
-const index=read('intelligence-test/index.html'),discovery=read('intelligence-test/discovery.html'),snapshot=read('intelligence-test/discovery-snapshot.html'),priorities=read('intelligence-test/priorities.html'),plan=read('intelligence-test/plan.html'),review=read('intelligence-test/review.html'),complete=read('intelligence-test/complete.html'),contract=read('app/research/intelligence-test-contract.js'),testRuntime=read('intelligence-test/intelligence-test.js');
+const index=read('intelligence-test/index.html'),discovery=read('intelligence-test/discovery.html'),snapshot=read('intelligence-test/discovery-snapshot.html'),priorities=read('intelligence-test/priorities.html'),plan=read('intelligence-test/plan.html'),review=read('intelligence-test/review.html'),complete=read('intelligence-test/complete.html'),contract=read('app/research/intelligence-test-contract.js'),testRuntime=read('intelligence-test/intelligence-test.js'),onboardingStart=read('onboarding-start.html');
 assert.match(index,/Canonical Intelligence E2E/,'internal QA entry must identify the canonical Intelligence E2E harness');
 assert.match(index,/Discovery → Member State → Prioritize → Plan → Act → Review → Learn → Adapt/,'internal QA must expose the canonical full-loop architecture');
 assert.match(index,/discovery-snapshot\.html/,'internal Intelligence QA must enter Discovery, not a Baseline stage');
 assert.equal(exists('intelligence-test/baseline.html'),false,'obsolete Baseline-first page must remain retired');
 assert.equal(exists('intelligence-test/baseline-plan.html'),false,'parallel Baseline→Plan harness must remain retired');
+assert.match(onboardingStart,/app\/onboarding\/flow\.js/,'production onboarding entry must use the canonical routing contract');
+assert.doesNotMatch(onboardingStart,/universal_baseline|el8_assessment_sessions|assessment\.html/,'production onboarding entry must not restore the legacy Universal Baseline session path');
 assert.match(snapshot,/buildDiscoverySnapshotHandoff/,'opening snapshot must use production Discovery handoff');
 assert.match(discovery,/app\/onboarding\/discovery-runtime\.js/,'internal Intelligence QA must exercise canonical browser Discovery runtime');
 assert.match(discovery,/projectOnboardingMemberState/,'completed Discovery must establish initial Member State baseline');
