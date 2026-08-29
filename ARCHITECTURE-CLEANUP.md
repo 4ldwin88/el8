@@ -8,12 +8,12 @@ Discovery → Member State → Prioritization → Planning → Action → Outcom
 
 Safety may interrupt ordinary flow at any point.
 
-Discovery begins with the broad life-status snapshot retained from the former Baseline questionnaire. The snapshot is evidence collection inside Discovery. It is not a separate canonical stage. Canonical Member State establishes the immutable initial baseline from completed Discovery evidence before Prioritization or any member priority decision.
+Discovery begins directly with broad, human orientation about what matters to the member and adapts from the evidence they provide. It does not require an opening life-domain matrix. A lightweight coverage check may be used later only when needed to resolve meaningful uncertainty; it must not define member priorities. Canonical Member State establishes the immutable initial baseline from completed Discovery evidence before Prioritization or any member priority decision.
 
 ## Authority rule
 
 Each decision has one canonical owner:
-- Discovery: gather decision-changing evidence, including the opening broad snapshot.
+- Discovery: gather decision-changing evidence, beginning with broad member context and adapting toward relevant concerns, drivers, constraints and desired outcomes.
 - Member State: durable member truth/provenance boundary and immutable initial baseline snapshot.
 - Prioritization: decide what matters now; member decisions about proposed priorities are recorded separately and may include no accepted priority.
 - Planning: choose bounded feasible interventions and review rules for accepted priorities. Planning is not entered when the member chooses no active priority/plan.
@@ -53,16 +53,17 @@ A transitional adapter is not permanent architecture. It must document what cons
 - Member-facing prioritization uses qualitative evidence-support semantics; numeric confidence remains internal evidence metadata rather than a member-facing decision threshold.
 - Duplicate canonical QA workflow and obsolete public Intelligence Test deployment/runtime client retired.
 - Canonical activation readiness lives under `intelligence/planning/activation-readiness.js`.
-- Separate Baseline member routing has been retired. The useful opening matrix is now the first Discovery surface, while legacy baseline-named adapters remain only where needed to read/migrate existing evidence shapes.
+- Separate Baseline member routing has been retired. Fresh member and QA routes enter adaptive Discovery directly; legacy baseline-named adapters remain only where needed to read/migrate existing evidence shapes.
 
 ## Final verification
 
-1. Confirm every member route enters Discovery through `discovery-snapshot.html`, with `assessment.html` compatibility-only.
+1. Confirm every fresh member and QA route enters adaptive Discovery directly, with `assessment.html` compatibility-only.
 2. Confirm remaining baseline-named modules are bounded evidence-shape compatibility adapters, not a parallel assessment or decision engine.
 3. Confirm browser/profile QA routes validate the canonical loop rather than implementing competing decisions.
 4. Confirm member-facing stage labels and copy consistently show Discovery → Focus → Plan.
-5. Run Canonical Repository QA on the final reconciled head.
-6. Run accelerated manual browser E2E from the tester QA menu before declaring cleanup complete.
+5. Confirm any broad domain coverage check is optional/later evidence collection and cannot define priorities or precede the broad human Discovery opening.
+6. Run Canonical Repository QA on the final reconciled head.
+7. Run accelerated manual browser E2E from the tester QA menu on the exact deployed candidate before declaring cleanup complete.
 
 ## Completion criteria
 
