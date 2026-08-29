@@ -2,15 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildDiscoverySnapshotHandoff} from './discovery-snapshot-handoff.js';
 import {createDiscoveryFromSnapshot} from './canonical-planning-pipeline.js';
-import {appendObservation,setResolution,deriveStates} from '../../intelligence/discovery/discovery-controller.js';
+import {appendObservation,setResolution,deriveStates,DISCOVERY_PHASE} from '../../intelligence/discovery/discovery-controller.js';
 import {finishDiscovery} from './discovery-runtime.js';
 
 const snapshot=()=>buildDiscoverySnapshotHandoff({condition_baseline:{Financial:'Struggling'},member_priority:'Financial',functional_impact:['Financial'],worsening:['Financial'],feasibility:{time:'<5 min',overall_load:'Difficult'}});
 const establishMoney=s=>{appendObservation(s,{concernId:'money',questionId:'discovery-money',effects:[{type:'evidence',target:'money',polarity:'supports',strength:.9},{type:'importance',target:'money',value:'high'},{type:'member-priority',target:'money',value:true},{type:'immediacy',target:'money',value:'time-sensitive'},{type:'readiness',target:'money',value:3}]});setResolution(s,'money','established',{driverKnown:true});return s};
 
-// This helper creates a controller-level session rather than the higher-level Discovery engine
-// session, so supply the trace clock fields explicitly before crossing the runtime boundary.
-function completeBoundarySession(s){s.assessmentStart=Date.now();s.questionTimings=[];return finishDiscovery(s)}
+// These are controller-level boundary fixtures, not interactive Discovery runs. Mark the
+// prerequisite stages and member-understanding confirmation explicitly so finishDiscovery
+// exercises a genuinely completed handoff rather than bypassing the production boundary.
+function completeBoundarySession(s){s.assessmentStart=Date.now();s.questionTimings=[];s.phase=DISCOVERY_PHASE.HANDOFF;s.stageCounts={...(s.stageCounts||{}),orient:Math.max(1,s.stageCounts?.orient||0),narrow:Math.max(1,s.stageCounts?.narrow||0),'deepen-fit':Math.max(1,s.stageCounts?.['deepen-fit']||0),handoff:Math.max(1,s.stageCounts?.handoff||0)};s.facts={...(s.facts||{}),handoffUnderstanding:'accurate'};return finishDiscovery(s)}
 
 test('opening Discovery snapshot alone cannot activate an intervention',()=>{const b=snapshot();assert.ok(b.candidateConcerns.includes('money'));assert.equal(b.selectedActionIds,undefined);assert.equal(b.candidateActions,undefined)});
 test('Discovery snapshot seed preserves feasibility context without inventing capacity',()=>{const s=createDiscoveryFromSnapshot(snapshot());assert.ok(s);assert.deepEqual(s.concernIds,['money']);assert.equal(s.facts.memberPriorityConcern,'money');assert.equal(s.facts.snapshotDimension,'Financial');assert.equal(s.facts.snapshotFeasibility.time,'<5 min');assert.equal(s.facts.snapshotFeasibility.overall_load,'Difficult');assert.equal(s.facts.snapshotFeasibility.capacity,null);assert.equal(s.facts.snapshotCapacity,null)});
