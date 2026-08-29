@@ -4,15 +4,82 @@ import {deriveConcernState} from './concern-projection.js';
 import {makeObservation} from './contracts.js';
 import {DISCOVERY_BANK,observationsForAnswer} from './question-bank-adapter.js';
 import {createDiscoverySession,nextDiscoveryStep,discoveryOutput} from '../../app/onboarding/discovery-runtime.js';
-assert.equal(discovery.DISCOVERY_VERSION,'v4');const runtime=discovery.session({concernIds:[]});assert.ok(runtime);assert.equal(runtime.version,'v4');assert.equal(typeof discovery.next(runtime),'object');assert.equal(typeof discovery.trace(runtime),'object');const portSession=createDiscoverySession({concernIds:[]});assert.ok(portSession);assert.equal(typeof nextDiscoveryStep(portSession),'object');const proposal=discoveryOutput(portSession);assert.ok(proposal&&typeof proposal==='object');assert.ok('trace'in proposal);assert.equal('plan'in proposal,false,'Discovery browser output must not expose a Discovery-owned plan');
-const broad=discovery.session({concernIds:[]});let broadStep=discovery.next(broad);assert.equal(broadStep.question.id,'O5');assert.equal(broadStep.question.role,'orientation');assert.equal(broadStep.question.text,'What really matters to you right now?','fresh Discovery must open with the canonical broad human question');discovery.answer(broad,broadStep.question,['stability','health','progress']);assert.equal(broad.concernIds.length,0,'orientation choices are routing hypotheses, not established member concerns');
-const browserBroad=createDiscoverySession({concernIds:[]});let browserStep=nextDiscoveryStep(browserBroad);assert.equal(browserStep.question.id,'O5');assert.equal(browserStep.question.responseMode,'multi');discovery.answer(browserBroad,browserStep.question,['stability','health','progress']);browserStep=nextDiscoveryStep(browserBroad);assert.equal(browserStep.question.id,'O4');discovery.answer(browserBroad,browserStep.question,'money');browserStep=nextDiscoveryStep(browserBroad);assert.equal(browserStep.question.id,'O1');discovery.answer(browserBroad,browserStep.question,'variable');browserStep=nextDiscoveryStep(browserBroad);assert.equal(browserStep.question.id,'O3');discovery.answer(browserBroad,browserStep.question,'people');browserStep=nextDiscoveryStep(browserBroad);assert.equal(browserStep.question.id,'G1','clear orientation should normally narrow after four high-information baseline questions');assert.equal(browserBroad.questionsAsked,5,'four orientation questions plus gateway should be counted');discovery.answer(browserBroad,browserStep.question,['money','health']);assert.deepEqual(new Set(browserBroad.concernIds),new Set(['money','health']),'only directly selected gateway concerns should become active');browserStep=nextDiscoveryStep(browserBroad);assert.equal(browserStep.type,'question','directly raised concerns must deepen before triage or finish');assert.ok(['M1','PH0','PH2'].includes(browserStep.question.id),`expected money/health state deepening, got ${browserStep.question.id}`);
-const ambiguous=discovery.session({concernIds:[]});let ambiguousStep=discovery.next(ambiguous);discovery.answer(ambiguous,ambiguousStep.question,'unsure');for(const answer of ['unsure','variable','unsure']){ambiguousStep=discovery.next(ambiguous);assert.equal(ambiguousStep.question.role,'orientation');discovery.answer(ambiguous,ambiguousStep.question,answer)}ambiguousStep=discovery.next(ambiguous);assert.equal(ambiguousStep.question.id,'O2','ambiguous orientation should use the fifth available baseline probe');discovery.answer(ambiguous,ambiguousStep.question,'some');ambiguousStep=discovery.next(ambiguous);assert.equal(ambiguousStep.question.id,'G1','orientation must stop at the five-question maximum');
-const maintain=discovery.session({concernIds:[]});let maintainStep=discovery.next(maintain);assert.equal(maintainStep.question.id,'O5');discovery.answer(maintain,maintainStep.question,'maintain');for(const answer of ['nothing','structured','people']){maintainStep=discovery.next(maintain);assert.equal(maintainStep.question.role,'orientation','positive intent must still receive a whole-person baseline');discovery.answer(maintain,maintainStep.question,answer)}maintainStep=discovery.next(maintain);assert.equal(maintainStep.reason,'positive-goal-path');assert.equal(maintainStep.question.path,'positive');discovery.answer(maintain,maintainStep.question,'improve');assert.equal(maintain.facts.positiveGoal,'improve');const positiveStrength=DISCOVERY_BANK.find(q=>q.id==='PTH2');discovery.answer(maintain,positiveStrength,'health');assert.equal(maintain.facts.positiveStrength,'health');
-const noNeed=discovery.session({concernIds:[]});let noNeedStep=discovery.next(noNeed);discovery.answer(noNeed,noNeedStep.question,'nothing');for(const answer of ['nothing','structured','people']){noNeedStep=discovery.next(noNeed);assert.equal(noNeedStep.question.role,'orientation');discovery.answer(noNeed,noNeedStep.question,answer)}noNeedStep=discovery.next(noNeed);assert.equal(noNeedStep.type,'question','ambiguous/no-need orientation may use the fifth probe rather than escaping after O5');assert.equal(noNeedStep.question.id,'O2');discovery.answer(noNeed,noNeedStep.question,'most');noNeedStep=discovery.next(noNeed);assert.equal(noNeedStep.type,'finish');assert.equal(noNeedStep.stop.reason,'member-reports-no-current-discovery-need');assert.equal(noNeedStep.stop.incomplete,false);assert.equal(noNeed.questionsAsked,5);
-const unsure=discovery.session({concernIds:[]});let unsureStep=discovery.next(unsure);discovery.answer(unsure,unsureStep.question,'unsure');assert.equal(unsure.facts.discoveryIntent,undefined);unsureStep=discovery.next(unsure);assert.equal(unsureStep.question.role,'orientation','uncertainty must remain in orientation until baseline sufficiency is reached');
-const bounded=discovery.session({concernIds:[],orientationLimit:1});let boundedStep=discovery.next(bounded);assert.equal(boundedStep.question.id,'O5');discovery.answer(bounded,boundedStep.question,'nothing');boundedStep=discovery.next(bounded);assert.equal(bounded.questionsAsked,1);assert.notEqual(boundedStep.question?.role,'orientation','explicit test limits must still bound orientation');
-const safe1=DISCOVERY_BANK.find(q=>q.id==='SAFE1'),safe2=DISCOVERY_BANK.find(q=>q.id==='SAFE2'),safe3=DISCOVERY_BANK.find(q=>q.id==='SAFE3');assert.equal(safe1.safetyConfirmationField,'immediateDanger');assert.equal(safe2.safetyConfirmationField,'intent');assert.equal(safe3.safetyConfirmationField,'canStaySafe');
+
+assert.equal(discovery.DISCOVERY_VERSION,'v4');
+const runtime=discovery.session({concernIds:[]});
+assert.ok(runtime);
+assert.equal(runtime.version,'v4');
+assert.equal(typeof discovery.next(runtime),'object');
+assert.equal(typeof discovery.trace(runtime),'object');
+const portSession=createDiscoverySession({concernIds:[]});
+assert.ok(portSession);
+assert.equal(typeof nextDiscoveryStep(portSession),'object');
+const proposal=discoveryOutput(portSession);
+assert.ok(proposal&&typeof proposal==='object');
+assert.ok('trace'in proposal);
+assert.equal('plan'in proposal,false,'Discovery browser output must not expose a Discovery-owned plan');
+
+// Stage contract: orient -> narrow -> deepen/fit -> sufficient/handoff. Each stage requires at least one interaction by default.
+const staged=discovery.session({concernIds:[]});
+let step=discovery.next(staged);
+assert.equal(step.question.id,'G1','fresh Discovery must open with the broad current-state gateway');
+assert.equal(step.phase,'orient');
+assert.equal(step.question.responseMode,'multi');
+discovery.answer(staged,step.question,['money','health']);
+assert.deepEqual(new Set(staged.concernIds),new Set(['money','health']),'only directly selected gateway concerns become active');
+assert.equal(staged.stageCounts.orient,1);
+step=discovery.next(staged);
+assert.equal(step.type,'question','selected concerns must receive narrowing before handoff');
+assert.equal(step.phase,'narrow');
+discovery.answer(staged,step.question,step.question.options?.find(o=>!['unsure','other','nothing'].includes(o.id))?.id??step.question.options?.[0]?.id);
+assert.ok(staged.stageCounts.narrow>=1,'narrow must record at least one interaction');
+step=discovery.next(staged);
+assert.equal(step.type,'question','Discovery must deepen or establish fit after narrowing');
+assert.equal(step.phase,'deepen-fit');
+assert.ok(step.question.role!=='orientation'&&step.question.role!=='gateway');
+
+// Positive path is allowed to be short, but it still traverses every Discovery stage rather than deficit hunting.
+const positive=discovery.session({concernIds:[]});
+let positiveStep=discovery.next(positive);
+assert.equal(positiveStep.question.id,'G1');
+discovery.answer(positive,positiveStep.question,'well');
+assert.equal(positive.facts.discoveryIntent,'maintain');
+assert.equal(positive.concernIds.length,0,'doing well must not manufacture deficit concerns');
+positiveStep=discovery.next(positive);
+assert.equal(positiveStep.phase,'narrow');
+assert.equal(positiveStep.question.path,'positive');
+discovery.answer(positive,positiveStep.question,'improve');
+assert.equal(positive.facts.positiveGoal,'improve');
+positiveStep=discovery.next(positive);
+assert.equal(positiveStep.phase,'deepen-fit');
+assert.equal(positiveStep.question.path,'positive');
+discovery.answer(positive,positiveStep.question,'health');
+assert.equal(positive.facts.positiveStrength,'health');
+positiveStep=discovery.next(positive);
+assert.equal(positiveStep.phase,'handoff');
+assert.equal(positiveStep.type,'question','handoff itself requires an interaction');
+discovery.answer(positive,positiveStep.question,'yes');
+positiveStep=discovery.next(positive);
+assert.equal(positiveStep.type,'finish');
+assert.equal(positiveStep.stop.incomplete,false);
+assert.equal(positiveStep.stop.reason,'discovery-sufficient-for-handoff');
+assert.deepEqual(positive.stageCounts,{orient:1,narrow:1,'deepen-fit':1,handoff:1});
+
+// There is no product maximum. A higher QA stage minimum forces additional useful interactions when the bank can support them.
+const extended=discovery.session({concernIds:[],stageMinimum:2});
+let extendedStep=discovery.next(extended);
+discovery.answer(extended,extendedStep.question,'unsure');
+extendedStep=discovery.next(extended);
+assert.equal(extendedStep.phase,'orient');
+assert.equal(extendedStep.question.role,'orientation');
+discovery.answer(extended,extendedStep.question,'unsure');
+assert.equal(extended.stageCounts.orient,2);
+assert.equal(extended.outerGuardrail,null,'normal Discovery must not encode a product maximum');
+
+const safe1=DISCOVERY_BANK.find(q=>q.id==='SAFE1'),safe2=DISCOVERY_BANK.find(q=>q.id==='SAFE2'),safe3=DISCOVERY_BANK.find(q=>q.id==='SAFE3');
+assert.equal(safe1.safetyConfirmationField,'immediateDanger');
+assert.equal(safe2.safetyConfirmationField,'intent');
+assert.equal(safe3.safetyConfirmationField,'canStaySafe');
 const immediate=discovery.session({safetyContextualSignals:{explicitSafetyConcern:true}});assert.equal(immediate.safety.status,'confirmation_required');discovery.answer(immediate,safe1,'yes');assert.equal(immediate.safetyConfirmation.immediateDanger,true);assert.equal(immediate.safety.status,'escalate');assert.equal(immediate.safety.pauseOrdinaryFlow,true);
 const intent=discovery.session({safetyContextualSignals:{explicitSafetyConcern:true}});discovery.answer(intent,safe2,'yes');assert.equal(intent.safetyConfirmation.intent,true);assert.equal(intent.safety.status,'escalate');
 const partialImmediateNegative=discovery.session({safetyContextualSignals:{explicitSafetyConcern:true}});discovery.answer(partialImmediateNegative,safe1,'no');assert.equal(partialImmediateNegative.safetyConfirmation.immediateDanger,false);assert.equal(partialImmediateNegative.safety.status,'confirmation_required');
@@ -20,6 +87,11 @@ const thoughtsNoIntent=discovery.session({safetyContextualSignals:{explicitSafet
 const cannotStaySafe=discovery.session({safetyContextualSignals:{explicitSafetyConcern:true}});discovery.answer(cannotStaySafe,safe3,'no');assert.equal(cannotStaySafe.safetyConfirmation.canStaySafe,false);assert.equal(cannotStaySafe.safety.status,'escalate');
 const fullySafe=discovery.session({safetyContextualSignals:{explicitSafetyConcern:true}});discovery.answer(fullySafe,safe1,'no');discovery.answer(fullySafe,safe2,'no');discovery.answer(fullySafe,safe3,'yes');assert.deepEqual(fullySafe.safetyConfirmation,{immediateDanger:false,intent:false,canStaySafe:true});assert.equal(fullySafe.safety.status,'continue_with_constraints');assert.equal(fullySafe.safety.pauseOrdinaryFlow,false);
 const uncertainSafety=discovery.session({safetyContextualSignals:{explicitSafetyConcern:true}});discovery.answer(uncertainSafety,safe1,'no');discovery.answer(uncertainSafety,safe2,'unsure');assert.equal(uncertainSafety.safetyConfirmation.immediateDanger,false);assert.equal(uncertainSafety.safetyConfirmation.intent,undefined);assert.equal(uncertainSafety.safety.status,'confirmation_required');assert.equal(uncertainSafety.safety.pauseOrdinaryFlow,true);
-const fitObservation=makeObservation({id:'fit:1',questionId:'FIT1',concernId:'low_activity',effects:[{type:'feasibility',target:'low_activity',feasibility:{capacity:'low',scheduleFlexibility:'low'}},{type:'constraint',target:'low_activity',value:'limited_transport'},{type:'support',target:'low_activity',value:'partner_support'}]}),fitState=deriveConcernState([fitObservation],'low_activity');assert.equal(fitState.feasibility.values.capacity,'low');assert.equal(fitState.feasibility.values.scheduleFlexibility,'low');assert.deepEqual(fitState.feasibility.constraints,['limited_transport']);assert.deepEqual(fitState.feasibility.supports,['partner_support']);
-const activityFitQuestion=DISCOVERY_BANK.find(q=>q.id==='PH1B'),activityFitObservations=observationsForAnswer(activityFitQuestion,['time','cost','mobility']),activityFitState=deriveConcernState(activityFitObservations,'energy');assert.equal(activityFitState.feasibility.values.scheduleFlexibility,'low');assert.equal(activityFitState.feasibility.values.costSensitivity,'high');assert.equal(activityFitState.feasibility.values.accessibilityNeeds,true);assert.ok(activityFitState.feasibility.constraints.includes('limited_time'));assert.ok(activityFitState.feasibility.constraints.includes('limited_budget'));assert.ok(activityFitState.feasibility.constraints.includes('mobility_accessibility'));
-const output=discoveryOutput(createDiscoverySession({concernIds:['low_energy']}));for(const forbidden of ['plan','memberPlan','candidateActions','selectedActionIds','recommendedPriorities','confirmedPriorities','interventions'])assert.equal(forbidden in output,false,`Discovery output must not own ${forbidden}`);console.log('canonical Discovery v4 adaptive 3-5 orientation + direct-evidence boundary + adaptive deepening + Safety + onboarding boundary + feasibility regression tests passed');
+
+const fitObservation=makeObservation({id:'fit:1',questionId:'FIT1',concernId:'low_activity',effects:[{type:'feasibility',target:'low_activity',feasibility:{capacity:'low',scheduleFlexibility:'low'}},{type:'constraint',target:'low_activity',value:'limited_transport'},{type:'support',target:'low_activity',value:'partner_support'}]}),fitState=deriveConcernState([fitObservation],'low_activity');
+assert.equal(fitState.feasibility.values.capacity,'low');assert.equal(fitState.feasibility.values.scheduleFlexibility,'low');assert.deepEqual(fitState.feasibility.constraints,['limited_transport']);assert.deepEqual(fitState.feasibility.supports,['partner_support']);
+const activityFitQuestion=DISCOVERY_BANK.find(q=>q.id==='PH1B'),activityFitObservations=observationsForAnswer(activityFitQuestion,['time','cost','mobility']),activityFitState=deriveConcernState(activityFitObservations,'energy');
+assert.equal(activityFitState.feasibility.values.scheduleFlexibility,'low');assert.equal(activityFitState.feasibility.values.costSensitivity,'high');assert.equal(activityFitState.feasibility.values.accessibilityNeeds,true);assert.ok(activityFitState.feasibility.constraints.includes('limited_time'));assert.ok(activityFitState.feasibility.constraints.includes('limited_budget'));assert.ok(activityFitState.feasibility.constraints.includes('mobility_accessibility'));
+const output=discoveryOutput(createDiscoverySession({concernIds:['low_energy']}));
+for(const forbidden of ['plan','memberPlan','candidateActions','selectedActionIds','recommendedPriorities','confirmedPriorities','interventions'])assert.equal(forbidden in output,false,`Discovery output must not own ${forbidden}`);
+console.log('canonical Discovery v4 staged orient/narrow/deepen-fit/handoff + positive path + Safety + feasibility regression tests passed');
