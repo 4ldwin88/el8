@@ -20,7 +20,7 @@ export const CORE_QUESTIONS = Object.freeze([
     ['progress', 'Make progress on something important', { lack_direction: 0.25, low_activation: 0.15 }],
     ['maintain', 'Keep things going well', {}], ['balance', 'Improve several parts of life', {}], ['understand', 'Figure out what to focus on first', {}],
     ['nothing', 'Nothing in particular right now', {}], ['unsure', 'Not sure yet', {}],
-  ], 0.12), 100),
+  ], 0.12, 'multi'), 100),
   orientation(Q('O4', 'orientation', 'Thinking about recent difficult days, what has most often made the day harder?', [], [
     ['time', 'Too much to do or not enough time', { schedule_disruption: 0.4, stress: 0.2 }], ['energy', 'Low energy or poor sleep', { low_energy: 0.35, poor_sleep: 0.3 }], ['stress', 'Stress or difficult emotions', { stress: 0.45 }], ['money', 'Money pressure', { money_pressure: 0.45 }], ['people', 'Relationship or people problems', { relationship_strain: 0.4, low_support: 0.15 }], ['motivation', 'Difficulty getting started', { low_activation: 0.4 }], ['nothing', 'Nothing consistently stands out', {}], ['unsure', 'Not sure', {}],
   ], 0.14), 80),
