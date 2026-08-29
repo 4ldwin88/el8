@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -11,12 +14,27 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
+  preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact pull request head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Record preview identity
+        run: printf '%s\n' '${{ github.event.pull_request.head.sha }}' > .el8-preview-head
+      - name: Upload exact-head QA preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: el8-qa-preview-${{ github.event.pull_request.number }}
+          path: .
+          include-hidden-files: true
+          retention-days: 7
+
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
