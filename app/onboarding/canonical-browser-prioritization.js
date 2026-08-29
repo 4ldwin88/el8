@@ -1,9 +1,10 @@
 import { prioritizeCandidates } from '../../intelligence/prioritization/prioritization.js';
 import {canonicalMemberProblemId} from './canonical-problem-map.js';
 
-const clamp01=value=>Math.max(0,Math.min(1,Number(value)||0));
-const normalizedImportance=value=>value==null?null:typeof value==='number'?clamp01(value/3):({low:.25,moderate:.5,high:.75,'very-high':1}[value]??null);
 const labelFromId=id=>String(id||'').replace(/^problem:/,'').replaceAll('_',' ');
+const IMPORTANCE=Object.freeze({1:'low',2:'moderate',3:'high',4:'very-high',low:'low',moderate:'moderate',high:'high','very-high':'very-high'});
+const qualitative=value=>typeof value==='string'&&['low','moderate','high','very-high'].includes(value.toLowerCase())?value.toLowerCase():null;
+const importance=value=>value==null?null:IMPORTANCE[value]??qualitative(value);
 
 export function canonicalPrioritizationInputFromBrowser(memberState){
   if(!memberState||!Number.isInteger(memberState.revision))throw new Error('canonical Member State is required');
@@ -16,11 +17,11 @@ export function prioritizationDecisionFactorsFromDiscovery(discoveryOutput={}){
   for(const row of discoveryOutput?.trace?.states||[]){
     const id=canonicalMemberProblemId(row.problemId||row.concernId||row.sourceConcernId||row.id);if(!id)continue;
     const factor={};
-    const importance=normalizedImportance(row.memberImportance);if(importance!==null)factor.memberImportance=importance;
-    const evidenceRaw=row.evidenceConfidence??row.confidence;if(evidenceRaw!==null&&evidenceRaw!==undefined)factor.materiality=clamp01(evidenceRaw);
-    if(row.urgent===true||row.safetyRelevant===true)factor.urgency=1;
-    const leverageRaw=row.leverage??row.crossDimensionalLeverage;if(leverageRaw!==null&&leverageRaw!==undefined)factor.leverage=clamp01(leverageRaw);
-    if(row.memberSelected===true)factor.readiness=1;
+    const memberImportance=importance(row.memberImportance);if(memberImportance)factor.memberImportance=memberImportance;
+    const materiality=qualitative(row.materiality);if(materiality)factor.materiality=materiality;
+    if(row.urgent===true)factor.urgency='present';
+    const leverage=qualitative(row.leverage??row.crossDimensionalLeverage);if(leverage)factor.leverage=leverage;
+    if(row.memberSelected===true)factor.readiness='present';
     if(Object.keys(factor).length)factors[id]={...(factors[id]||{}),...factor};
   }
   return factors;
@@ -29,5 +30,5 @@ export function prioritizationDecisionFactorsFromDiscovery(discoveryOutput={}){
 export function buildCanonicalBrowserPriorities({memberState,discoveryOutput=null,decisionFactors=null}){
   const input=canonicalPrioritizationInputFromBrowser(memberState),factors=decisionFactors||prioritizationDecisionFactorsFromDiscovery(discoveryOutput||{}),safetyDisposition=memberState?.safety?.disposition==='ORDINARY_FLOW'?null:memberState?.safety||null;
   const result=prioritizeCandidates(input,{safetyDisposition,decisionFactors:factors});
-  return{input,result,decisionFactors:factors,candidates:result.priorityItems.map((item,index)=>({concernId:item.problemId,problemId:item.problemId,label:labelFromId(item.problemId),evidenceRefs:item.evidenceRefs,evidenceConfidence:item.decisionFactors?.materiality??null,recommended:index===0,memberEmphasized:(item.decisionFactors?.memberImportance??0)>=.7,rationaleCodes:item.rationaleCodes,rank:item.rank}))};
+  return{input,result,decisionFactors:factors,candidates:result.priorityItems.map((item,index)=>({concernId:item.problemId,problemId:item.problemId,label:labelFromId(item.problemId),evidenceRefs:item.evidenceRefs,recommended:index===0,memberEmphasized:['high','very-high','present'].includes(item.decisionFactors?.memberImportance),rationaleCodes:item.rationaleCodes,rank:item.rank}))};
 }
