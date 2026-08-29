@@ -7,7 +7,7 @@ import {createDiscoverySession,nextDiscoveryStep,submitDiscoveryTriage,submitBro
 assert.equal(discovery.DISCOVERY_VERSION,'v4');
 const runtime=discovery.session({concernIds:[]});assert.ok(runtime);assert.equal(runtime.version,'v4');
 const portSession=createDiscoverySession({concernIds:[]});const proposal=discoveryOutput(portSession);assert.equal('plan'in proposal,false);
-const g1=DISCOVERY_BANK.find(q=>q.id==='G1');assert.deepEqual(normalizeAnswerIds(g1,['money','unsure']),['unsure']);assert.deepEqual(normalizeAnswerIds(g1,['money','well']),['well']);assert.deepEqual(normalizeAnswerIds(g1,['money','other']),['other']);
+const g1=DISCOVERY_BANK.find(q=>q.id==='G1');assert.deepEqual(normalizeAnswerIds(g1,['money','unsure']),['unsure']);assert.deepEqual(normalizeAnswerIds(g1,['money','well']),['well']);assert.deepEqual(normalizeAnswerIds(g1,['money','other']),['money','other']);
 const broad=discovery.session({concernIds:[]});let broadStep=discovery.next(broad);discovery.answer(broad,broadStep.question,['money','health']);assert.deepEqual(new Set(broad.concernIds),new Set(['money','health']));
 const focusOnly=discovery.session({concernIds:[]});let focusStep=discovery.next(focusOnly);discovery.answer(focusOnly,focusStep.question,['focus']);assert.deepEqual(focusOnly.concernIds,['focus']);
 const fourHigh=createDiscoverySession({concernIds:[]});let fh=nextDiscoveryStep(fourHigh);discovery.answer(fourHigh,fh.question,['money','work','health','sleep','stress']);fh=nextDiscoveryStep(fourHigh);assert.equal(fh.type,'triage');submitDiscoveryTriage(fourHigh,{money:3,work:2,health:2,sleep:2,stress:1});fh=nextDiscoveryStep(fourHigh);assert.notEqual(fh.type,'entry-plan-offer','four high-importance concerns should remain adaptive');
