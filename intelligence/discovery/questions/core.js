@@ -13,7 +13,7 @@ const positive = question => Object.assign(question, { path: 'positive' });
 const orientation = (question, openingPriority = 0) => Object.assign(question, { openingPriority });
 
 export const CORE_QUESTIONS = Object.freeze([
-  orientation(Q('O5', 'orientation', 'What would you most like EL8 to help you with right now?', [], [
+  orientation(Q('O5', 'orientation', 'What really matters to you right now?', [], [
     ['feel_better', 'Feel better day to day', { stress: 0.2, low_energy: 0.15 }],
     ['health', 'Improve my health or energy', { physical_condition: 0.25, low_energy: 0.2 }],
     ['stability', 'Make daily life more stable and manageable', { schedule_disruption: 0.2, money_pressure: 0.15, work_instability: 0.15 }],
