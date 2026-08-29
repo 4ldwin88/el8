@@ -23,6 +23,15 @@ test('browser Planning still accepts mapped Discovery concern IDs at the compati
  assert.deepEqual(input.problems[0].evidenceRefs,['e:sleep-1']);
 });
 
+test('Planning does not infer capacity from manageability, time, legacy feasibility, or baselineCapacity',()=>{
+ const variants=[
+  {baselineHandoff:{signals:{feasibility:{overall_load:'Overwhelming',time:'<5 min'}}}},
+  {baselineHandoff:{signals:{legacy:{feasibility:{capacity:'low',overall_load:'Difficult'}}}}},
+  {baselineCapacity:'low',baselineHandoff:{signals:{feasibility:{}}}}
+ ];
+ for(const variant of variants){const input=canonicalPlanningInputFromBrowser({discoveryOutput:{trace:discoveryOutput.trace,...variant},confirmedPriorities:['poor_sleep'],memberStateRevision:4});assert.equal(input.constraints.capacity,null)}
+});
+
 test('canonical member problem boundary rejects unknown bare and canonical-looking IDs',()=>{
  assert.ok(MEMBER_PROBLEM_IDS.includes('problem:poor_sleep'));
  assert.equal(canonicalMemberProblemId('novel_unmapped_concern'),null);
