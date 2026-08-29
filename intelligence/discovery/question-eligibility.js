@@ -8,9 +8,11 @@ export function contradictionDetected(concernId, observationLog) {
 function knownTopics(state){return new Set(state?.baselineTopics??[])}
 function redundantWithBaseline(question,state){const topics=knownTopics(state);if(!topics.size)return false;if(question.id==='W5'&&topics.has('finding_work'))return true;return false}
 function unresolvedRequirementIds(state){return new Set(unresolvedRequiredEvidence(state).map(x=>x.id))}
+function priorAnswerPresent(question,observationLog){const required=question?.requiresAnswer;if(!required)return true;const requirements=Array.isArray(required)?required:[required];return requirements.every(r=>(observationLog||[]).some(o=>o.questionId===r.questionId&&o.answerValue===r.optionId))}
 export function addressesUnresolvedRequirement(question,state){const id=question?.sufficiencyRequirement?.id;return Boolean(id&&unresolvedRequirementIds(state).has(id))}
 export function isQuestionEligible(question, state, observationLog, facts = {}) {
   if (!question || !state) return false;
+  if (!priorAnswerPresent(question,observationLog)) return false;
   if (questionRedundantWithFacts(question, facts)) return false;
   if (redundantWithBaseline(question,state)) return false;
   if (typeof question.prerequisite === 'function' && !question.prerequisite(state, observationLog)) return false;
