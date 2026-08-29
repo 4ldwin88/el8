@@ -3,11 +3,12 @@ function targetSet(q){return new Set([q.concernId,...(q.concernIds??[])].filter(
 function safetyQuestion(q){return q.path==='safety'}
 function positiveQuestion(q){return q.path==='positive'||q.role==='goal-probe'||q.role==='growth-probe'||q.role==='strength-probe'}
 function stateForQuestion(q,stateById){for(const id of targetSet(q)){const state=stateById.get(id);if(state)return state}return null}
-function requiredForHandoff(q){return q.requiredForHandoff===true||q.decisionCritical===true}
 function directStateQuestion(q){return ['state-probe','concern-scope','confirmation'].includes(q.role)}
+function targetedClarificationQuestion(q){return ['discriminator','driver-discriminator'].includes(q.role)&&targetSet(q).size>0}
+function requiredForHandoff(q){return q.requiredForHandoff===true||q.decisionCritical===true}
 function unresolvedRequirementIds(state){return new Set(unresolvedRequiredEvidence(state).map(x=>x.id))}
 function addressesRequiredEvidence(q,state){const id=q?.sufficiencyRequirement?.id;return Boolean(id&&unresolvedRequirementIds(state).has(id))}
-function unresolvedQuestion(q,state){return state?.resolutionState==='unresolved'&&(directStateQuestion(q)||requiredForHandoff(q)||q.addressesUnresolvedUncertainty===true||addressesRequiredEvidence(q,state))}
+function unresolvedQuestion(q,state){return state?.resolutionState==='unresolved'&&(directStateQuestion(q)||targetedClarificationQuestion(q)||requiredForHandoff(q)||q.addressesUnresolvedUncertainty===true||addressesRequiredEvidence(q,state))}
 function optionalBurden(q){return q.burden??0}
 function compareEvidenceNeed(a,b,stateById){const aState=stateForQuestion(a,stateById),bState=stateForQuestion(b,stateById);const aDirect=directStateQuestion(a)?1:0,bDirect=directStateQuestion(b)?1:0;if(aDirect!==bDirect)return bDirect-aDirect;const aRequired=addressesRequiredEvidence(a,aState)?1:0,bRequired=addressesRequiredEvidence(b,bState)?1:0;if(aRequired!==bRequired)return bRequired-aRequired;const burdenDelta=optionalBurden(a)-optionalBurden(b);if(burdenDelta)return burdenDelta;return a.id.localeCompare(b.id)}
 function available(candidates,recentQuestions){return candidates.filter(q=>q.eligible!==false&&!q.depthBudgetExhausted&&!recentQuestions.some(prev=>prev.id===q.id))}
