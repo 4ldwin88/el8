@@ -31,6 +31,12 @@ const problem=(id,{status='SUPPORTED',confidence=null,evidenceRefs=[`e:${id}`]}=
  assert.deepEqual(factors['problem:poor_sleep'],{materiality:'moderate'});
 }
 {
+ const factors=prioritizationDecisionFactorsFromDiscovery({trace:{states:[{concernId:'poor_sleep',memberSelected:true}]}});
+ assert.equal(factors['problem:poor_sleep'],undefined);
+ const explicit=prioritizationDecisionFactorsFromDiscovery({trace:{states:[{concernId:'poor_sleep',readiness:'high'}]}});
+ assert.deepEqual(explicit['problem:poor_sleep'],{readiness:'high'});
+}
+{
  const discoveryOutput={trace:{states:[
   {concernId:'poor_sleep',problemId:'problem:poor_sleep',evidenceRefs:['e:sleep'],memberImportance:2},
   {concernId:'novel_unmapped_concern',evidenceRefs:['e:unknown'],memberImportance:3,crossDimensionalLeverage:'very-high'},
@@ -46,7 +52,7 @@ const problem=(id,{status='SUPPORTED',confidence=null,evidenceRefs=[`e:${id}`]}=
  assert.deepEqual(out.result.priorityItems.map(x=>x.problemId),['problem:poor_sleep']);
 }
 {
- const out=buildCanonicalBrowserPriorities({memberState:state([problem('problem:poor_sleep')],{disposition:'pause_ordinary_flow'}),decisionFactors:{'problem:poor_sleep':{memberImportance:'very-high',urgency:'present',materiality:'high',leverage:'high',readiness:'present'}}});
+ const out=buildCanonicalBrowserPriorities({memberState:state([problem('problem:poor_sleep')],{disposition:'pause_ordinary_flow'}),decisionFactors:{'problem:poor_sleep':{memberImportance:'very-high',urgency:'present',materiality:'high',leverage:'high',readiness:'high'}}});
  assert.equal(out.result.blockedBySafety,true);assert.equal(out.result.priorityItems.length,0);
 }
 
