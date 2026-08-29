@@ -5,7 +5,10 @@ import {canonicalMemberProblemId} from './canonical-problem-map.js';
 
 const DIMENSIONS=['physical','emotional','social','intellectual','spiritual','occupational','financial','environmental'];
 const candidateRows=output=>output?.trace?.states||[];
-const normalizeCondition=value=>({'Struggling':'Attention','Needs attention':'Attention','Not great':'Attention','Okay':'Stable','Good':'Healthy','Going well':'Thriving','Very strong':'Thriving','Beyond':'Thriving'}[value]||null);
+// Keep onboarding projection aligned with the canonical qualitative display semantics without
+// making Insights a dependency of onboarding. A single opening "Going well" signal establishes
+// Healthy; Thriving requires stronger evidence such as "Very strong" or "Beyond".
+const normalizeCondition=value=>({'Struggling':'Attention','Needs attention':'Attention','Not great':'Attention','Okay':'Stable','Good':'Healthy','Going well':'Healthy','Very strong':'Thriving','Beyond':'Thriving'}[value]||null);
 function dimensionConditions(discoveryOutput={}){
  const signals=discoveryOutput.baselineHandoff?.signals||{},conditions={};
  for(const signal of signals.indicatorSignals||[]){const dimension=String(signal?.dimension||'').toLowerCase();if(!DIMENSIONS.includes(dimension))continue;const condition=normalizeCondition(signal?.condition??signal?.rating??signal?.labelValue??signal?.valueLabel??(signal?.value===1?'Struggling':signal?.value===2?'Not great':signal?.value===3?'Okay':signal?.value===4?'Good':signal?.value===5?'Going well':null));if(!condition)continue;const previous=conditions[dimension];const order=['Attention','Stable','Healthy','Thriving'];if(!previous||order.indexOf(condition)<order.indexOf(previous))conditions[dimension]=condition}
