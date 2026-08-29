@@ -3,7 +3,8 @@ import { CONDITION_BANDS, normalizeCondition } from './condition-model.js';
 const dimensionKey=dimension=>String(dimension||'').trim().toLowerCase();
 function snapshotCondition(snapshot,dimension){
   const row=snapshot?.[dimensionKey(dimension)]||snapshot?.[dimension];
-  return normalizeCondition(row?.condition??row);
+  if(row&&typeof row==='object'&&!Array.isArray(row))return normalizeCondition(row.condition);
+  return normalizeCondition(row);
 }
 
 // Historical compatibility reader only. New canonical Insights history must come from
