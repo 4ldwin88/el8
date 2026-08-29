@@ -1,6 +1,6 @@
 import { mountAppShell } from '../shell/app-shell.js';
 import { mountTrackSheet } from '../track/track-sheet.js';
-export { DIMENSIONS, CONDITION_VALUE, normalizeCondition } from './condition-model.js';
+export { DIMENSIONS, CONDITION_BANDS, normalizeCondition } from './condition-model.js';
 
 export function mountInsightsShell({ member, quickLogs = [], routes = {} } = {}) {
   const trackSheet = mountTrackSheet({ quickLogs });
