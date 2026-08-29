@@ -17,12 +17,6 @@ function answerFor(question){
  return [id];
 }
 
-function establishSupportedConcerns(session){
- for(const state of Discovery.trace(session).states){
-  if(['money','health'].includes(state.concernId)&&(state.evidenceRefs||[]).length)Discovery.resolve(session,state.concernId,'established');
- }
-}
-
 function runDiscovery(){
  const session=Discovery.session();
  let guard=0;
@@ -30,12 +24,10 @@ function runDiscovery(){
   const step=Discovery.next(session);
   if(step.type==='question'){
    Discovery.answer(session,step.question,answerFor(step.question));
-   if(session.phase==='deepen-fit')establishSupportedConcerns(session);
    continue;
   }
   if(step.type==='triage'){
    Discovery.triage(session,Object.fromEntries(session.concernIds.map(id=>[id,3])));
-   establishSupportedConcerns(session);
    continue;
   }
   if(step.type==='finish'){
@@ -57,6 +49,10 @@ test('accelerated adaptive Discovery reaches canonical Planning without dropping
  assert.ok(discoveryOutput.trace.asked.includes('PH0'));
  assert.ok(discoveryOutput.trace.asked.includes('M9'),'money concern must gather plan-fit evidence before handoff');
  assert.equal(discoveryOutput.trace.facts.handoffUnderstanding,'accurate');
+
+ const resolved=Object.fromEntries(discoveryOutput.trace.states.map(x=>[x.concernId,x.resolutionState]));
+ assert.equal(resolved.money,'established','money must be established by real Discovery evidence');
+ assert.equal(resolved.health,'established','health must be established by real Discovery evidence');
 
  const memberState=projectOnboardingMemberState({memberId:'member:e2e',discoveryOutput,now:'2026-08-29T12:00:00.000Z'});
  const supported=new Set(memberState.problems.map(p=>p.id));
