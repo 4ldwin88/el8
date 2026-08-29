@@ -5,7 +5,7 @@ import {canonicalMemberProblemId} from './canonical-problem-map.js';
 
 const clone=x=>JSON.parse(JSON.stringify(x));
 const priorityId=x=>`priority:${String(x||'').replace(/^priority:/,'').replace(/^problem:/,'')}`;
-function rows(output={}){return output.trace?.states||output.ranked||output.selected||output.priorityCandidates||output.candidates||[]}
+function rows(output={}){return output.trace?.states||[]}
 function findRow(output,id){const canonical=canonicalMemberProblemId(id);return rows(output).find(x=>{const values=[x.concernId,x.sourceConcernId,x.id,x.driver,x.problemId];return values.includes(id)||values.some(value=>canonicalMemberProblemId(value)===canonical)})||null}
 export function canonicalPlanningInputFromBrowser({discoveryOutput,confirmedPriorities,memberStateRevision}){
  if(!discoveryOutput||!Array.isArray(confirmedPriorities)||!confirmedPriorities.length)throw new Error('Discovery output and confirmed priorities are required');
