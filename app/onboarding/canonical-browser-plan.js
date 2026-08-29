@@ -1,10 +1,10 @@
 import{canonicalPlanningInputFromBrowser,canonicalBrowserPlanView}from'./browser-planning-adapter.js';
 import{buildCanonicalPlan}from'../../intelligence/planning/canonical-plan-engine.js';
 import{applyCanonicalBrowserPlan}from'./browser-member-state-plan.js';
-export function buildCanonicalBrowserPlan({discoveryOutput,confirmedPriorities,memberState,selectionEvidence={},activationEvidence={}}){
+export function buildCanonicalBrowserPlan({discoveryOutput,confirmedPriorities,memberState,selectionEvidence={},activationEvidence={},rejectedInterventionIds=[],preferredInterventionIds={},contraindications=[],adaptationConstraint=null,previousInterventionIds=[],previousMechanisms=[],maxEffort=null}){
  if(!memberState)throw new Error('Canonical Member State is required');
  const input=canonicalPlanningInputFromBrowser({discoveryOutput,confirmedPriorities,memberStateRevision:memberState.revision});
- const plan=buildCanonicalPlan(input,{selectionEvidence,activationEvidence});
+ const plan=buildCanonicalPlan(input,{selectionEvidence,activationEvidence,rejectedInterventionIds,preferredInterventionIds,contraindications,adaptationConstraint,previousInterventionIds,previousMechanisms,maxEffort});
  return{plan,view:canonicalBrowserPlanView(plan)};
 }
 export function activateCanonicalBrowserPlan({plan,memberState,acceptedInterventionIds=[]}){
