@@ -15,10 +15,11 @@ function dimensionConditions(discoveryOutput={}){
  for(const signal of signals.legacy?.dimensionSignals||[]){const dimension=String(signal?.dimension||'').toLowerCase();if(!DIMENSIONS.includes(dimension)||conditions[dimension])continue;const condition=normalizeCondition(signal?.condition);if(condition)conditions[dimension]=condition}
  return conditions;
 }
+function supportedRow(row){if(!row||row.excluded===true)return false;if(row.resolutionState==='dismissed')return false;const refs=(row.evidenceRefs||row.observationRefs||[]).map(String);return refs.some(ref=>ref&&!ref.startsWith('O')&&!ref.startsWith('BASELINE_')&&ref!=='TRIAGE')}
 export function projectOnboardingMemberState({memberId,discoveryOutput,now=new Date().toISOString()}){
  if(!memberId||!discoveryOutput)throw new Error('memberId and completed Discovery output are required');
  const evidence=[],problems=[];
- for(const row of candidateRows(discoveryOutput)){const id=row.concernId||row.sourceConcernId||row.id;if(!id)continue;const refs=[...(row.evidenceRefs||row.observationRefs||[])];for(const ref of refs)if(!evidence.some(x=>x.id===ref))evidence.push({id:ref,provenance:'DISCOVERY',recordedAt:now,concernId:id});const pid=canonicalMemberProblemId(row.problemId||id);if(!pid)continue;if(!problems.some(x=>x.id===pid))problems.push({id:pid,status:'SUPPORTED',evidenceRefs:refs,sourceConcernId:id})}
+ for(const row of candidateRows(discoveryOutput)){if(!supportedRow(row))continue;const id=row.concernId||row.sourceConcernId||row.id;if(!id)continue;const refs=[...(row.evidenceRefs||row.observationRefs||[])];for(const ref of refs)if(!evidence.some(x=>x.id===ref))evidence.push({id:ref,provenance:'DISCOVERY',recordedAt:now,concernId:id});const pid=canonicalMemberProblemId(row.problemId||id);if(!pid)continue;if(!problems.some(x=>x.id===pid))problems.push({id:pid,status:'SUPPORTED',evidenceRefs:refs,sourceConcernId:id})}
  const feasibility=discoveryOutput.baselineHandoff?.signals?.feasibility||{},capacity=feasibility.capacity??null,conditions=dimensionConditions(discoveryOutput);
  const baselineEvidenceRefs=[...new Set(evidence.map(x=>x.id))];
  const dimensions=Object.fromEntries(DIMENSIONS.map(d=>[d,{scope:'MONITORED',condition:conditions[d]||null,confidence:null,evidenceRefs:[],updatedAt:conditions[d]?now:null}]));
