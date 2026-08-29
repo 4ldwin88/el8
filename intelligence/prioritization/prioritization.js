@@ -44,7 +44,7 @@ function rationaleCodes(profile){
   return codes;
 }
 export function prioritizeCandidates(input,{safetyDisposition=null,decisionFactors={},now=new Date().toISOString()}={}){
-  if(!input||!Number.isInteger(input.memberStateRevision))throw new Error('canonical priorititization input is required');
+  if(!input||!Number.isInteger(input.memberStateRevision))throw new Error('canonical prioritization input is required');
   if(!Array.isArray(input.candidates))throw new Error('input.candidates is required');
   const blocked=['pause_ordinary_flow','escalate'].includes(safetyDisposition?.disposition);
   if(blocked)return{schemaVersion:PRIORITIZATION_SCHEMA_VERSION,memberStateRevision:input.memberStateRevision,createdAt:now,blockedBySafety:true,priorityItems:[],alternatives:[],rationaleCodes:['safety_override']};
