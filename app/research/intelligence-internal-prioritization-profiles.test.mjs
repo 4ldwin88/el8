@@ -38,9 +38,9 @@ const problem=(id,{status='SUPPORTED',confidence=null,evidenceRefs=[`e:${id}`]}=
 }
 {
  const discoveryOutput={trace:{states:[
-  {concernId:'poor_sleep',problemId:'problem:poor_sleep',evidenceRefs:['e:sleep'],memberImportance:2},
-  {concernId:'novel_unmapped_concern',evidenceRefs:['e:unknown'],memberImportance:3,crossDimensionalLeverage:'very-high'},
-  {concernId:'another_unknown',problemId:'problem:novel_unmapped',evidenceRefs:['e:unknown-canonical'],memberImportance:3}
+  {concernId:'poor_sleep',problemId:'problem:poor_sleep',resolutionState:'established',evidenceRefs:['e:sleep'],memberImportance:2},
+  {concernId:'novel_unmapped_concern',resolutionState:'established',evidenceRefs:['e:unknown'],memberImportance:3,crossDimensionalLeverage:'very-high'},
+  {concernId:'another_unknown',problemId:'problem:novel_unmapped',resolutionState:'established',evidenceRefs:['e:unknown-canonical'],memberImportance:3}
  ]}};
  const memberState=projectOnboardingMemberState({memberId:'T-UNKNOWN',discoveryOutput,now:'2026-08-28T00:00:00.000Z'});
  assert.deepEqual(memberState.problems.map(x=>x.id),['problem:poor_sleep']);
