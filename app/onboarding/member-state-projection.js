@@ -4,7 +4,7 @@
 import {canonicalMemberProblemId} from './canonical-problem-map.js';
 
 const DIMENSIONS=['physical','emotional','social','intellectual','spiritual','occupational','financial','environmental'];
-const candidateRows=output=>output?.trace?.states||output?.ranked||output?.selected||output?.priorityCandidates||output?.candidates||[];
+const candidateRows=output=>output?.trace?.states||[];
 export function projectOnboardingMemberState({memberId,discoveryOutput,now=new Date().toISOString()}){
  if(!memberId||!discoveryOutput)throw new Error('memberId and completed Discovery output are required');
  const evidence=[],problems=[];
