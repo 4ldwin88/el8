@@ -8,7 +8,7 @@ export function answerDiscoveryQuestion(session,question,answerIds){return Disco
 export function submitDiscoveryTriage(session,importanceByConcern){return Discovery.triage(session,importanceByConcern)}
 export function submitDiscoveryPriority(session,concernIds){return Discovery.prioritize(session,concernIds)}
 export function resolveDiscoveryConcern(session,concernId,resolutionState,options={}){return Discovery.resolve(session,concernId,resolutionState,options)}
-export function finishDiscovery(session){Discovery.complete(session);return discoveryOutput(session)}
+export function finishDiscovery(session){const floor=session.stageMinimum??1,handoffCount=session.stageCounts?.handoff??0;if(session.safety?.pauseOrdinaryFlow)throw new Error('Discovery cannot complete while Safety pauses ordinary flow');if(session.phase!=='handoff'||session.incomplete!==false||handoffCount<floor||session.facts?.handoffUnderstanding!=='accurate')throw new Error('Discovery is incomplete and cannot hand off to Prioritization');Discovery.complete(session);return discoveryOutput(session)}
 // Discovery exposes evidence/state trace plus the opening-snapshot context it consumed.
 // Prioritization and Planning own all downstream focus and plan decisions.
 export function discoveryOutput(session){return Object.freeze({trace:Discovery.trace(session),baselineHandoff:session.baselineHandoff||null})}
