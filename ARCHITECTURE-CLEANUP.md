@@ -8,15 +8,15 @@ Discovery → Member State → Prioritization → Planning → Action → Outcom
 
 Safety may interrupt ordinary flow at any point.
 
-Discovery begins with the broad life-status snapshot retained from the former Baseline questionnaire. The snapshot is evidence collection inside Discovery. It is not a separate canonical stage. Canonical Member State establishes the immutable initial baseline from completed Discovery evidence and confirmed focus.
+Discovery begins with the broad life-status snapshot retained from the former Baseline questionnaire. The snapshot is evidence collection inside Discovery. It is not a separate canonical stage. Canonical Member State establishes the immutable initial baseline from completed Discovery evidence before Prioritization or any member priority decision.
 
 ## Authority rule
 
 Each decision has one canonical owner:
 - Discovery: gather decision-changing evidence, including the opening broad snapshot.
 - Member State: durable member truth/provenance boundary and immutable initial baseline snapshot.
-- Prioritization: decide what matters now, subject to explicit member confirmation.
-- Planning: choose bounded feasible interventions and review rules.
+- Prioritization: decide what matters now; member decisions about proposed priorities are recorded separately and may include no accepted priority.
+- Planning: choose bounded feasible interventions and review rules for accepted priorities. Planning is not entered when the member chooses no active priority/plan.
 - Review: interpret outcome evidence and decide continue/adapt/reassess.
 - Safety: determine safety interruption/escalation semantics.
 - Persistence: store/reload canonical Member State without becoming a decision authority.
