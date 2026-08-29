@@ -21,7 +21,7 @@ export function prioritizationDecisionFactorsFromDiscovery(discoveryOutput={}){
     const materiality=qualitative(row.materiality);if(materiality)factor.materiality=materiality;
     if(row.urgent===true)factor.urgency='present';
     const leverage=qualitative(row.leverage??row.crossDimensionalLeverage);if(leverage)factor.leverage=leverage;
-    if(row.memberSelected===true)factor.readiness='present';
+    const readiness=qualitative(row.readiness);if(readiness)factor.readiness=readiness;
     if(Object.keys(factor).length)factors[id]={...(factors[id]||{}),...factor};
   }
   return factors;
