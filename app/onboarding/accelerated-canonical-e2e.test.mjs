@@ -80,7 +80,8 @@ test('multi-focus Planning is adaptive and low capacity constrains burden withou
  assert.ok(built.plan.proposedActions.length<=1);
  assert.ok(built.plan.uncoveredFocusIds.length>=1);
  assert.equal(projected.memberContext.capacity,'low');
- assert.ok(projected.constructs.every(c=>c.status==='supported'));
+ assert.equal(projected.constructs.SLEEP_QUALITY.status,'supported');
+ assert.equal(projected.constructs.ACTIVITY_LEVEL.status,'supported');
 });
 
 test('Action-specific assessment requirement blocks activation until resolved',()=>{
