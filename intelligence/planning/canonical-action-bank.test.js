@@ -11,6 +11,8 @@ for(const action of CANONICAL_ACTION_BANK){
  assert.ok(action.evidenceReviewStatus,`${action.actionId} evidence review status required`);
  assert.ok(action.review.trigger,`${action.actionId} review trigger required`);
  assert.ok(action.measurement.decisionUse,`${action.actionId} decision-use measurement required`);
+ assert.notEqual(String(action.review.trigger).trim().toLowerCase(),'7 days',`${action.actionId} review timing must be decision-driven, not universally hard-coded to seven days`);
+ assert.ok(!/generic.*check.?in/i.test(`${action.instruction||''} ${action.trackingRequirement||''}`),`${action.actionId} must not use generic check-ins instead of decision-useful measurement`);
  if(action.actionScope==='construct')assert.ok(action.constructIds.length>0,`${action.actionId} construct mapping required`);
  if(action.actionScope==='plan')assert.equal(action.constructIds.length,0,`${action.actionId} plan Action must not fake construct relevance`);
 }
@@ -28,4 +30,4 @@ assert.ok(r.eligible.some(x=>x.actionId==='XDM-001'));
 assert.equal(registry.forConstruct('RELATIONSHIP_STRAIN').length,0);
 assert.equal(registry.forConstruct('RELATIONSHIP_STRAIN',{includeHeld:true})[0].actionId,'SOC-004');
 
-console.log('All 41 Drive Actions are represented with canonical construct/plan scope and governance contracts');
+console.log('All 41 Drive Actions are represented with canonical construct/plan scope, decision-useful measurement, adaptive review, and governance contracts');
