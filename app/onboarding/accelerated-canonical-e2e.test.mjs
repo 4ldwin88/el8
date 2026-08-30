@@ -7,6 +7,7 @@ import {appendObservation,setResolution} from '../../intelligence/discovery/disc
 import {applyCanonicalBrowserPlan} from './browser-member-state-plan.js';
 import {activateCanonicalOnboarding} from './plan-activation-transaction.js';
 import {assertPlanReadyForActivation} from '../../intelligence/planning/activation-readiness.js';
+import {CANONICAL_ACTION_BANK} from '../../intelligence/planning/canonical-action-bank.js';
 
 function establish(session,concernId,{importance='high'}={}){
  appendObservation(session,{concernId,questionId:`raw:${concernId}`,effects:[{type:'evidence',target:concernId,polarity:'supports',strength:.9},{type:'importance',target:concernId,value:importance}]});
@@ -14,6 +15,15 @@ function establish(session,concernId,{importance='high'}={}){
  return session;
 }
 function rawHandoff(raw,candidateConcerns){return{...buildDiscoverySnapshotHandoff(raw),candidateConcerns,uncertainty:{requiresDiscoveryConfirmation:true},signals:{feasibility:raw.feasibility||{}}}}
+
+test('runtime Action Bank exposes only Drive-canonical Action IDs',()=>{
+ const ids=CANONICAL_ACTION_BANK.map(action=>action.actionId);
+ assert.ok(ids.includes('PHY-A02'));
+ assert.ok(ids.includes('EMT-A01'));
+ assert.ok(ids.includes('SPT-A01'));
+ assert.ok(ids.every(id=>/^(?:PHY|EMT|SOC|OCC|FIN|ENV|INT|SPT|XDM)-A\d{2}$/.test(id)));
+ assert.ok(ids.every(id=>!/(?:EMO|SPI)-|-[0-9]{3}$/.test(id)));
+});
 
 test('raw onboarding evidence reaches durable canonical activation without legacy authority',async()=>{
  const raw={condition_baseline:{Physical:'Struggling'},member_priority:'Physical',functional_impact:['Physical'],worsening:['Physical'],feasibility:{time:'<5 min',overall_load:'Difficult'}};
@@ -43,6 +53,24 @@ test('raw onboarding evidence reaches durable canonical activation without legac
  assert.ok(result.activeActionIds.includes('PHY-A02'));
  assert.equal('problems' in result,false);
  assert.equal('priorities' in result,false);
+});
+
+test('emotional Planning emits Drive-canonical EMT Action IDs',()=>{
+ const raw={condition_baseline:{Emotional:'Struggling'},member_priority:'Emotional',functional_impact:['Emotional'],feasibility:{time:'10 min',overall_load:'Manageable'}};
+ const discovery=establish(createDiscoveryFromSnapshot(rawHandoff(raw,['stress'])),'stress');
+ const built=buildOnboardingPlan({session:discovery,memberStateRevision:1,focusDecisions:[{constructId:'PRESSURE_PATTERN',decision:'accepted'}],planningOptions:{preferredActionIds:['EMT-A01']}});
+ assert.equal(built.plan.status,'proposed');
+ assert.ok(built.plan.proposedActions.some(action=>action.actionId==='EMT-A01'));
+ assert.ok(built.plan.proposedActions.every(action=>!action.actionId.startsWith('EMO-')));
+});
+
+test('spiritual/direction Planning accepts Drive-canonical SPT Action IDs',()=>{
+ const raw={condition_baseline:{Spiritual:'Struggling'},member_priority:'Spiritual',functional_impact:['Spiritual'],feasibility:{time:'10 min',overall_load:'Manageable'}};
+ const discovery=establish(createDiscoveryFromSnapshot(rawHandoff(raw,['low_direction'])),'low_direction');
+ const built=buildOnboardingPlan({session:discovery,memberStateRevision:1,focusDecisions:[{constructId:'DIRECTION_CLARITY',decision:'accepted'}],planningOptions:{preferredActionIds:['SPT-A03']}});
+ assert.equal(built.plan.status,'proposed');
+ assert.ok(built.plan.proposedActions.some(action=>action.actionId==='SPT-A03'));
+ assert.ok(built.plan.proposedActions.every(action=>!action.actionId.startsWith('SPI-')));
 });
 
 test('ambiguous financial evidence is held for discrimination and cannot invent Focus',()=>{
