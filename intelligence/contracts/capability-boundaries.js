@@ -1,7 +1,7 @@
 import { assertCanonicalConstructId } from './canonical-vocabulary.js';
 import { CANONICAL_CONTRACT_VERSION, UNKNOWN } from './canonical-contracts.js';
 
-export const CAPABILITY_BOUNDARY_VERSION='0.1.0';
+export const CAPABILITY_BOUNDARY_VERSION='0.2.0';
 export const NEXT_DISPOSITIONS=Object.freeze(['continue','deepen','simplify','replace','reassess','pause_reengage','refer','exit']);
 
 function obj(v,n){if(!v||typeof v!=='object'||Array.isArray(v))throw new Error(`${n} must be an object`);return v}
@@ -10,34 +10,11 @@ function str(v,n){if(typeof v!=='string'||!v.trim())throw new Error(`${n} must b
 function rev(v){if(!Number.isInteger(v)||v<0)throw new Error('memberStateRevision must be a non-negative integer');return v}
 function refs(v,n){arr(v,n);for(const x of v)str(x,n);return [...v]}
 function envelope(type,body){return Object.freeze({type,boundaryVersion:CAPABILITY_BOUNDARY_VERSION,contractVersion:CANONICAL_CONTRACT_VERSION,...body})}
+function planningContext(v={}){obj(v,'planningContext');const byConstruct={};for(const[id,value]of Object.entries(v.byConstruct??{})){assertCanonicalConstructId(id,`planningContext.byConstruct.${id}`);obj(value,`planningContext.byConstruct.${id}`);byConstruct[id]=Object.freeze({...value,evidenceRefs:refs(value.evidenceRefs??[],`planningContext.byConstruct.${id}.evidenceRefs`)});}return Object.freeze({scoringModelVersion:v.scoringModelVersion??'0.1.0',byConstruct:Object.freeze(byConstruct),global:Object.freeze({...v.global})});}
 
-export function evidenceToDiscovery({memberStateRevision,evidenceRefs,memberContextRef=null,safetyDisposition='ordinary_flow'}){
-  return envelope('evidence_to_discovery',{memberStateRevision:rev(memberStateRevision),evidenceRefs:refs(evidenceRefs,'evidenceRefs'),memberContextRef,safetyDisposition});
-}
-
-export function discoveryToPrioritization({memberStateRevision,candidates,evidenceRefs=[],sufficiency='sufficient',uncertaintyRefs=[]}){
-  rev(memberStateRevision);arr(candidates,'candidates');
-  const normalized=candidates.map((candidate,i)=>{obj(candidate,`candidates[${i}]`);assertCanonicalConstructId(candidate.constructId,`candidates[${i}].constructId`);if(!['established','supported'].includes(candidate.status))throw new Error('Prioritization candidates must be established or supported');return Object.freeze({...candidate,evidenceRefs:refs(candidate.evidenceRefs??[],`candidates[${i}].evidenceRefs`)});});
-  return envelope('discovery_to_prioritization',{memberStateRevision,candidates:normalized,evidenceRefs:refs(evidenceRefs,'evidenceRefs'),sufficiency,uncertaintyRefs:refs(uncertaintyRefs,'uncertaintyRefs')});
-}
-
-export function prioritizationToFocusConfirmation({memberStateRevision,recommended,alternatives=[],rationaleRefs=[]}){
-  rev(memberStateRevision);arr(recommended,'recommended');arr(alternatives,'alternatives');
-  const check=(x,n)=>{obj(x,n);assertCanonicalConstructId(x.constructId,`${n}.constructId`);const factors={};for(const [k,v] of Object.entries(x.factors??{}))factors[k]=v==null?UNKNOWN:v;return Object.freeze({...x,factors:Object.freeze(factors)});};
-  return envelope('prioritization_to_focus_confirmation',{memberStateRevision,recommended:recommended.map((x,i)=>check(x,`recommended[${i}]`)),alternatives:alternatives.map((x,i)=>check(x,`alternatives[${i}]`)),rationaleRefs:refs(rationaleRefs,'rationaleRefs')});
-}
-
-export function focusConfirmationToPlanning({memberStateRevision,focuses,evidenceRefs=[],constraintRefs=[],safetyDisposition='ordinary_flow'}){
-  rev(memberStateRevision);arr(focuses,'focuses');
-  const accepted=focuses.map((focus,i)=>{obj(focus,`focuses[${i}]`);assertCanonicalConstructId(focus.constructId,`focuses[${i}].constructId`);if(focus.decision!=='accepted')throw new Error('Planning boundary accepts only member-accepted Focus');str(focus.decidedAt,`focuses[${i}].decidedAt`);return Object.freeze({...focus});});
-  return envelope('focus_confirmation_to_planning',{memberStateRevision,focuses:accepted,evidenceRefs:refs(evidenceRefs,'evidenceRefs'),constraintRefs:refs(constraintRefs,'constraintRefs'),safetyDisposition});
-}
-
-export function executionToReview({memberStateRevision,planId,actionEvidenceRefs,outcomeRefs=[],contextChangeRefs=[],safetyDisposition='ordinary_flow'}){
-  return envelope('execution_to_review',{memberStateRevision:rev(memberStateRevision),planId:str(planId,'planId'),actionEvidenceRefs:refs(actionEvidenceRefs,'actionEvidenceRefs'),outcomeRefs:refs(outcomeRefs,'outcomeRefs'),contextChangeRefs:refs(contextChangeRefs,'contextChangeRefs'),safetyDisposition});
-}
-
-export function reviewToNextDecision({memberStateRevision,planId,disposition,reviewCycleId,evidenceRefs=[],focusRefs=[]}){
-  rev(memberStateRevision);str(planId,'planId');str(reviewCycleId,'reviewCycleId');if(!NEXT_DISPOSITIONS.includes(disposition))throw new Error('invalid Review disposition');for(const id of focusRefs)assertCanonicalConstructId(id,'focusRefs');
-  return envelope('review_to_next_decision',{memberStateRevision,planId,reviewCycleId,disposition,evidenceRefs:refs(evidenceRefs,'evidenceRefs'),focusRefs:[...focusRefs]});
-}
+export function evidenceToDiscovery({memberStateRevision,evidenceRefs,memberContextRef=null,safetyDisposition='ordinary_flow'}){return envelope('evidence_to_discovery',{memberStateRevision:rev(memberStateRevision),evidenceRefs:refs(evidenceRefs,'evidenceRefs'),memberContextRef,safetyDisposition});}
+export function discoveryToPrioritization({memberStateRevision,candidates,evidenceRefs=[],sufficiency='sufficient',uncertaintyRefs=[]}){rev(memberStateRevision);arr(candidates,'candidates');const normalized=candidates.map((candidate,i)=>{obj(candidate,`candidates[${i}]`);assertCanonicalConstructId(candidate.constructId,`candidates[${i}].constructId`);if(!['established','supported'].includes(candidate.status))throw new Error('Prioritization candidates must be established or supported');return Object.freeze({...candidate,evidenceRefs:refs(candidate.evidenceRefs??[],`candidates[${i}].evidenceRefs`)});});return envelope('discovery_to_prioritization',{memberStateRevision,candidates:normalized,evidenceRefs:refs(evidenceRefs,'evidenceRefs'),sufficiency,uncertaintyRefs:refs(uncertaintyRefs,'uncertaintyRefs')});}
+export function prioritizationToFocusConfirmation({memberStateRevision,recommended,alternatives=[],rationaleRefs=[]}){rev(memberStateRevision);arr(recommended,'recommended');arr(alternatives,'alternatives');const check=(x,n)=>{obj(x,n);assertCanonicalConstructId(x.constructId,`${n}.constructId`);const factors={};for(const[k,v]of Object.entries(x.factors??{}))factors[k]=v==null?UNKNOWN:v;return Object.freeze({...x,factors:Object.freeze(factors)});};return envelope('prioritization_to_focus_confirmation',{memberStateRevision,recommended:recommended.map((x,i)=>check(x,`recommended[${i}]`)),alternatives:alternatives.map((x,i)=>check(x,`alternatives[${i}]`)),rationaleRefs:refs(rationaleRefs,'rationaleRefs')});}
+export function focusConfirmationToPlanning({memberStateRevision,focuses,evidenceRefs=[],constraintRefs=[],safetyDisposition='ordinary_flow',planningContext={}}){rev(memberStateRevision);arr(focuses,'focuses');const accepted=focuses.map((focus,i)=>{obj(focus,`focuses[${i}]`);assertCanonicalConstructId(focus.constructId,`focuses[${i}].constructId`);if(focus.decision!=='accepted')throw new Error('Planning boundary accepts only member-accepted Focus');str(focus.decidedAt,`focuses[${i}].decidedAt`);return Object.freeze({...focus});});return envelope('focus_confirmation_to_planning',{memberStateRevision,focuses:accepted,evidenceRefs:refs(evidenceRefs,'evidenceRefs'),constraintRefs:refs(constraintRefs,'constraintRefs'),safetyDisposition,planningContext:planningContext(planningContext)});}
+export function executionToReview({memberStateRevision,planId,actionEvidenceRefs,outcomeRefs=[],contextChangeRefs=[],safetyDisposition='ordinary_flow'}){return envelope('execution_to_review',{memberStateRevision:rev(memberStateRevision),planId:str(planId,'planId'),actionEvidenceRefs:refs(actionEvidenceRefs,'actionEvidenceRefs'),outcomeRefs:refs(outcomeRefs,'outcomeRefs'),contextChangeRefs:refs(contextChangeRefs,'contextChangeRefs'),safetyDisposition});}
+export function reviewToNextDecision({memberStateRevision,planId,disposition,reviewCycleId,evidenceRefs=[],focusRefs=[]}){rev(memberStateRevision);str(planId,'planId');str(reviewCycleId,'reviewCycleId');if(!NEXT_DISPOSITIONS.includes(disposition))throw new Error('invalid Review disposition');for(const id of focusRefs)assertCanonicalConstructId(id,'focusRefs');return envelope('review_to_next_decision',{memberStateRevision,planId,reviewCycleId,disposition,evidenceRefs:refs(evidenceRefs,'evidenceRefs'),focusRefs:[...focusRefs]});}
