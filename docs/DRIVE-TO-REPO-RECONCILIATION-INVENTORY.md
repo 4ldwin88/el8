@@ -4,16 +4,22 @@ Status: ACTIVE / BLOCKING
 Candidate branch: `qa/intelligence-test`  
 Authority: companion execution evidence for `DRIVE-TO-REPO-INTELLIGENCE-RECONCILIATION.md`.
 
-## Current Drive facts verified 2026-08-30
+## Current-source rule
 
-### Question & Signal authority
+The current governed EL8 Drive architecture is the only implementation target. Git history is the archive.
 
-The current `02.04.01 EL8 Question & Signal Matrix Workbook` has nine governed tabs: Question Bank, Scoring Guide, Test Results, Signals, Relationships, Sources, README, Path Audit and Evidence Bank. The Question Bank contains the canonical descriptive ID namespace and legacy/runtime ID trace column.
+Repository reconciliation must not preserve superseded identifiers, question/answer definitions, concern/problem/intervention ontologies, aliases, adapters, compatibility readers, fixtures, tests, files, documents, comments, or terminology merely for historical traceability or backward compatibility.
 
-Critical current rules verified directly from the workbook:
+If an item is not part of the current governed architecture and is not required by the current product, it is removed rather than translated forward.
 
-- Canonical Question IDs are descriptive (`GEN###`, `PHY###`, `EMT###`, `SOC###`, `OCC###`, `FIN###`, `INT###`, `SPT###`, `ENV###`, `SFT###`, `XDM###`).
-- Legacy/runtime IDs are traceability metadata, not the target runtime namespace.
+## Question & Signal authority
+
+`02.04.01 EL8 Question & Signal Matrix Workbook` is the implementation source for the Question/Answer registry. The repository port must cover every valid current governed Question and Answer row and its current metadata/semantics.
+
+Canonical Question IDs use the current descriptive namespaces (`GEN###`, `PHY###`, `EMT###`, `SOC###`, `OCC###`, `FIN###`, `INT###`, `SPT###`, `ENV###`, `SFT###`, `XDM###`). No superseded identifier is part of the target registry.
+
+Required semantics include:
+
 - Questions produce evidence, not plans.
 - Gateway selections are routing/salience priors, not impairment/severity evidence.
 - Direct state answers establish their named construct only.
@@ -21,139 +27,77 @@ Critical current rules verified directly from the workbook:
 - Contributor/cross-domain answers create hypotheses/context rather than parallel construct severity.
 - Feasibility/preferences/constraints are Planning evidence, not wellness severity.
 - System-control/positive/opt-out answers govern flow rather than wellness state.
-- Safety state is categorical and governed separately.
-- Semantic sufficiency is decision-based, not a question/stage count or numeric threshold.
+- Safety is categorical and governed separately.
+- Semantic sufficiency is decision-based, not a fixed count/threshold.
 
-The Path Audit explicitly marks the major Focus/mixed/positive/uncertain paths as design-resolved with runtime reconciliation pending. This means the repository must implement the Drive path semantics rather than preserve old controller behavior.
+### GEN001
 
-### GEN001 authority
+`GEN001` is the opening gateway. Its selections route only. `well` enters the positive path; `unsure` enters the low-burden uncertain-start path; `other` remains uncategorized until clarified. None of its selections manufactures construct severity.
 
-Canonical `GEN001` is the opening gateway. Its selections route to possible areas but have no direct construct-severity effect. In particular:
+### Current construct authority
 
-- money → Financial routing only; no direct FINANCIAL_STRAIN severity;
-- work → Occupational routing only; no direct JOB_SECURITY/SCHEDULE_DISRUPTION severity;
-- health → PHYSICAL_CONDITION scope only;
-- energy → ENERGY_FUNCTION routing only;
-- sleep → SLEEP_QUALITY routing only;
-- stress → PRESSURE_PATTERN/emotional routing only;
-- relationships → RELATIONSHIP_STRAIN routing only;
-- support → Social support/loneliness cluster routing only;
-- home → Environmental routing only;
-- focus → Focus/Activation cluster routing only;
-- direction → Direction/Meaning/Next-step cluster routing only;
-- other → uncategorized until clarified;
-- well → positive path;
-- unsure → low-burden uncertain-start path.
+Current mapped constructs include EMOTIONAL_STATE, PRESSURE_PATTERN, SLEEP_QUALITY, ENERGY_FUNCTION, LONELINESS, JOB_SECURITY, FINANCIAL_STRAIN, FINANCIAL_CONTROL, ENVIRONMENTAL_SUPPORT, MEANING_PURPOSE, RELATIONSHIP_STRAIN, SUPPORT_AVAILABILITY, PHYSICAL_CONDITION, ACTIVITY_LEVEL, FOCUS_FUNCTION, ACTIVATION, SCHEDULE_DISRUPTION, BODY_WEIGHT_CONCERN, VALUES_CLARITY, NEXT_STEP_CLARITY and DIRECTION_CLARITY. COGNITIVE_ENGAGEMENT remains experimental/deferred unless/until current Drive governance promotes it.
 
-### Signal/construct authority
+## Question Bank execution status
 
-Current mapped constructs include EMOTIONAL_STATE, PRESSURE_PATTERN, SLEEP_QUALITY, ENERGY_FUNCTION, LONELINESS, JOB_SECURITY, FINANCIAL_STRAIN, FINANCIAL_CONTROL, ENVIRONMENTAL_SUPPORT, MEANING_PURPOSE, RELATIONSHIP_STRAIN, SUPPORT_AVAILABILITY, PHYSICAL_CONDITION, ACTIVITY_LEVEL, FOCUS_FUNCTION, ACTIVATION, SCHEDULE_DISRUPTION, BODY_WEIGHT_CONCERN, VALUES_CLARITY, NEXT_STEP_CLARITY and DIRECTION_CLARITY. COGNITIVE_ENGAGEMENT remains experimental/deferred.
+Completed:
 
-## Action Bank authority verified 2026-08-30
+- Retired rows were removed from the Drive Question Bank at user direction.
+- The obsolete executable General question bank was removed from `intelligence/discovery/questions/core.js`.
+- `general.js` was rebuilt around current canonical General IDs and routing/context/control semantics.
 
-`02.06 EL8 Protocol & Action Library` is not just an ID list. Its Action Library has 20 governed fields per Action including use conditions, minimum evidence, review window, expected signal, burden, exclusions/contraindications, stop/reconsider rules, Safety/referral rules, confidence floor, status, tracking/logging requirement, additional assessment requirement, semantic icon key, evidence/source IDs, evidence strength, permitted claim and evidence-review status.
+Still blocking:
 
-The repository therefore cannot call its Action Bank reconciled merely because all Action IDs exist.
+- Port every remaining valid current Question and Answer row from the Drive Question Bank into the repository.
+- Preserve exact current prompt/answer wording and governed metadata needed by runtime/QA.
+- Represent deferred/design-only/held material only when it is a current governed item, with runtime exclusion enforced by current status.
+- Remove all remaining superseded question/answer definitions, aliases, effect-key ontologies, adapters, fixtures, tests, files, comments and documentation.
+- Update every consumer, selector, telemetry event, scenario and browser path to consume the current Question/Answer registry directly.
+- Add CI validation for duplicate/unknown Question IDs, orphan consumers, invalid targets, status misuse and any reintroduction of superseded namespaces.
 
-Current canonical Action IDs verified from Drive:
+## Action Bank authority
 
-`PHY-A01`, `PHY-A02`, `PHY-A03`, `PHY-A04`, `PHY-A05`, `PHY-A06`, `PHY-A07`; `EMT-A01`, `EMT-A02`, `EMT-A03`, `EMT-A04`; `SOC-A01`, `SOC-A02`, `SOC-A03`, `SOC-A04`; `OCC-A01`, `OCC-A02`, `OCC-A03`, `OCC-A04`; `FIN-A01`, `FIN-A02`, `FIN-A03`, `FIN-A04`; `ENV-A01`, `ENV-A02`, `ENV-A03`, `ENV-A04`; `INT-A01`, `INT-A02`, `INT-A03`, `INT-A04`; `SPT-A01`, `SPT-A02`, `SPT-A03`, `SPT-A04`; `XDM-A01`, `XDM-A02`, `XDM-A03`, `XDM-A04`, `XDM-A05`, `XDM-A06`.
+`02.06 EL8 Protocol & Action Library` is the only Action implementation authority. `intelligence/planning/action-bank.js` is the sole executable Action Bank target.
 
-Special statuses are material: `SOC-A04` is held for governance/evidence review; `INT-A04` is held pending COGNITIVE_ENGAGEMENT construct validation. Plan-scope Actions such as the XDM family are not construct treatments.
+The duplicate intervention library has been removed. No superseded intervention IDs or driver-keyed intervention ontology should remain executable or be retained for compatibility.
 
-Protocol Standards PS-01 through PS-16 are implementation requirements. Important invariants include Safety first, minimum decision-critical evidence, member choice, smallest useful scope, low-risk/reversible automation, reconstructable explainability, minimum decision-useful measurement, explicit stop condition, cross-dimensional harm check, no hidden human synthesis, no clinical substitution, provisional-until-validated status, Action-linked evidence capture, stable semantic icon identity, evidence-backed rationale and claim discipline.
+Every current Action must preserve its governed fields, including use conditions, minimum evidence, review window, expected signal, burden, exclusions/contraindications, stop/reconsider rules, Safety/referral rules, confidence floor, status, tracking/logging requirement, additional assessment requirement, semantic icon key, evidence/source IDs, evidence strength, permitted claim and evidence-review status.
 
-The Drive Discovery→Planning Contract is also binding. It specifies which Actions/families are eligible for each construct, when clarification is warranted, valid no-action/handoff dispositions, professional routes, Safety overrides, held/deferred families, tracking contracts and claim limits.
+Current Action IDs are `PHY-A01`–`PHY-A07`, `EMT-A01`–`EMT-A04`, `SOC-A01`–`SOC-A04`, `OCC-A01`–`OCC-A04`, `FIN-A01`–`FIN-A04`, `ENV-A01`–`ENV-A04`, `INT-A01`–`INT-A04`, `SPT-A01`–`SPT-A04`, and `XDM-A01`–`XDM-A06` as governed by the current Drive library. Held/status restrictions such as SOC-A04 and INT-A04 remain binding while current Drive governance says so.
 
-## Repository findings — confirmed defects / reconciliation blockers
+## Active implementation disposition
 
-### BLOCKER Q-001 — GEN001 currently creates severity evidence
+KEEP / reconcile to current Drive:
+- `intelligence/discovery/questions/*`
+- Discovery controller/engine/eligibility/scheduler/sufficiency
+- `intelligence/state/*`
+- `intelligence/prioritization/*`
+- `intelligence/planning/action-contract.js`
+- `intelligence/planning/action-bank.js`
+- `intelligence/planning/discovery-planning-contract.js`
+- canonical Planning/scoring/evidence modules
+- `intelligence-test/*` tester shell, with product semantics supplied by current canonical engines
 
-`intelligence/discovery/questions/general.js` currently assigns positive numeric effects directly to GEN001 selections such as `money_pressure:.2`, `work_instability:.2`, `physical_condition:.2`, `low_energy:.2`, `poor_sleep:.2`, `stress:.2`, `relationship_strain:.2`, `home_instability:.2`, etc. This directly violates the Drive rule that GEN001 selections are routing priors only.
+REMOVE after current consumers are migrated:
+- `intelligence/discovery/question-bank-adapter.js` if it exists only to translate superseded effect/concern semantics
+- `intelligence/discovery/concern-projection.js` if it implements a superseded concern ontology rather than current construct-native state
+- round/controller modules or tests that exist only for superseded Question IDs, scoring, stages or behavior
+- any browser concern→construct translation authority
 
-Disposition: REWRITE producer semantics and all dependent tests/consumers before further browser testing.
+HOLD only when currently governed:
+- current design-only Safety material not yet validated for runtime
+- current held/deferred Question or Action records, with explicit runtime exclusion
 
-### BLOCKER Q-002 — active adapter perpetuates legacy concern ontology
+## Immediate execution sequence
 
-`intelligence/discovery/question-bank-adapter.js` currently maps legacy effect keys through `CONCERN_ALIAS`, converts numeric effects into support/contradiction evidence, and treats the old concern namespace as an active internal decision layer. This is exactly the compatibility architecture the controlled reconciliation is intended to retire.
+1. Port the full valid current Drive Question/Answer bank into a machine-readable repository registry/domain modules without superseded identifiers or aliases.
+2. Reconcile every Discovery consumer to that registry.
+3. Delete translation/compatibility modules made unnecessary by the current registry.
+4. Add negative CI guards so superseded IDs/ontologies cannot return.
+5. Reconcile Discovery stages, evidence lifecycle, correction, contradiction and semantic sufficiency.
+6. Reconcile Member State directly to current constructs.
+7. Reconcile Prioritization/member Focus confirmation.
+8. Complete Action Bank field-by-field reconciliation and Discovery→Planning contract enforcement.
+9. Reconcile browser tester, telemetry and required scenarios on the same exact candidate.
 
-Disposition: MIGRATE to canonical Question IDs + canonical construct/evidence semantics. Preserve legacy IDs only as traceability metadata or bounded compatibility input where genuinely required.
-
-### BLOCKER Q-003 — Question Bank is not yet Drive-canonical end-to-end
-
-Repository question files still use a mixture of legacy IDs/effect keys and Drive-era concepts. Presence of canonical `GEN001` alone is insufficient. Every active Question/Answer must be reconciled against the workbook row, including status (Keep/Deferred/Retired/Design-only), role, response mode, answer semantics, stage/scheduling, direct-vs-hypothesis-vs-fit-vs-system-control class and Safety boundary.
-
-Disposition: row-by-row migration plus CI registry validation.
-
-### BLOCKER A-001 — duplicate Planning/Action authorities exist
-
-Repository contains both `intelligence/planning/canonical-action-bank.js` and `intelligence/planning/intervention-library.js`. The latter still exposes legacy driver-keyed entries such as `poor_sleep`, `schedule_disruption`, `stress`, `low_energy`, `low_focus`, `low_activity`, `work_instability`, `money_pressure`, `relationship_strain`, `low_support`, `home_instability`, `lack_direction` and noncanonical Action IDs such as `sleep_log`, `walk`, `money_snapshot`, etc.
-
-This is a parallel executable intervention authority and violates the one-canonical-implementation rule.
-
-Disposition: trace all consumers. MERGE any still-useful behavior/evidence mechanics into canonical Drive Action definitions where the Drive supports it, then RETIRE the executable legacy library. Do not maintain two Action Banks.
-
-### BLOCKER A-002 — canonical Action Bank is structurally incomplete versus Drive
-
-`canonical-action-bank.js` has all current canonical Action IDs and some tracking/assessment/icon metadata, but its generic `make()` function fills major governed fields with generic defaults. Drive-specific `Use When`, `Minimum Evidence`, duration/review, expected signal, exclusions/contraindications, stop/reconsider, Safety/referral rule, confidence floor, status, evidence basis/source IDs, evidence strength, permitted rationale/claim and evidence review status are not faithfully represented per row.
-
-Disposition: expand the canonical Action contract and migrate every Drive Action row field-by-field. Generic defaults may exist only where the Drive itself defines a common default; they cannot erase row-specific governance.
-
-### BLOCKER A-003 — Action status/evidence claims require exact preservation
-
-The current code normalizes many evidence statuses/strengths and claims. Drive distinguishes provisional, held, pending action-specific review, moderate general mechanism, low/governance review, validation required, etc. These affect recommendation eligibility and member-facing claim ceilings.
-
-Disposition: preserve exact governed status/claim/evidence semantics needed by Planning and QA.
-
-### BLOCKER A-004 — Discovery→Planning contract must be executable
-
-The Drive contract explicitly permits no-action dispositions for many constructs and forbids generic Actions for EMOTIONAL_STATE, ENERGY_FUNCTION, PHYSICAL_CONDITION and BODY_WEIGHT_CONCERN. It also distinguishes conditional Action families and held Actions. The repo must prove Planning consumes this contract rather than simply looking up Actions by construct.
-
-Disposition: reconcile `discovery-planning-contract.js`, canonical plan engine, scoring/gates and browser Plan view against the Drive contract matrix.
-
-## Active implementation inventory — first classification
-
-KEEP / reconcile in place:
-- `intelligence/discovery/questions/*` — canonical owner, but content requires Drive migration.
-- `intelligence/discovery/discovery-controller.js`
-- `intelligence/discovery/discovery-engine.js`
-- `intelligence/discovery/question-eligibility.js`
-- `intelligence/discovery/question-scheduler.js`
-- `intelligence/discovery/sufficiency.js`
-- `intelligence/state/*` canonical Member State implementation, subject to construct/evidence reconciliation.
-- `intelligence/prioritization/*` canonical Prioritization owner, subject to Drive factor/ambiguity reconciliation.
-- `intelligence/planning/action-contract.js` — expand to exact 02.06 governed fields.
-- `intelligence/planning/canonical-action-bank.js` — canonical Action Bank target; field-by-field migration required.
-- `intelligence/planning/discovery-planning-contract.js` — canonical boundary target; exact Drive matrix reconciliation required.
-- `intelligence/planning/canonical-plan-engine.js`
-- `intelligence/planning/recommendation-scoring.js`
-- `intelligence/planning/selection-evidence.js`
-- `intelligence-test/*` — preserve tester shell, replace product semantics with canonical engine output.
-
-MIGRATE / then retire:
-- `intelligence/discovery/question-bank-adapter.js` — migrate away from legacy concern/effect ontology.
-- `intelligence/discovery/concern-projection.js` — inspect consumers; likely migrate to construct-native projection.
-- `intelligence/planning/intervention-library.js` — duplicate executable legacy Action authority; merge any unique still-governed mechanics then retire.
-
-REVIEW FOR RETIREMENT / duplication:
-- `intelligence/discovery/round3-controller.js`
-- `intelligence/discovery/round3-engine.js`
-- any tests whose sole purpose is preserving legacy IDs, old concern scoring or duplicate intervention behavior.
-
-HOLD / validation-gated:
-- SFT design-only Safety wording must not be promoted for external use without the governed validation gate.
-- `SOC-A04` and `INT-A04` must retain their Drive hold semantics.
-
-## Next execution batch
-
-1. Trace consumers of `intervention-library.js`, `question-bank-adapter.js`, `concern-projection.js`, round3 files and `canonical-action-bank.js`.
-2. Create a machine-readable canonical Question/Answer registry from the current Drive rows, or migrate the existing domain files so they exactly encode those rows without legacy effect semantics.
-3. Make GEN001 routing-only and update every dependent test/consumer in the same batch.
-4. Expand Action contract to encode the complete governed 02.06 row contract.
-5. Rebuild `canonical-action-bank.js` from the Drive Action Library field-by-field.
-6. Reconcile `discovery-planning-contract.js` against the Drive contract matrix.
-7. Retire duplicate executable intervention authority after consumer migration.
-8. Add CI validation that detects unknown/duplicate Question IDs, unauthorized active legacy IDs, unknown Action IDs, duplicate Action authorities, missing Action governance fields and held/deferred Action misuse.
-9. Only then continue into controller/sufficiency/Member State/Prioritization/browser reconciliation.
-
-Human test status remains BLOCKED.
+Human test status remains BLOCKED until the exact-candidate promotion gates pass.
