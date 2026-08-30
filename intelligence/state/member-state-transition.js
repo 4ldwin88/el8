@@ -66,7 +66,19 @@ export function applyMemberStateTransition(state,{type,payload={},source,at=new 
         requireString(payload.revalidationPolicy,'hypothesis revalidationPolicy');
         requireString(payload.revalidateAfter,'hypothesis revalidateAfter');
       }
-      next.hypotheses[payload.hypothesisId]={...(next.hypotheses[payload.hypothesisId]??{}),...clone(payload),hypothesisId:payload.hypothesisId,lastDerivedAt:at};
+      const current=next.hypotheses[payload.hypothesisId]??{};
+      next.hypotheses[payload.hypothesisId]={
+        confirmationStatus:'not_required',
+        linkedConstructIds:[],
+        linkedDimensionIds:[],
+        evidenceFor:[],
+        evidenceAgainst:[],
+        createdAt:at,
+        ...current,
+        ...clone(payload),
+        hypothesisId:payload.hypothesisId,
+        lastDerivedAt:at,
+      };
       break;
     }
     case MEMBER_STATE_EVENT.FOCUS_DECIDED:{
