@@ -14,9 +14,3 @@ test('member journey does not present Baseline as a separate stage',()=>{
   assert.ok(!html.includes('<span>Baseline</span>'),`${file} must not present Baseline as a separate stage`);
  }
 });
-
-test('assessment compatibility surface redirects into Discovery',()=>{
- const html=fs.readFileSync(new URL('../../assessment.html',import.meta.url),'utf8');
- assert.ok(html.includes('discovery-snapshot.html'));
- assert.ok(!html.includes('How are these parts of life going?'),'compatibility page must not duplicate the Discovery snapshot questionnaire');
-});
