@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { CANONICAL_ACTION_BANK, CANONICAL_ACTION_BY_ID } from './canonical-action-bank.js';
+import { CANONICAL_ACTION_BANK, CANONICAL_ACTION_BY_ID } from './action-bank.js';
 import { createActionRegistry } from './action-registry.js';
 
 assert.equal(CANONICAL_ACTION_BANK.length,41);
