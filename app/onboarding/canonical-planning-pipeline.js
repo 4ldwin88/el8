@@ -1,34 +1,14 @@
 // Onboarding orchestration for the canonical Intelligence chain.
-// Discovery remains the sufficiency authority. This module translates resolved
-// Discovery concerns once at the compatibility boundary, then invokes canonical
-// Prioritization, member Focus confirmation and Planning.
-import {createDiscoverySession,activateConcerns,mergeFacts,buildPlan as buildDiscoveryPriority} from '../../intelligence/discovery/discovery-controller.js';
+// Discovery establishes sufficient concern state; Prioritization and Planning remain downstream authorities.
+import {createDiscoverySession,activateConcerns,mergeFacts,deriveStates} from '../../intelligence/discovery/discovery-controller.js';
 import {prioritizeCandidates} from '../../intelligence/prioritization/prioritization.js';
 import {confirmFocus,focusConfirmationPlanningInput} from '../../intelligence/prioritization/focus-confirmation.js';
 import {buildCanonicalPlan} from '../../intelligence/planning/canonical-plan-engine.js';
-
 const LEGACY_CONSTRUCT_MAP=Object.freeze({money:['FINANCIAL_STRAIN','FINANCIAL_CONTROL'],money_pressure:['FINANCIAL_STRAIN','FINANCIAL_CONTROL'],physical_condition:['PHYSICAL_CONDITION'],low_activity:['ACTIVITY_LEVEL'],low_energy:['ENERGY_FUNCTION'],poor_sleep:['SLEEP_QUALITY'],work_pressure:['JOB_SECURITY'],work_instability:['JOB_SECURITY'],low_direction:['DIRECTION_CLARITY'],lack_direction:['MEANING_PURPOSE','DIRECTION_CLARITY'],low_focus:['FOCUS_FUNCTION'],low_activation:['ACTIVATION'],schedule_disruption:['SCHEDULE_DISRUPTION'],stress:['PRESSURE_PATTERN'],relationship_strain:['RELATIONSHIP_STRAIN'],low_support:['SUPPORT_AVAILABILITY'],lonely:['LONELINESS'],home_instability:['ENVIRONMENTAL_SUPPORT']});
-function capacityFromFeasibility(feasibility={}){return ['Overwhelming','Difficult'].includes(feasibility.overall_load)||feasibility.time==='<5 min'?'low':'unknown'}
-function discoveryCandidate(state={}){const mapped=LEGACY_CONSTRUCT_MAP[state.concernId]??LEGACY_CONSTRUCT_MAP[state.id]??[];return mapped.map(constructId=>({constructId,status:'supported',evidenceRefs:[...(state.evidenceRefs||[])],sourceConcernId:state.concernId??state.id,ambiguousLegacyMapping:mapped.length>1}));}
-
-export function createDiscoveryFromSnapshot(handoff={},options={}){
- const concernIds=[...(handoff?.candidateConcerns||[])];if(!handoff?.uncertainty?.requiresDiscoveryConfirmation||!concernIds.length)return null;
- const signals=handoff.signals||{},legacy=signals.legacy||{},feasibility=signals.feasibility||{};const memberPriorityConcern=(signals.priorityConcerns||[]).find(id=>concernIds.includes(id))||(legacy.priority&&concernIds.length===1?concernIds[0]:null);const snapshotDimension=(handoff.candidateDimensions||[])[0]||null;const snapshotFeasibility={...feasibility,capacity:capacityFromFeasibility(feasibility)};
- const session=createDiscoverySession({concernIds,questionBank:options.questionBank||[],labels:options.labels||{},outerGuardrail:options.outerGuardrail||14,facts:{discoverySnapshotHandoff:handoff,snapshotCapacity:snapshotFeasibility.capacity,...(options.facts||{})}});activateConcerns(session,concernIds);mergeFacts(session,{memberPriorityConcern,snapshotDimension,snapshotFeasibility});return session;
-}
-
-export function discoveryPrioritizationInput(session,{memberStateRevision=0}={}){
- if(!session)throw new Error('Discovery session required');const legacy=buildDiscoveryPriority(session,Number.MAX_SAFE_INTEGER);const raw=(legacy.selected||[]).flatMap(discoveryCandidate);
- // Ambiguous legacy aliases are not allowed to silently establish multiple constructs.
- const candidates=raw.filter(x=>!x.ambiguousLegacyMapping).map(({ambiguousLegacyMapping,sourceConcernId,...x})=>x);
- const heldAmbiguous=raw.filter(x=>x.ambiguousLegacyMapping).map(x=>({sourceConcernId:x.sourceConcernId,constructId:x.constructId,reason:'legacy_mapping_requires_discrimination'}));
- return{memberStateRevision,candidates,heldAmbiguous};
-}
-
-export function planningHandoffFromDiscovery(session,{memberStateRevision=0,decisionFactors={}}={}){
- const discovery=discoveryPrioritizationInput(session,{memberStateRevision});const prioritization=prioritizeCandidates({memberStateRevision,candidates:discovery.candidates},{decisionFactors});return{discovery,prioritization};
-}
-
-export function buildOnboardingPlan({session,memberStateRevision=0,decisionFactors={},focusDecisions=[],constraints=[],evidenceRefs=[],safetyDisposition='ordinary_flow',planningOptions={}}={}){
- const handoff=planningHandoffFromDiscovery(session,{memberStateRevision,decisionFactors});const confirmation=confirmFocus({prioritization:handoff.prioritization,decisions:focusDecisions,constraints});const planningInput=focusConfirmationPlanningInput(confirmation,{evidenceRefs,safetyDisposition});const plan=buildCanonicalPlan(planningInput,planningOptions);return{...handoff,confirmation,planningInput,plan};
-}
+function capacityFromFeasibility(feasibility={}){return['Overwhelming','Difficult'].includes(feasibility.overall_load)||feasibility.time==='<5 min'?'low':'unknown'}
+function discoveryCandidate(state={}){const mapped=LEGACY_CONSTRUCT_MAP[state.concernId]??[];return mapped.map(constructId=>({constructId,status:'supported',evidenceRefs:[...(state.evidenceRefs||[])],sourceConcernId:state.concernId,ambiguousLegacyMapping:mapped.length>1}))}
+function resolvedForHandoff(state){return !state.excluded&&['sufficient','resolved'].includes(state.resolutionState)}
+export function createDiscoveryFromSnapshot(handoff={},options={}){const concernIds=[...(handoff?.candidateConcerns||[])];if(!handoff?.uncertainty?.requiresDiscoveryConfirmation||!concernIds.length)return null;const signals=handoff.signals||{},legacy=signals.legacy||{},feasibility=signals.feasibility||{};const memberPriorityConcern=(signals.priorityConcerns||[]).find(id=>concernIds.includes(id))||(legacy.priority&&concernIds.length===1?concernIds[0]:null);const snapshotDimension=(handoff.candidateDimensions||[])[0]||null;const snapshotFeasibility={...feasibility,capacity:capacityFromFeasibility(feasibility)};const session=createDiscoverySession({concernIds,questionBank:options.questionBank||[],labels:options.labels||{},outerGuardrail:options.outerGuardrail||14,facts:{discoverySnapshotHandoff:handoff,snapshotCapacity:snapshotFeasibility.capacity,...(options.facts||{})}});activateConcerns(session,concernIds);mergeFacts(session,{memberPriorityConcern,snapshotDimension,snapshotFeasibility});return session}
+export function discoveryPrioritizationInput(session,{memberStateRevision=0}={}){if(!session)throw new Error('Discovery session required');const raw=deriveStates(session).filter(resolvedForHandoff).flatMap(discoveryCandidate);const candidates=raw.filter(x=>!x.ambiguousLegacyMapping).map(({ambiguousLegacyMapping,sourceConcernId,...x})=>x);const heldAmbiguous=raw.filter(x=>x.ambiguousLegacyMapping).map(x=>({sourceConcernId:x.sourceConcernId,constructId:x.constructId,reason:'legacy_mapping_requires_discrimination'}));return{memberStateRevision,candidates,heldAmbiguous}}
+export function planningHandoffFromDiscovery(session,{memberStateRevision=0,decisionFactors={}}={}){const discovery=discoveryPrioritizationInput(session,{memberStateRevision});const prioritization=prioritizeCandidates({memberStateRevision,candidates:discovery.candidates},{decisionFactors});return{discovery,prioritization}}
+export function buildOnboardingPlan({session,memberStateRevision=0,decisionFactors={},focusDecisions=[],constraints=[],evidenceRefs=[],safetyDisposition='ordinary_flow',planningOptions={}}={}){const handoff=planningHandoffFromDiscovery(session,{memberStateRevision,decisionFactors});const confirmation=confirmFocus({prioritization:handoff.prioritization,decisions:focusDecisions,constraints});const planningInput=focusConfirmationPlanningInput(confirmation,{evidenceRefs,safetyDisposition});const plan=buildCanonicalPlan(planningInput,planningOptions);return{...handoff,confirmation,planningInput,plan}}
