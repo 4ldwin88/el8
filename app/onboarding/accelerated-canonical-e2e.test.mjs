@@ -7,7 +7,7 @@ import {appendObservation,setResolution} from '../../intelligence/discovery/disc
 import {applyCanonicalBrowserPlan} from './browser-member-state-plan.js';
 import {activateCanonicalOnboarding} from './plan-activation-transaction.js';
 import {assertPlanReadyForActivation} from '../../intelligence/planning/activation-readiness.js';
-import {CANONICAL_ACTION_BANK} from '../../intelligence/planning/canonical-action-bank.js';
+import {CANONICAL_ACTION_BANK} from '../../intelligence/planning/action-bank.js';
 
 function establish(session,concernId,{importance='high'}={}){
  appendObservation(session,{concernId,questionId:`raw:${concernId}`,effects:[{type:'evidence',target:concernId,polarity:'supports',strength:.9},{type:'importance',target:concernId,value:importance}]});
