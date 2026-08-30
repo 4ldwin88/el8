@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root=process.cwd();
-const htmlFiles=fs.readdirSync(root).filter(name=>name.endsWith('.html'));
 const importPattern=/\b(?:import\s+(?:[^'";]+?\s+from\s+)?|import\s*\()(['"])(\.{1,2}\/[^'"]+)\1/g;
 const missing=[];
+const htmlFiles=[];
 
 function checkSource(source,fromFile){
   importPattern.lastIndex=0;
@@ -16,16 +16,19 @@ function checkSource(source,fromFile){
   }
 }
 
-for(const file of htmlFiles) checkSource(fs.readFileSync(path.join(root,file),'utf8'),file);
-
 function walk(dir){
   for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
     if(entry.name==='node_modules'||entry.name==='.git') continue;
     const full=path.join(dir,entry.name);
     if(entry.isDirectory()) walk(full);
-    else if(entry.isFile()&&(entry.name.endsWith('.js')||entry.name.endsWith('.mjs'))){
+    else if(entry.isFile()){
       const rel=path.relative(root,full);
-      checkSource(fs.readFileSync(full,'utf8'),rel);
+      if(entry.name.endsWith('.html')){
+        htmlFiles.push(rel);
+        checkSource(fs.readFileSync(full,'utf8'),rel);
+      }else if(entry.name.endsWith('.js')||entry.name.endsWith('.mjs')){
+        checkSource(fs.readFileSync(full,'utf8'),rel);
+      }
     }
   }
 }
