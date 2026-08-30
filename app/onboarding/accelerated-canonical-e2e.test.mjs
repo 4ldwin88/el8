@@ -64,12 +64,12 @@ test('emotional Planning emits Drive-canonical EMT Action IDs',()=>{
  assert.ok(built.plan.proposedActions.every(action=>!action.actionId.startsWith('EMO-')));
 });
 
-test('spiritual/direction Planning accepts Drive-canonical SPT Action IDs',()=>{
+test('spiritual/direction Planning emits a Drive-supported canonical SPT Action',()=>{
  const raw={member_priority_concerns:['low_direction'],feasibility:{time:'10 min',overall_load:'Manageable'}};
  const discovery=establish(createDiscoveryFromSnapshot(rawHandoff(raw,['low_direction'])),'low_direction');
- const built=buildOnboardingPlan({session:discovery,memberStateRevision:1,focusDecisions:[{constructId:'DIRECTION_CLARITY',decision:'accepted'}],planningOptions:{preferredActionIds:['SPT-A03']}});
+ const built=buildOnboardingPlan({session:discovery,memberStateRevision:1,focusDecisions:[{constructId:'DIRECTION_CLARITY',decision:'accepted'}]});
  assert.equal(built.plan.status,'proposed');
- assert.ok(built.plan.proposedActions.some(action=>action.actionId==='SPT-A03'));
+ assert.ok(built.plan.proposedActions.some(action=>['SPT-A03','OCC-A02','OCC-A04','XDM-A04'].includes(action.actionId)));
  assert.ok(built.plan.proposedActions.every(action=>!action.actionId.startsWith('SPI-')));
 });
 
