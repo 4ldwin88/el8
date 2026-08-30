@@ -1,6 +1,6 @@
 export const CANONICAL_QA_SCENARIOS=Object.freeze([
  {id:'keep',label:'Success → keep',adherence:'high',outcome:'improved',burden:'low',expected:{decision:'keep',route:'continue'}},
- {id:'replace',label:'No benefit → replace',adherence:'high',outcome:'unchanged',burden:'low',expected:{decision:'replace',route:'planning',adaptationConstraint:'different_intervention'}},
+ {id:'replace',label:'No benefit → replace',adherence:'high',outcome:'unchanged',burden:'low',expected:{decision:'replace',route:'planning',adaptationConstraint:'different_action'}},
  {id:'simplify',label:'Too difficult → simplify',adherence:'low',outcome:'unchanged',burden:'high',barrierKnown:true,expected:{decision:'simplify',route:'planning',adaptationConstraint:'reduce_burden'}},
  {id:'deepen',label:'Outcome unclear → deepen',adherence:'low',outcome:'unchanged',burden:'low',barrierKnown:false,expected:{decision:'deepen',route:'review-deepening'}},
  {id:'reassess',label:'Circumstances changed → reassess',adherence:'high',outcome:'improved',burden:'low',circumstancesChanged:true,expected:{decision:'reassess',route:'discovery'}},
