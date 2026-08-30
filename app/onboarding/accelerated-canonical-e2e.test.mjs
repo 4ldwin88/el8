@@ -23,7 +23,7 @@ test('raw onboarding evidence reaches durable canonical activation without legac
  assert.equal(built.plan.memberStateRevision,projected.revision);
  assert.equal(built.plan.status,'proposed');
  assert.ok(built.plan.proposedActions.some(a=>a.actionId==='PHY-A02'));
- const store={state:null,plan:null};
+ const store={state:structuredClone(projected),plan:null};
  const result=await activateCanonicalOnboarding({
   userId:'member:e2e',memberState:projected,plan:built.plan,applyPlan:applyCanonicalBrowserPlan,
   loadState:async()=>store.state?{revision:store.state.revision,state:store.state}:null,
