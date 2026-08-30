@@ -6,13 +6,18 @@ import {projectOnboardingMemberState} from './member-state-projection.js';
 import {appendObservation,setResolution} from '../../intelligence/discovery/discovery-controller.js';
 import {applyCanonicalBrowserPlan} from './browser-member-state-plan.js';
 import {activateCanonicalOnboarding} from './plan-activation-transaction.js';
+import {assertPlanReadyForActivation} from '../../intelligence/planning/activation-readiness.js';
+
+function establish(session,concernId,{importance='high'}={}){
+ appendObservation(session,{concernId,questionId:`raw:${concernId}`,effects:[{type:'evidence',target:concernId,polarity:'supports',strength:.9},{type:'importance',target:concernId,value:importance}]});
+ setResolution(session,concernId,'sufficient',{driverKnown:true});
+ return session;
+}
+function rawHandoff(raw,candidateConcerns){return{...buildDiscoverySnapshotHandoff(raw),candidateConcerns,uncertainty:{requiresDiscoveryConfirmation:true},signals:{feasibility:raw.feasibility||{}}}}
 
 test('raw onboarding evidence reaches durable canonical activation without legacy authority',async()=>{
  const raw={condition_baseline:{Physical:'Struggling'},member_priority:'Physical',functional_impact:['Physical'],worsening:['Physical'],feasibility:{time:'<5 min',overall_load:'Difficult'}};
- const handoff={...buildDiscoverySnapshotHandoff(raw),candidateConcerns:['low_activity'],uncertainty:{requiresDiscoveryConfirmation:true},signals:{feasibility:raw.feasibility}};
- const discovery=createDiscoveryFromSnapshot(handoff);
- appendObservation(discovery,{concernId:'low_activity',questionId:'raw:activity',effects:[{type:'evidence',target:'low_activity',polarity:'supports',strength:.9},{type:'importance',target:'low_activity',value:'high'}]});
- setResolution(discovery,'low_activity','sufficient',{driverKnown:true});
+ const discovery=establish(createDiscoveryFromSnapshot(rawHandoff(raw,['low_activity'])),'low_activity');
  const focusDecisions=[{constructId:'ACTIVITY_LEVEL',decision:'accepted'}];
  const canonicalDiscovery=discoveryPrioritizationInput(discovery,{memberStateRevision:0});
  assert.deepEqual(canonicalDiscovery.candidates.map(x=>x.constructId),['ACTIVITY_LEVEL']);
@@ -38,4 +43,63 @@ test('raw onboarding evidence reaches durable canonical activation without legac
  assert.ok(result.activeActionIds.includes('PHY-A02'));
  assert.equal('problems' in result,false);
  assert.equal('priorities' in result,false);
+});
+
+test('ambiguous financial evidence is held for discrimination and cannot invent Focus',()=>{
+ const raw={condition_baseline:{Financial:'Struggling'},member_priority:'Financial',functional_impact:['Financial'],worsening:['Financial'],feasibility:{time:'<5 min',overall_load:'Difficult'}};
+ const discovery=establish(createDiscoveryFromSnapshot(rawHandoff(raw,['money'])),'money');
+ const handoff=discoveryPrioritizationInput(discovery,{memberStateRevision:2});
+ assert.equal(handoff.candidates.length,0);
+ assert.deepEqual(new Set(handoff.heldAmbiguous.map(x=>x.constructId)),new Set(['FINANCIAL_STRAIN','FINANCIAL_CONTROL']));
+ assert.throws(()=>buildOnboardingPlan({session:discovery,memberStateRevision:2,focusDecisions:[{constructId:'FINANCIAL_STRAIN',decision:'accepted'}]}),/recommended candidate|Focus/i);
+});
+
+test('positive or no-focus onboarding does not force Discovery, Focus, Plan or Action',()=>{
+ const handoff=buildDiscoverySnapshotHandoff({condition_baseline:{Physical:'Doing well'},feasibility:{time:'10 min',overall_load:'Easy'}});
+ assert.equal(createDiscoveryFromSnapshot(handoff),null);
+});
+
+test('low-information concern remains upstream and cannot produce a Plan',()=>{
+ const raw={condition_baseline:{Physical:'Struggling'},member_priority:'Physical',feasibility:{time:'<5 min',overall_load:'Difficult'}};
+ const discovery=createDiscoveryFromSnapshot(rawHandoff(raw,['low_activity']));
+ const handoff=discoveryPrioritizationInput(discovery,{memberStateRevision:1});
+ assert.equal(handoff.candidates.length,0);
+ assert.throws(()=>buildOnboardingPlan({session:discovery,memberStateRevision:1,focusDecisions:[{constructId:'ACTIVITY_LEVEL',decision:'accepted'}]}),/recommended candidate|Focus/i);
+});
+
+test('multi-focus Planning is adaptive and low capacity constrains burden without rewriting severity',()=>{
+ const raw={condition_baseline:{Physical:'Struggling'},member_priority:'Physical',functional_impact:['Physical'],feasibility:{time:'<5 min',overall_load:'Difficult'}};
+ const discovery=createDiscoveryFromSnapshot(rawHandoff(raw,['poor_sleep','low_activity']));
+ establish(discovery,'poor_sleep');establish(discovery,'low_activity');
+ const decisions=[{constructId:'SLEEP_QUALITY',decision:'accepted'},{constructId:'ACTIVITY_LEVEL',decision:'accepted'}];
+ const handoff=discoveryPrioritizationInput(discovery,{memberStateRevision:0});
+ const projected=projectOnboardingMemberState({memberId:'member:multi',constructs:handoff.candidates.map(c=>({...c,sufficiency:'sufficient'})),focusDecisions:decisions,memberContext:{capacity:'low'}});
+ const built=buildOnboardingPlan({session:discovery,memberStateRevision:projected.revision,focusDecisions:decisions,planningOptions:{burdenBudget:1}});
+ assert.equal(built.confirmation.accepted.length,2);
+ assert.equal(built.plan.focusIds.length,2);
+ assert.ok(built.plan.proposedActions.length<=1);
+ assert.ok(built.plan.uncoveredFocusIds.length>=1);
+ assert.equal(projected.memberContext.capacity,'low');
+ assert.ok(projected.constructs.every(c=>c.status==='supported'));
+});
+
+test('Action-specific assessment requirement blocks activation until resolved',()=>{
+ const raw={condition_baseline:{Physical:'Struggling'},member_priority:'Physical',functional_impact:['Physical'],feasibility:{time:'10 min',overall_load:'Manageable'}};
+ const discovery=establish(createDiscoveryFromSnapshot(rawHandoff(raw,['poor_sleep'])),'poor_sleep');
+ const built=buildOnboardingPlan({session:discovery,memberStateRevision:1,focusDecisions:[{constructId:'SLEEP_QUALITY',decision:'accepted'}]});
+ const plan={...built.plan,activationStatus:'needs_plan_specific_assessment',deepening:{blocking:[{actionId:built.plan.proposedActions[0].actionId}],requirements:[{actionId:built.plan.proposedActions[0].actionId}]}};
+ assert.throws(()=>assertPlanReadyForActivation(plan),/Action-specific assessment/);
+ const resolved={...built.plan,activationStatus:'ready',deepening:{blocking:[],requirements:[]}};
+ assert.ok(assertPlanReadyForActivation(resolved).length>=1);
+});
+
+test('safety interruption blocks ordinary Planning without manufacturing wellness severity',()=>{
+ const raw={condition_baseline:{Physical:'Struggling'},member_priority:'Physical',functional_impact:['Physical'],feasibility:{time:'10 min',overall_load:'Manageable'}};
+ const discovery=establish(createDiscoveryFromSnapshot(rawHandoff(raw,['low_activity'])),'low_activity');
+ const built=buildOnboardingPlan({session:discovery,memberStateRevision:1,focusDecisions:[{constructId:'ACTIVITY_LEVEL',decision:'accepted'}],safetyDisposition:'pause_ordinary_flow'});
+ assert.equal(built.plan.status,'blocked');
+ assert.equal(built.plan.reason,'safety_override');
+ assert.deepEqual(built.plan.proposedActions,[]);
+ assert.equal(built.prioritization.recommended[0].constructId,'ACTIVITY_LEVEL');
+ assert.throws(()=>assertPlanReadyForActivation(built.plan),/Safety clarification/);
 });
