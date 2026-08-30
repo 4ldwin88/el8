@@ -16,7 +16,6 @@
     "test:profile":"node --test app/profile/history.test.mjs app/profile/canonical-qa-runner.test.mjs app/profile/canonical-qa-lifecycle.test.mjs",
     "test:persistence":"node --test intelligence/state/supabase-persistence.test.js intelligence/planning/supabase-plan-persistence.test.js app/auth/member-state-session.test.js",
     "test:persistence:live":"node tests/persistence-concurrency.test.mjs",
-    "test:migration-compatibility":"npm run test:persistence && npm run test:planning && npm run test:review",
     "test":"npm run test:contracts && npm run test:canonical-intelligence && npm run test:persistence && npm run test:safety && npm run test:discovery && npm run test:intelligence-test && npm run test:onboarding && npm run test:outcomes && npm run test:insights && npm run test:profile"
   }
 }
