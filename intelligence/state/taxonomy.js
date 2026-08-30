@@ -1,122 +1,101 @@
-// Canonical EL8 Intelligence taxonomy for the current vertical-slice milestone.
-// Dimensions and topics are domain vocabulary. Concerns are versioned semantic hypotheses.
+// Canonical EL8 Intelligence taxonomy.
+// Topics are descriptive domain vocabulary. Constructs are the governed semantic
+// units used by Member State and downstream Intelligence contracts.
+// Legacy concern IDs belong only in explicit migration/ingestion adapters.
 
-export const TAXONOMY_VERSION = '1.0.0';
+import {
+  CANONICAL_VOCABULARY_VERSION,
+  CONSTRUCT_IDS,
+  DIMENSIONS as CANONICAL_DIMENSION_IDS,
+} from '../contracts/canonical-vocabulary.js';
 
-export const DIMENSIONS = Object.freeze([
-  { id: 'physical', label: 'Physical' },
-  { id: 'emotional', label: 'Emotional' },
-  { id: 'social', label: 'Social' },
-  { id: 'spiritual', label: 'Spiritual' },
-  { id: 'intellectual', label: 'Intellectual' },
-  { id: 'occupational', label: 'Occupational' },
-  { id: 'financial', label: 'Financial' },
-  { id: 'environmental', label: 'Environmental' },
-]);
+export const TAXONOMY_VERSION = CANONICAL_VOCABULARY_VERSION;
 
-export const DIMENSION_BY_ID = Object.freeze(Object.fromEntries(DIMENSIONS.map(dimension => [dimension.id, dimension])));
+const DIMENSION_LABELS = Object.freeze({
+  physical: 'Physical', emotional: 'Emotional', social: 'Social', spiritual: 'Spiritual',
+  intellectual: 'Intellectual', occupational: 'Occupational', financial: 'Financial', environmental: 'Environmental',
+});
+export const DIMENSIONS = Object.freeze(CANONICAL_DIMENSION_IDS.map(id => Object.freeze({ id, label: DIMENSION_LABELS[id] })));
+export const DIMENSION_BY_ID = Object.freeze(Object.fromEntries(DIMENSIONS.map(item => [item.id, item])));
+
 const topic = (id, dimensionId, label) => Object.freeze({ id, dimensionId, label });
-
-// Canonical topic vocabulary. Legacy subdimensions were reconciled here as vocabulary only;
-// their numeric state/averaging model is intentionally not migrated.
 export const TOPICS = Object.freeze([
-  topic('physical.sleep', 'physical', 'Sleep'),
-  topic('physical.energy', 'physical', 'Energy'),
-  topic('physical.movement', 'physical', 'Movement'),
-  topic('physical.nutrition', 'physical', 'Nutrition'),
-  topic('physical.health', 'physical', 'Physical health'),
-  topic('physical.substance_exposure', 'physical', 'Substance exposure'),
-
-  topic('emotional.mood', 'emotional', 'Mood'),
-  topic('emotional.stress', 'emotional', 'Stress'),
-  topic('emotional.regulation', 'emotional', 'Emotional regulation'),
-  topic('emotional.resilience', 'emotional', 'Resilience'),
-  topic('emotional.self_perception', 'emotional', 'Self-perception'),
-  topic('emotional.manageability', 'emotional', 'Manageability'),
-
-  topic('social.connection', 'social', 'Connection'),
-  topic('social.support', 'social', 'Support'),
-  topic('social.belonging', 'social', 'Belonging'),
-  topic('social.relationship_quality', 'social', 'Relationship quality'),
-  topic('social.isolation', 'social', 'Isolation'),
-
-  topic('spiritual.meaning', 'spiritual', 'Meaning'),
-  topic('spiritual.purpose', 'spiritual', 'Purpose'),
-  topic('spiritual.values_alignment', 'spiritual', 'Values alignment'),
-  topic('spiritual.inner_peace', 'spiritual', 'Inner peace'),
-  topic('spiritual.practice', 'spiritual', 'Practice'),
-
-  topic('intellectual.focus', 'intellectual', 'Focus'),
-  topic('intellectual.clarity', 'intellectual', 'Clarity'),
-  topic('intellectual.learning', 'intellectual', 'Learning'),
-  topic('intellectual.curiosity', 'intellectual', 'Curiosity'),
-  topic('intellectual.cognitive_load', 'intellectual', 'Cognitive load'),
-  topic('intellectual.decision_capacity', 'intellectual', 'Decision capacity'),
-  topic('intellectual.activation', 'intellectual', 'Activation and follow-through'),
-
-  topic('occupational.employment_stability', 'occupational', 'Employment stability'),
-  topic('occupational.workload', 'occupational', 'Workload'),
-  topic('occupational.satisfaction', 'occupational', 'Work satisfaction'),
-  topic('occupational.direction', 'occupational', 'Work direction'),
-  topic('occupational.development', 'occupational', 'Development'),
-  topic('occupational.income_stability', 'occupational', 'Income stability'),
-  topic('occupational.schedule', 'occupational', 'Work and schedule stability'),
-
-  topic('financial.income_adequacy', 'financial', 'Income adequacy'),
-  topic('financial.expense_load', 'financial', 'Expense load'),
-  topic('financial.debt_burden', 'financial', 'Debt burden'),
-  topic('financial.liquidity', 'financial', 'Liquidity'),
-  topic('financial.security', 'financial', 'Financial security'),
-  topic('financial.control', 'financial', 'Financial control'),
-
-  topic('environmental.safety', 'environmental', 'Environmental safety'),
-  topic('environmental.stability', 'environmental', 'Home and environmental stability'),
-  topic('environmental.comfort', 'environmental', 'Comfort'),
-  topic('environmental.organization', 'environmental', 'Organization'),
-  topic('environmental.access', 'environmental', 'Access'),
-  topic('environmental.stress', 'environmental', 'Environmental stress'),
+  topic('physical.sleep','physical','Sleep'), topic('physical.energy','physical','Energy'), topic('physical.movement','physical','Movement'),
+  topic('physical.nutrition','physical','Nutrition'), topic('physical.health','physical','Physical health'), topic('physical.substance_exposure','physical','Substance exposure'),
+  topic('emotional.mood','emotional','Mood'), topic('emotional.stress','emotional','Stress'), topic('emotional.regulation','emotional','Emotional regulation'),
+  topic('emotional.resilience','emotional','Resilience'), topic('emotional.self_perception','emotional','Self-perception'), topic('emotional.manageability','emotional','Manageability'),
+  topic('social.connection','social','Connection'), topic('social.support','social','Support'), topic('social.belonging','social','Belonging'),
+  topic('social.relationship_quality','social','Relationship quality'), topic('social.isolation','social','Isolation'),
+  topic('spiritual.meaning','spiritual','Meaning'), topic('spiritual.purpose','spiritual','Purpose'), topic('spiritual.values_alignment','spiritual','Values alignment'),
+  topic('spiritual.inner_peace','spiritual','Inner peace'), topic('spiritual.practice','spiritual','Practice'),
+  topic('intellectual.focus','intellectual','Focus'), topic('intellectual.clarity','intellectual','Clarity'), topic('intellectual.learning','intellectual','Learning'),
+  topic('intellectual.curiosity','intellectual','Curiosity'), topic('intellectual.cognitive_load','intellectual','Cognitive load'), topic('intellectual.decision_capacity','intellectual','Decision capacity'),
+  topic('intellectual.activation','intellectual','Activation and follow-through'),
+  topic('occupational.employment_stability','occupational','Employment stability'), topic('occupational.workload','occupational','Workload'),
+  topic('occupational.satisfaction','occupational','Work satisfaction'), topic('occupational.direction','occupational','Work direction'),
+  topic('occupational.development','occupational','Development'), topic('occupational.income_stability','occupational','Income stability'), topic('occupational.schedule','occupational','Work and schedule stability'),
+  topic('financial.income_adequacy','financial','Income adequacy'), topic('financial.expense_load','financial','Expense load'), topic('financial.debt_burden','financial','Debt burden'),
+  topic('financial.liquidity','financial','Liquidity'), topic('financial.security','financial','Financial security'), topic('financial.control','financial','Financial control'),
+  topic('environmental.safety','environmental','Environmental safety'), topic('environmental.stability','environmental','Home and environmental stability'),
+  topic('environmental.comfort','environmental','Comfort'), topic('environmental.organization','environmental','Organization'), topic('environmental.access','environmental','Access'),
+  topic('environmental.stress','environmental','Environmental stress'),
 ]);
-
 export const TOPIC_BY_ID = Object.freeze(Object.fromEntries(TOPICS.map(item => [item.id, item])));
-const concern = (id, dimensionId, topicIds, label) => Object.freeze({ id, dimensionId, topicIds: Object.freeze([...topicIds]), label });
 
-export const CONCERNS = Object.freeze([
-  concern('poor_sleep', 'physical', ['physical.sleep'], 'Sleep difficulty'),
-  concern('low_energy', 'physical', ['physical.energy'], 'Low energy'),
-  concern('low_activity', 'physical', ['physical.movement'], 'Low activity'),
-  concern('physical_condition', 'physical', ['physical.health'], 'Physical condition concern'),
-  concern('stress', 'emotional', ['emotional.stress'], 'Stress or emotional strain'),
-  concern('relationship_strain', 'social', ['social.relationship_quality'], 'Relationship strain'),
-  concern('low_support', 'social', ['social.support'], 'Low support'),
-  concern('lonely', 'social', ['social.isolation', 'social.connection', 'social.belonging'], 'Loneliness or isolation'),
-  concern('low_focus', 'intellectual', ['intellectual.focus', 'intellectual.clarity'], 'Low focus or clarity'),
-  concern('low_activation', 'intellectual', ['intellectual.activation'], 'Low activation or follow-through'),
-  concern('work_instability', 'occupational', ['occupational.employment_stability'], 'Work or employment instability'),
-  concern('schedule_disruption', 'occupational', ['occupational.schedule'], 'Schedule disruption'),
-  concern('money_pressure', 'financial', ['financial.income_adequacy', 'financial.expense_load', 'financial.debt_burden', 'financial.liquidity', 'financial.security', 'financial.control'], 'Money pressure'),
-  concern('home_instability', 'environmental', ['environmental.stability', 'environmental.stress'], 'Home or environmental instability'),
-  concern('lack_direction', 'spiritual', ['spiritual.meaning', 'spiritual.purpose'], 'Lack of direction or purpose'),
+const construct = (id, dimensionIds, topicIds, label, options = {}) => Object.freeze({
+  id,
+  dimensionIds: Object.freeze([...dimensionIds]),
+  topicIds: Object.freeze([...topicIds]),
+  label,
+  experimental: Boolean(options.experimental),
+});
+
+export const CONSTRUCTS = Object.freeze([
+  construct('EMOTIONAL_STATE',['emotional'],['emotional.mood','emotional.regulation'],'Emotional state'),
+  construct('PRESSURE_PATTERN',['emotional'],['emotional.stress','emotional.manageability'],'Pressure / stress pattern'),
+  construct('SLEEP_QUALITY',['physical'],['physical.sleep'],'Sleep quality / restoration'),
+  construct('ENERGY_FUNCTION',['physical'],['physical.energy'],'Energy / physical functioning'),
+  construct('LONELINESS',['social'],['social.isolation','social.connection','social.belonging'],'Loneliness / belonging'),
+  construct('JOB_SECURITY',['occupational'],['occupational.employment_stability','occupational.income_stability'],'Work / income security'),
+  construct('FINANCIAL_STRAIN',['financial'],['financial.income_adequacy','financial.expense_load','financial.debt_burden','financial.liquidity','financial.security'],'Financial strain'),
+  construct('FINANCIAL_CONTROL',['financial'],['financial.control'],'Financial control / agency'),
+  construct('ENVIRONMENTAL_SUPPORT',['environmental'],['environmental.stability','environmental.comfort','environmental.organization','environmental.access','environmental.stress'],'Environmental support'),
+  construct('MEANING_PURPOSE',['spiritual'],['spiritual.meaning','spiritual.purpose'],'Meaning / purpose'),
+  construct('COGNITIVE_ENGAGEMENT',['intellectual'],['intellectual.learning','intellectual.curiosity'],'Cognitive engagement',{experimental:true}),
+  construct('RELATIONSHIP_STRAIN',['social'],['social.relationship_quality'],'Relationship strain'),
+  construct('SUPPORT_AVAILABILITY',['social'],['social.support'],'Support availability / adequacy'),
+  construct('PHYSICAL_CONDITION',['physical'],['physical.health'],'Physical condition / health burden'),
+  construct('ACTIVITY_LEVEL',['physical'],['physical.movement'],'Physical activity / movement level'),
+  construct('FOCUS_FUNCTION',['intellectual'],['intellectual.focus'],'Focus / attention functioning'),
+  construct('ACTIVATION',['intellectual'],['intellectual.activation'],'Action initiation / activation'),
+  construct('SCHEDULE_DISRUPTION',['occupational'],['occupational.schedule'],'Schedule / routine disruption'),
+  construct('BODY_WEIGHT_CONCERN',['physical'],['physical.nutrition','physical.health'],'Body / weight concern'),
+  construct('VALUES_CLARITY',['spiritual'],['spiritual.values_alignment'],'Values clarity'),
+  construct('NEXT_STEP_CLARITY',['intellectual','occupational'],['intellectual.clarity','intellectual.decision_capacity','occupational.direction'],'Next-step clarity'),
+  construct('DIRECTION_CLARITY',['spiritual','occupational'],['spiritual.purpose','occupational.direction'],'Direction clarity'),
 ]);
 
-export const CONCERN_BY_ID = Object.freeze(Object.fromEntries(CONCERNS.map(item => [item.id, item])));
+export const CONSTRUCT_BY_ID = Object.freeze(Object.fromEntries(CONSTRUCTS.map(item => [item.id, item])));
 export function isDimensionId(value) { return Object.hasOwn(DIMENSION_BY_ID, value); }
 export function isTopicId(value) { return Object.hasOwn(TOPIC_BY_ID, value); }
-export function isConcernId(value) { return Object.hasOwn(CONCERN_BY_ID, value); }
+export function isConstructId(value) { return Object.hasOwn(CONSTRUCT_BY_ID, value); }
 
 export function validateTaxonomy() {
   const errors = [];
   const topicIds = new Set();
-  const concernIds = new Set();
+  const constructIds = new Set();
   for (const item of TOPICS) {
     if (topicIds.has(item.id)) errors.push(`duplicate topic id: ${item.id}`);
     topicIds.add(item.id);
     if (!isDimensionId(item.dimensionId)) errors.push(`invalid topic dimension: ${item.id}`);
   }
-  for (const item of CONCERNS) {
-    if (concernIds.has(item.id)) errors.push(`duplicate concern id: ${item.id}`);
-    concernIds.add(item.id);
-    if (!isDimensionId(item.dimensionId)) errors.push(`invalid concern dimension: ${item.id}`);
-    for (const topicId of item.topicIds) if (!isTopicId(topicId)) errors.push(`unknown concern topic ${topicId}: ${item.id}`);
+  for (const item of CONSTRUCTS) {
+    if (constructIds.has(item.id)) errors.push(`duplicate construct id: ${item.id}`);
+    constructIds.add(item.id);
+    if (!CONSTRUCT_IDS.includes(item.id)) errors.push(`non-canonical construct id: ${item.id}`);
+    for (const dimensionId of item.dimensionIds) if (!isDimensionId(dimensionId)) errors.push(`invalid construct dimension ${dimensionId}: ${item.id}`);
+    for (const topicId of item.topicIds) if (!isTopicId(topicId)) errors.push(`unknown construct topic ${topicId}: ${item.id}`);
   }
+  for (const id of CONSTRUCT_IDS) if (!constructIds.has(id)) errors.push(`missing canonical construct: ${id}`);
   return errors;
 }
