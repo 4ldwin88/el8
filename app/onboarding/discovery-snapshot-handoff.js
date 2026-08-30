@@ -1,5 +1,4 @@
-// Discovery opening snapshot -> adaptive Discovery handoff.
-// The opening snapshot is evidence collection inside Discovery, not a separate Baseline stage.
+// Opening evidence snapshot used inside Discovery. It is not a separate onboarding stage.
 const uniq=xs=>[...new Set(xs.filter(Boolean))];
 export function buildDiscoverySnapshotHandoff(derived={}){
  const direct=Array.isArray(derived.candidate_concerns)?derived.candidate_concerns.filter(Boolean):[];
@@ -16,7 +15,7 @@ export function buildDiscoverySnapshotHandoff(derived={}){
  const inferredDirect=direct.filter(id=>!positiveIndicatorConcerns.has(id)||explicitConcernSet.has(id));
  const candidateConcerns=uniq([...inferredDirect,...lowIndicatorConcerns,...priorityConcerns,...topics.map(x=>x.concernId)]);
  return Object.freeze({
-  version:'discovery-snapshot-handoff-v2',
+  version:'discovery-opening-evidence-v1',
   candidateConcerns:Object.freeze(candidateConcerns),
   signals:Object.freeze({indicatorSignals:Object.freeze(indicatorSignals),drivers:Object.freeze([...drivers]),supports:Object.freeze([...supports]),priorityConcerns:Object.freeze([...priorityConcerns]),concernTopics:Object.freeze(topics.map(x=>Object.freeze({...x}))),suppressedPositiveConcerns:Object.freeze([...positiveIndicatorConcerns].filter(id=>!explicitConcernSet.has(id))),feasibility:Object.freeze({...derived.feasibility}),constraints:Object.freeze([...constraints])}),
   uncertainty:Object.freeze({source:'signal-native',requiresDiscoveryConfirmation:candidateConcerns.length>0})
