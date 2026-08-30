@@ -11,8 +11,9 @@ export async function activateCanonicalOnboarding({userId,memberState,plan,apply
   current=await persistState({userId,expectedRevision:-1,state:memberState});
   if(current.revision!==memberState.revision||current.state?.revision!==memberState.revision)throw new Error('Stored Member State revision mismatch');
  }
- const next=applyPlan(memberState,plan);
- current=await persistState({userId,expectedRevision:memberState.revision,state:next});
+ const baseState=current.state;
+ const next=applyPlan(baseState,plan);
+ current=await persistState({userId,expectedRevision:baseState.revision,state:next});
  if(current.revision!==next.revision||current.state?.revision!==next.revision)throw new Error('Stored Member State revision mismatch');
  await completeOnboarding();return next;
 }
