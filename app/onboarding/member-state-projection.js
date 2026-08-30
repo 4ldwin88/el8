@@ -1,16 +1,13 @@
-// Production browser projection from completed Discovery + explicit member focus
-// into the canonical Member State contract. This translates established upstream
-// decisions; it does not rank priorities, select interventions, or interpret outcomes.
-
-const DIMENSIONS=['physical','emotional','social','intellectual','spiritual','occupational','financial','environmental'];
-const PROBLEM_BY_CONCERN=Object.freeze({physical_condition:'problem:low_activity',low_activity:'problem:low_activity',low_energy:'problem:low_activity',poor_sleep:'problem:poor_sleep',money:'problem:financial_strain',money_pressure:'problem:financial_strain',work_pressure:'problem:income_gap',work_instability:'problem:income_gap',low_direction:'problem:execution_gap',lack_direction:'problem:execution_gap',low_focus:'problem:execution_gap',schedule_disruption:'problem:execution_gap',stress:'problem:stress',relationship_strain:'problem:social_disconnection',low_support:'problem:social_disconnection',home_instability:'problem:environment_friction'});
-const problemId=id=>PROBLEM_BY_CONCERN[id]||(/^problem:/.test(String(id||''))?id:`problem:${id}`);
-const priorityId=id=>`priority:${String(id||'').replace(/^priority:/,'')}`;
-const candidateMap=output=>new Map((output.trace?.states||[]).map(x=>[x.concernId,x]));
-export function projectOnboardingMemberState({memberId,discoveryOutput,confirmedPriorities,now=new Date().toISOString()}){
- if(!memberId||!discoveryOutput||!Array.isArray(confirmedPriorities)||!confirmedPriorities.length)throw new Error('memberId, completed Discovery output and confirmed priorities are required');
- const byId=candidateMap(discoveryOutput),evidence=[],problems=[],priorities=[];
- confirmedPriorities.forEach((id,index)=>{const row=byId.get(id)||{},refs=[...(row.evidenceRefs||[])];refs.forEach(ref=>{if(!evidence.some(x=>x.id===ref))evidence.push({id:ref,provenance:'DISCOVERY',recordedAt:now,concernId:id})});const pid=problemId(id);problems.push({id:pid,status:'SUPPORTED',evidenceRefs:refs,sourceConcernId:id});priorities.push({id:priorityId(id),problemId:pid,status:'ACCEPTED',rank:index+1,memberDecisionAt:now,evidenceRefs:refs})});
- const feasibility=discoveryOutput.baselineHandoff?.signals?.feasibility||{},capacity=discoveryOutput.baselineHandoff?.signals?.feasibility?.capacity||(['Overwhelming','Difficult'].includes(feasibility.overall_load)||feasibility.time==='<5 min'?'low':'medium');
- return{schemaVersion:'1.0.0',memberId,revision:0,createdAt:now,updatedAt:now,profile:{goals:[],preferences:{},constraints:[],accessibilityNeeds:[],consent:{},permissions:{}},dimensions:Object.fromEntries(DIMENSIONS.map(d=>[d,{scope:'MONITORED',condition:null,confidence:null,evidenceRefs:[],updatedAt:null}])),baseline:{status:'ESTABLISHED',establishedAt:now,sourceRevision:0,dimensionSnapshots:{},evidenceRefs:[...new Set(evidence.map(x=>x.id))]},evidence,problems,hypotheses:[],priorities,activePlan:{planId:null,status:null,interventions:[],reviewDueAt:null,activatedAt:null,updatedAt:null},engagementBurden:{capacity,manageability:feasibility.overall_load||null,adherenceTrend:null,skippedRequests:[],deferrals:[],trackingBurden:null,interventionBurden:null,disengagementSignals:[],throttle:{active:false,policyVersion:null,reasonCodes:[],activatedAt:null},updatedAt:now},considerations:[],learning:[],safety:{disposition:'ORDINARY_FLOW',unresolvedConstraints:[],policyVersion:null,updatedAt:now},history:[]};
+// Production projection from canonical Discovery/Prioritization/Focus output into Member State v3.
+// Upstream reasoning remains upstream; this module records established constructs and member decisions.
+import {createMemberState} from '../../intelligence/state/member-state-contract.js';
+import {applyMemberStateTransition,MEMBER_STATE_EVENT} from '../../intelligence/state/member-state-transition.js';
+export function projectOnboardingMemberState({memberId,constructs=[],focusDecisions=[],memberContext={},safetyDisposition=null,now=new Date().toISOString()}={}){
+ if(!memberId)throw new Error('memberId is required');
+ let state=createMemberState({memberId,now});
+ for(const item of constructs){if(!item?.constructId)throw new Error('constructId is required');state=applyMemberStateTransition(state,{type:MEMBER_STATE_EVENT.CONSTRUCT_UPDATED,payload:{constructId:item.constructId,status:item.status||'supported',evidenceConfidence:item.evidenceConfidence??'unknown',sufficiency:item.sufficiency||'sufficient',evidenceRefs:[...(item.evidenceRefs||[])],observationRefs:[...(item.observationRefs||[])],unresolvedReasons:[...(item.unresolvedReasons||[])]},source:'discovery:onboarding',at:now,expectedRevision:state.revision})}
+ for(const decision of focusDecisions){state=applyMemberStateTransition(state,{type:MEMBER_STATE_EVENT.FOCUS_DECIDED,payload:decision,source:'member:onboarding',at:decision.decidedAt||now,expectedRevision:state.revision})}
+ if(Object.keys(memberContext).length)state=applyMemberStateTransition(state,{type:MEMBER_STATE_EVENT.MEMBER_CONTEXT_UPDATED,payload:memberContext,source:'onboarding:context',at:now,expectedRevision:state.revision});
+ if(safetyDisposition)state=applyMemberStateTransition(state,{type:MEMBER_STATE_EVENT.SAFETY_DISPOSITION_UPDATED,payload:safetyDisposition,source:'safety:onboarding',at:now,expectedRevision:state.revision});
+ return state;
 }
