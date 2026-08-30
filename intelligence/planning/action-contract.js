@@ -1,8 +1,9 @@
 import { assertCanonicalConstructId, assertCanonicalDimension } from '../contracts/canonical-vocabulary.js';
 
-export const ACTION_CONTRACT_VERSION='1.0.0';
+export const ACTION_CONTRACT_VERSION='1.1.0';
 export const ACTION_INTENTS=Object.freeze(['stabilize','resolve','build','learn','track','assess','educate','refer']);
 export const ACTION_STATUS=Object.freeze(['active','provisional','held','deferred','retired']);
+export const ACTION_SCOPES=Object.freeze(['construct','plan']);
 export const EVIDENCE_STRENGTH=Object.freeze(['strong','moderate','supported','evidence_informed','context_dependent','low','unknown']);
 
 function str(v,n){if(typeof v!=='string'||!v.trim())throw new Error(`${n} required`);return v}
@@ -14,16 +15,18 @@ function obj(v,n){if(!v||typeof v!=='object'||Array.isArray(v))throw new Error(`
 export function createActionDefinition(input){
   obj(input,'Action');str(input.actionId,'actionId');str(input.name,'name');str(input.instruction,'instruction');str(input.intendedOutcome,'intendedOutcome');str(input.rationale,'rationale');
   if(!ACTION_INTENTS.includes(input.intent))throw new Error(`invalid Action intent: ${input.intent}`);
+  const actionScope=input.actionScope??'construct';if(!ACTION_SCOPES.includes(actionScope))throw new Error(`invalid actionScope: ${actionScope}`);
   const constructIds=refs(input.constructIds??[],'constructIds');for(const id of constructIds)assertCanonicalConstructId(id,'constructIds');
   const dimensionIds=refs(input.dimensionIds??[],'dimensionIds');for(const id of dimensionIds)assertCanonicalDimension(id,'dimensionIds');
-  if(!constructIds.length)throw new Error('Action requires at least one canonical construct');
+  if(actionScope==='construct'&&!constructIds.length)throw new Error('construct-scoped Action requires at least one canonical construct');
+  if(actionScope==='plan'&&constructIds.length)throw new Error('plan-scoped Action must not masquerade as a construct intervention');
   const measurement=obj(input.measurement,'measurement');str(measurement.decisionUse,'measurement.decisionUse');
   const review=obj(input.review,'review');str(review.trigger,'review.trigger');arr(review.allowedDispositions,'review.allowedDispositions');
   const burden=obj(input.burden,'burden');
   const status=input.status??'provisional';if(!ACTION_STATUS.includes(status))throw new Error(`invalid Action status: ${status}`);
   const evidenceStrength=input.evidenceStrength??'unknown';if(!EVIDENCE_STRENGTH.includes(evidenceStrength))throw new Error(`invalid evidenceStrength: ${evidenceStrength}`);
   return Object.freeze({
-    contractVersion:ACTION_CONTRACT_VERSION,actionId:input.actionId,name:input.name,constructIds,dimensionIds,intent:input.intent,
+    contractVersion:ACTION_CONTRACT_VERSION,actionId:input.actionId,name:input.name,actionScope,constructIds,dimensionIds,intent:input.intent,
     instruction:input.instruction,intendedOutcome:input.intendedOutcome,rationale:input.rationale,
     eligibility:Object.freeze({...obj(input.eligibility??{},'eligibility'),minimumEvidenceRefs:refs(input.eligibility?.minimumEvidenceRefs??[],'minimumEvidenceRefs')}),
     exclusions:Object.freeze({...obj(input.exclusions??{},'exclusions'),contraindications:[...(input.exclusions?.contraindications??[])]}),
