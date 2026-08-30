@@ -6,9 +6,9 @@
     "test:canonical-state":"node --test intelligence/state/taxonomy.test.js intelligence/state/member-state-contract.test.js intelligence/state/member-state-normalizer.test.js intelligence/state/member-state-transition.test.js",
     "test:safety":"node intelligence/safety/policy.test.js && node --test intelligence/safety/gate.test.mjs intelligence/safety/lifecycle-integration.test.mjs",
     "test:prioritization":"node --test intelligence/prioritization/prioritization.test.js intelligence/prioritization/prioritization-v2.test.js intelligence/prioritization/focus-confirmation.test.js",
-    "test:canonical-planning":"node --test intelligence/planning/action-registry.test.js intelligence/planning/canonical-action-bank.test.js intelligence/planning/canonical-plan-engine.test.js intelligence/planning/canonical-plan-engine-v2.test.js",
-    "test:planning:legacy":"node --test intelligence/planning/plan-deepening.test.js intelligence/review/review-engine.test.mjs intelligence/review/adaptation-router.test.mjs intelligence/review/deepen-disengagement.test.mjs intelligence/review/accelerated-closed-loop.test.mjs",
-    "test:canonical-intelligence":"npm run test:canonical-contracts && npm run test:canonical-state && npm run test:prioritization && npm run test:canonical-planning",
+    "test:planning":"node --test intelligence/planning/action-registry.test.js intelligence/planning/canonical-action-bank.test.js intelligence/planning/canonical-plan-engine.test.js intelligence/planning/canonical-plan-engine-v2.test.js intelligence/planning/plan-deepening.test.js intelligence/planning/activation-readiness.test.js",
+    "test:review":"node --test intelligence/review/review-engine.test.mjs intelligence/review/adaptation-router.test.mjs intelligence/review/deepen-disengagement.test.mjs intelligence/review/accelerated-closed-loop.test.mjs",
+    "test:canonical-intelligence":"npm run test:canonical-contracts && npm run test:canonical-state && npm run test:prioritization && npm run test:planning && npm run test:review",
     "test:outcomes":"node intelligence/outcomes/outcomes.test.js",
     "test:discovery":"node intelligence/discovery/discovery-runtime.test.mjs",
     "test:intelligence-test":"node app/research/intelligence-test-contract.test.mjs",
@@ -17,7 +17,7 @@
     "test:profile":"node --test app/profile/history.test.mjs app/profile/canonical-qa-runner.test.mjs app/profile/canonical-qa-lifecycle.test.mjs",
     "test:persistence":"node --test intelligence/state/supabase-persistence.test.js app/auth/member-state-session.test.js",
     "test:persistence:live":"node tests/persistence-concurrency.test.mjs",
-    "test:migration-compatibility":"npm run test:persistence && npm run test:planning:legacy",
+    "test:migration-compatibility":"npm run test:persistence && npm run test:planning && npm run test:review",
     "test":"npm run test:contracts && npm run test:canonical-intelligence && npm run test:state && npm run test:persistence && npm run test:safety && npm run test:discovery && npm run test:intelligence-test && npm run test:onboarding && npm run test:outcomes && npm run test:insights && npm run test:profile"
   }
 }
