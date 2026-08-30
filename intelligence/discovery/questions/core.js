@@ -13,7 +13,7 @@ const positive = question => Object.assign(question, { path: 'positive' });
 const orientation = (question, openingPriority = 0) => Object.assign(question, { openingPriority });
 
 export const CORE_QUESTIONS = Object.freeze([
-  orientation(Q('G1', 'gateway', 'Thinking about your life lately, what has been bothering you or making things harder? Select any that fit.', [], [
+  orientation(Q('G1', 'concern-scope', 'Thinking about your life lately, what has been bothering you or making things harder? Select any that fit.', [], [
     ['money', 'Money or financial pressure', { money_pressure: 0.65 }], ['work', 'Work, school, or responsibilities', { work_instability: 0.55, schedule_disruption: 0.2 }], ['health', 'Health or physical condition', { physical_condition: 0.65 }], ['energy', 'Low energy or tiredness', { low_energy: 0.65 }], ['sleep', 'Sleep', { poor_sleep: 0.65 }], ['stress', 'Stress or difficult emotions', { stress: 0.6 }], ['relationships', 'Relationships', { relationship_strain: 0.6 }], ['support', 'Feeling lonely or unsupported', { low_support: 0.6, lonely: 0.4 }], ['home', 'Home or surroundings', { home_instability: 0.6 }], ['focus', 'Focus or getting started', { low_focus: 0.35, low_activation: 0.25 }], ['direction', 'Direction, purpose, or knowing what to do next', { lack_direction: 0.6 }], ['other', 'Something else', {}], ['well', 'I’m generally doing well', {}], ['unsure', 'I’m not sure', {}],
   ], 0.3, 'multi', {gatewayEligible:true,orientationEligible:true}), 120),
   orientation(Q('O4', 'orientation', 'Thinking about recent difficult days, what has most often made the day harder?', [], [
