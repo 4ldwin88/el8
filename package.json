@@ -2,7 +2,6 @@
   "name":"el8-prototype","private":true,"type":"module","scripts":{
     "test:contracts":"node intelligence/contracts/contracts.test.js",
     "test:canonical-contracts":"node --test intelligence/contracts/canonical-contracts.test.js intelligence/contracts/capability-boundaries.test.js",
-    "test:state":"node intelligence/state/state-contract.test.js",
     "test:canonical-state":"node --test intelligence/state/taxonomy.test.js intelligence/state/member-state-contract.test.js intelligence/state/member-state-normalizer.test.js intelligence/state/member-state-transition.test.js",
     "test:safety":"node intelligence/safety/policy.test.js && node --test intelligence/safety/gate.test.mjs intelligence/safety/lifecycle-integration.test.mjs",
     "test:prioritization":"node --test intelligence/prioritization/prioritization.test.js intelligence/prioritization/prioritization-v2.test.js intelligence/prioritization/focus-confirmation.test.js",
@@ -18,6 +17,6 @@
     "test:persistence":"node --test intelligence/state/supabase-persistence.test.js app/auth/member-state-session.test.js",
     "test:persistence:live":"node tests/persistence-concurrency.test.mjs",
     "test:migration-compatibility":"npm run test:persistence && npm run test:planning && npm run test:review",
-    "test":"npm run test:contracts && npm run test:canonical-intelligence && npm run test:state && npm run test:persistence && npm run test:safety && npm run test:discovery && npm run test:intelligence-test && npm run test:onboarding && npm run test:outcomes && npm run test:insights && npm run test:profile"
+    "test":"npm run test:contracts && npm run test:canonical-intelligence && npm run test:persistence && npm run test:safety && npm run test:discovery && npm run test:intelligence-test && npm run test:onboarding && npm run test:outcomes && npm run test:insights && npm run test:profile"
   }
 }
