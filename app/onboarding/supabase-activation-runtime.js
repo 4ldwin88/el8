@@ -1,6 +1,6 @@
 import {supabase} from '../../el8-client.js';
 import {loadMemberState,saveMemberState} from '../../intelligence/state/supabase-persistence.js';
-import {saveCanonicalPlan} from '../../intelligence/planning/supabase-plan-persistence.js';
+import {saveCanonicalPlan,activateCanonicalPlan} from '../../intelligence/planning/supabase-plan-persistence.js';
 import {applyCanonicalBrowserPlan} from './browser-member-state-plan.js';
 import {activateCanonicalOnboarding} from './plan-activation-transaction.js';
 import {completeCanonicalOnboarding} from './onboarding-completion.js';
@@ -29,6 +29,10 @@ async function persistPlan({userId,plan}){
   return saveCanonicalPlan(supabase,{memberId:userId,plan});
 }
 
+async function activatePlan({planId}){
+  return activateCanonicalPlan(supabase,{planId});
+}
+
 export async function activateCanonicalOnboardingWithSupabase({memberState,plan}){
   const user=await requireAuthenticatedUser();
   if(memberState?.memberId!==user.id) throw new Error('Authenticated member does not match Member State');
@@ -40,6 +44,7 @@ export async function activateCanonicalOnboardingWithSupabase({memberState,plan}
     loadState,
     persistState,
     persistPlan,
+    activatePlan,
     completeOnboarding:completeCanonicalOnboarding
   });
 }
