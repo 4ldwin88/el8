@@ -1,22 +1,6 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import {canonicalPlanningInputFromBrowser} from './browser-planning-adapter.js';
-
-const discoveryOutput={
- trace:{states:[{concernId:'poor_sleep',problemId:'problem:poor_sleep',evidenceRefs:['e:sleep-1'],resolutionState:'supported'}]},
- plan:{focus:[{concernId:'poor_sleep'}]},
- baselineHandoff:{signals:{feasibility:{capacity:'low',overall_load:'Difficult'}}}
-};
-
-test('browser Planning consumes canonical Discovery trace states',()=>{
- const input=canonicalPlanningInputFromBrowser({discoveryOutput,confirmedPriorities:['poor_sleep'],memberStateRevision:4});
- assert.equal(input.memberStateRevision,4);
- assert.deepEqual(input.confirmedPriorityIds,['priority:poor_sleep']);
- assert.deepEqual(input.problems,[{priorityId:'priority:poor_sleep',problemId:'problem:poor_sleep',evidenceRefs:['e:sleep-1'],priorLearning:[]}]);
- assert.equal(input.constraints.capacity,'low');
-});
-
-test('browser Planning requires an explicit canonical Member State revision',()=>{
- assert.throws(()=>canonicalPlanningInputFromBrowser({discoveryOutput,confirmedPriorities:['poor_sleep']}),/Member State revision is required/);
- assert.throws(()=>canonicalPlanningInputFromBrowser({discoveryOutput,confirmedPriorities:['poor_sleep'],memberStateRevision:-1}),/Member State revision is required/);
-});
+import test from'node:test';import assert from'node:assert/strict';import{canonicalPlanningInputFromBrowser,canonicalBrowserPlanView}from'./browser-planning-adapter.js';
+const focus={constructId:'SLEEP_QUALITY',decision:'accepted',decidedAt:'2026-08-30T18:00:00Z'};
+test('browser Planning passes canonical Focus without legacy aliases',()=>{const input=canonicalPlanningInputFromBrowser({memberStateRevision:4,confirmedFocus:[focus],evidenceRefs:['e:sleep-1'],constraintRefs:['c:time']});assert.equal(input.memberStateRevision,4);assert.equal(input.focuses[0].constructId,'SLEEP_QUALITY');assert.equal('problems'in input,false);assert.equal('confirmedPriorityIds'in input,false);assert.equal('priorityOrder'in input,false)});
+test('browser Planning preserves unknown instead of fabricating capacity',()=>{const input=canonicalPlanningInputFromBrowser({memberStateRevision:4,confirmedFocus:[focus]});assert.equal('capacity'in input,false);assert.deepEqual(input.constraintRefs,[])});
+test('browser Planning requires revision and accepted Focus',()=>{assert.throws(()=>canonicalPlanningInputFromBrowser({confirmedFocus:[focus]}),/revision/);assert.throws(()=>canonicalPlanningInputFromBrowser({memberStateRevision:1,confirmedFocus:[{...focus,decision:'rejected'}]}),/member-accepted/)});
+test('browser Plan view exposes proposed Actions without activating them',()=>{const view=canonicalBrowserPlanView({status:'proposed',focusIds:['SLEEP_QUALITY'],proposedActions:[{actionId:'PHY-001',trackingRequirement:'sleep log',additionalAssessmentRequirement:null}],backlog:[],burden:{used:1}});assert.equal(view.activationStatus,'awaiting_member_acceptance');assert.equal(view.actions[0].actionId,'PHY-001');assert.equal('intervention_id'in view.actions[0],false)});
