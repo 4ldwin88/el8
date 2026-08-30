@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:contracts": "node intelligence/contracts/contracts.test.js",
+    "test:contracts": "node intelligence/contracts/contracts.test.js && node intelligence/contracts/regulatory-boundary.test.js",
     "test:state": "node intelligence/state/state-contract.test.js",
     "test:member-state": "node --test intelligence/member-state/*.test.js intelligence/member-state/*.test.cjs",
     "test:safety": "node intelligence/safety/policy.test.js && node --test intelligence/safety/gate.test.mjs intelligence/safety/lifecycle-integration.test.mjs",
