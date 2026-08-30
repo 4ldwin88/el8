@@ -16,7 +16,7 @@ Returning authenticated members bypass authentication and resume the first incom
 - `discovery-runtime.js` adapts the canonical Discovery intelligence for onboarding rather than duplicating Discovery logic. Adaptive questioning, triage, priority resolution and concern-state projection stay in `intelligence/discovery/`.
 - Discovery establishes concern/context evidence. It does not own intervention selection.
 - The member confirms the starting focus before Planning. Member choice is explicit evidence, not an inferred ranking signal.
-- Projection of completed Discovery plus confirmed focus into canonical Member State establishes the immutable initial baseline snapshot. Subsequent observations update current state and history rather than rewriting that baseline.
+- Projection of completed Discovery plus confirmed focus into canonical Member State establishes the initial baseline snapshot. Subsequent observations update current state and history rather than rewriting that baseline.
 - Canonical Planning alone owns intervention selection. Browser adapters translate Discovery/Member State into canonical Planning inputs; they must not create a second planning engine.
 - Selection evidence is requested only when it can change which eligible intervention is selected. Activation/deepening evidence is separate and is requested only when the selected intervention requires additional evidence before safe/appropriate activation.
 - Final confirmation rebuilds the plan from canonical inputs. Persistence independently enforces activation readiness; unresolved selection/deepening requirements, non-active plans, missing interventions, or a Safety hold cannot be persisted as an active plan.
@@ -37,4 +37,4 @@ After activation, execution/check-in evidence is interpreted by canonical Review
 
 Tracking is not a separate onboarding stage. Discovery and the accepted plan determine what evidence is useful. After onboarding, the global Track surface remains available while plan-specific Quick Logs are derived from active-plan evidence needs.
 
-Do not create parallel onboarding state machines or parallel intelligence semantics. `flow.js` is the canonical client routing contract; persisted profile, Discovery, Member State and plan state remain authoritative. `assessment.html` is compatibility-only and must redirect to the Discovery snapshot rather than becoming a second assessment path.
+Do not create parallel onboarding state machines or parallel intelligence semantics. `flow.js` is the canonical client routing contract; persisted profile, Discovery, Member State and plan state remain authoritative.
