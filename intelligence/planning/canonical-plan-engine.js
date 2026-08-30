@@ -1,6 +1,8 @@
 // Canonical EL8 Planning engine v2. Planning consumes member-confirmed Focus and composes proposed Actions only.
-import { CANONICAL_ACTION_REGISTRY } from './canonical-action-bank.js';
+import { createActionRegistry } from './action-registry.js';
+import { CANONICAL_ACTION_BANK } from './canonical-action-bank.js';
 export const PLAN_SCHEMA_VERSION='2.0.0';const BLOCKED_SAFETY=new Set(['pause_ordinary_flow','escalate']);
+const CANONICAL_ACTION_REGISTRY=createActionRegistry(CANONICAL_ACTION_BANK);
 const BURDEN_SCORE=Object.freeze({very_low:.5,low:1,low_to_medium:1.5,medium:2,high:3});
 function score(action){const level=String(action.burden?.level??action.burden?.effort??'unknown').toLowerCase().replaceAll(' ','_');return BURDEN_SCORE[level]??1}
 function arr(v,n){if(!Array.isArray(v))throw new Error(`${n} must be an array`);return v}function unique(v){return[...new Set(v)]}
