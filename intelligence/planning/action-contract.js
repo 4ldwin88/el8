@@ -1,11 +1,12 @@
 import { assertCanonicalConstructId, assertCanonicalDimension } from '../contracts/canonical-vocabulary.js';
 
-export const ACTION_CONTRACT_VERSION='1.1.0';
+export const ACTION_CONTRACT_VERSION='1.2.0';
 export const ACTION_INTENTS=Object.freeze(['stabilize','resolve','build','learn','track','assess','educate','refer']);
 export const ACTION_STATUS=Object.freeze(['active','provisional','held','deferred','retired']);
 export const ACTION_SCOPES=Object.freeze(['construct','plan']);
 export const EVIDENCE_STRENGTH=Object.freeze(['strong','moderate','supported','evidence_informed','context_dependent','low','unknown']);
-export function canonicalActionId(id){if(typeof id!=='string')return id;return id.replace(/^EMO-/,'EMT-').replace(/^SPI-/,'SPT-').replace(/-00([1-9])$/,'-A0$1')}
+export const CANONICAL_ACTION_ID_PATTERN=/^(?:PHY|EMT|SOC|OCC|FIN|ENV|INT|SPT|XDM)-A\d{2}$/;
+export function assertCanonicalActionId(id){if(typeof id!=='string'||!CANONICAL_ACTION_ID_PATTERN.test(id))throw new Error(`non-canonical Action ID: ${id}`);return id}
 
 function str(v,n){if(typeof v!=='string'||!v.trim())throw new Error(`${n} required`);return v}
 function arr(v,n){if(!Array.isArray(v))throw new Error(`${n} must be array`);return v}
@@ -14,7 +15,7 @@ function refs(v,n){arr(v,n);for(const x of v)str(x,n);return unique(v)}
 function obj(v,n){if(!v||typeof v!=='object'||Array.isArray(v))throw new Error(`${n} must be object`);return v}
 
 export function createActionDefinition(input){
-  obj(input,'Action');str(input.actionId,'actionId');str(input.name,'name');str(input.instruction,'instruction');str(input.intendedOutcome,'intendedOutcome');str(input.rationale,'rationale');
+  obj(input,'Action');assertCanonicalActionId(input.actionId);str(input.name,'name');str(input.instruction,'instruction');str(input.intendedOutcome,'intendedOutcome');str(input.rationale,'rationale');
   if(!ACTION_INTENTS.includes(input.intent))throw new Error(`invalid Action intent: ${input.intent}`);
   const actionScope=input.actionScope??'construct';if(!ACTION_SCOPES.includes(actionScope))throw new Error(`invalid actionScope: ${actionScope}`);
   const constructIds=refs(input.constructIds??[],'constructIds');for(const id of constructIds)assertCanonicalConstructId(id,'constructIds');
@@ -27,7 +28,7 @@ export function createActionDefinition(input){
   const status=input.status??'provisional';if(!ACTION_STATUS.includes(status))throw new Error(`invalid Action status: ${status}`);
   const evidenceStrength=input.evidenceStrength??'unknown';if(!EVIDENCE_STRENGTH.includes(evidenceStrength))throw new Error(`invalid evidenceStrength: ${evidenceStrength}`);
   return Object.freeze({
-    contractVersion:ACTION_CONTRACT_VERSION,actionId:canonicalActionId(input.actionId),name:input.name,actionScope,constructIds,dimensionIds,intent:input.intent,
+    contractVersion:ACTION_CONTRACT_VERSION,actionId:input.actionId,name:input.name,actionScope,constructIds,dimensionIds,intent:input.intent,
     instruction:input.instruction,intendedOutcome:input.intendedOutcome,rationale:input.rationale,
     eligibility:Object.freeze({...obj(input.eligibility??{},'eligibility'),minimumEvidenceRefs:refs(input.eligibility?.minimumEvidenceRefs??[],'minimumEvidenceRefs')}),
     exclusions:Object.freeze({...obj(input.exclusions??{},'exclusions'),contraindications:[...(input.exclusions?.contraindications??[])]}),
