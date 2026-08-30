@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const html=fs.readFileSync(new URL('./discovery.html',import.meta.url),'utf8');
+assert.match(html,/<strong>Health:<\/strong>/,'Discovery handoff must use a capitalized member-facing Health label');
+assert.match(html,/your physical condition or how your body feels needs attention/,'Discovery handoff must explain physical-condition evidence');
+assert.match(html,/your current activity level is something you want to improve/,'Discovery handoff must explain activity evidence');
+assert.match(html,/next steps need to keep costs very low/,'Discovery handoff must surface low-cost plan-fit constraints');
+assert.match(html,/<strong>Plan fit:<\/strong>/,'Discovery handoff must distinguish plan-fit constraints from understanding');
+assert.doesNotMatch(html,/<strong>health:<\/strong> this is an area you want EL8 to take into account/,'Discovery handoff must not use the old generic lowercase health summary');
+console.log('Discovery member-facing synthesis regression passed');
