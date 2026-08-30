@@ -5,6 +5,7 @@ export const ACTION_INTENTS=Object.freeze(['stabilize','resolve','build','learn'
 export const ACTION_STATUS=Object.freeze(['active','provisional','held','deferred','retired']);
 export const ACTION_SCOPES=Object.freeze(['construct','plan']);
 export const EVIDENCE_STRENGTH=Object.freeze(['strong','moderate','supported','evidence_informed','context_dependent','low','unknown']);
+export function canonicalActionId(id){if(typeof id!=='string')return id;return id.replace(/^EMO-/,'EMT-').replace(/^SPI-/,'SPT-').replace(/-00([1-9])$/,'-A0$1')}
 
 function str(v,n){if(typeof v!=='string'||!v.trim())throw new Error(`${n} required`);return v}
 function arr(v,n){if(!Array.isArray(v))throw new Error(`${n} must be array`);return v}
@@ -26,7 +27,7 @@ export function createActionDefinition(input){
   const status=input.status??'provisional';if(!ACTION_STATUS.includes(status))throw new Error(`invalid Action status: ${status}`);
   const evidenceStrength=input.evidenceStrength??'unknown';if(!EVIDENCE_STRENGTH.includes(evidenceStrength))throw new Error(`invalid evidenceStrength: ${evidenceStrength}`);
   return Object.freeze({
-    contractVersion:ACTION_CONTRACT_VERSION,actionId:input.actionId,name:input.name,actionScope,constructIds,dimensionIds,intent:input.intent,
+    contractVersion:ACTION_CONTRACT_VERSION,actionId:canonicalActionId(input.actionId),name:input.name,actionScope,constructIds,dimensionIds,intent:input.intent,
     instruction:input.instruction,intendedOutcome:input.intendedOutcome,rationale:input.rationale,
     eligibility:Object.freeze({...obj(input.eligibility??{},'eligibility'),minimumEvidenceRefs:refs(input.eligibility?.minimumEvidenceRefs??[],'minimumEvidenceRefs')}),
     exclusions:Object.freeze({...obj(input.exclusions??{},'exclusions'),contraindications:[...(input.exclusions?.contraindications??[])]}),
