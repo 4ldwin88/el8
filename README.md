@@ -1,117 +1,97 @@
 # EL8
 
-EL8 is a wellness product in MVP development. This repository contains the member prototype, canonical Intelligence Engine, backend integration boundaries and validation needed to prove the core closed loop before broader product expansion.
+EL8 is a wellness product in MVP development. This repository contains the member prototype, canonical EL8 Intelligence implementation, persistence boundaries and validation needed to prove the product safely before broader expansion.
 
-## Current objective: prove the MVP loop
+## Current objective
 
-The immediate engineering goal is a coherent, testable MVP—not maximum feature completeness or maximum architectural sophistication.
+The current product-development gate is the member-facing onboarding decision path:
 
-The MVP must prove that EL8 can:
+`Discovery → Member State → Prioritization / member confirmation → proposed Planning`
 
-`understand → prioritize → plan → support action → observe outcome → review → adapt`
+The complete canonical Intelligence loop remains:
 
-A capability belongs in the MVP when it is necessary to make that loop useful, safe, testable or maintainable for early real-member validation. Capabilities that are merely plausible future improvements should not expand the production architecture yet.
+`Discovery → Member State → Prioritization → Planning → Action → Outcome Evidence → Review → Planning or focused Reassessment`
 
-The architecture should still leave clean seams for later personalization, integrations, longitudinal learning, professional services, richer analytics and other validated extensions. Git history preserves retired implementations; we do not keep duplicate executable systems as a future-code archive.
+Safety is a cross-cutting authority and may interrupt ordinary flow at any point. Stabilizing the entire post-plan loop is not a blocker for the next structured external Discovery test unless it exposes a Discovery-to-Planning contract failure.
 
-## Current build status
+A capability belongs in the current MVP when it is necessary to make the member loop useful, safe, testable or maintainable. Git history preserves retired implementations; duplicate executable systems and obsolete compatibility layers are not retained as archives.
 
-**Working Prototype:** `main` remains the accepted working prototype.
+## Repository authority
 
-**Development Candidate:** `development` is the persistent integration line for the next coherent build.
+`main` is the sole permanent development line and authoritative repository state. Short-lived branches may be created for bounded work when useful and should be deleted after merge or explicit rejection.
 
-**Stable Build:** not established yet. `main` is not Stable merely because Development exists.
+There is one canonical implementation per capability. Repository code implements the current Drive-governed product and Intelligence contracts; repository documentation must not silently redefine those product authorities.
 
-Development flow:
+Useful repository-local technical references:
 
-`experiment/feature → development → automated + accelerated E2E + human validation → accepted Working Prototype`
-
-A Stable release begins only after the release-readiness requirements in `docs/REPOSITORY-GOVERNANCE.md` are satisfied.
-
-## Repository model
-
-There is one canonical implementation per capability. Product logic is organized by domain. Git history is the archive; stale branches, duplicate source trees and parallel decision engines are not.
-
-Read these documents in this order:
-
-1. `README.md` — current product-development objective and repository orientation.
-2. `intelligence/README.md` — authoritative MVP Intelligence boundaries and future-extension policy.
-3. `docs/REPOSITORY-GOVERNANCE.md` — branch, promotion, cleanup and maintenance policy.
-4. `docs/repository-target-architecture.md` — repository layout and ownership boundaries.
-5. `docs/canonical-persistence-contract.md` — backend persistence authority.
-
-Historical architecture documents must not override the current MVP boundaries above.
+1. `README.md` — repository orientation and current implementation boundary.
+2. `intelligence/README.md` — Intelligence implementation boundaries.
+3. `docs/REPOSITORY-GOVERNANCE.md` — repository lifecycle and engineering policy.
+4. `docs/repository-target-architecture.md` — target code ownership and dependency direction.
+5. `docs/canonical-persistence-contract.md` — persistence boundary.
 
 ## Structure
 
 Permanent implementation belongs in:
 
-- `app/` — member-facing domain workflows and orchestration.
-- `intelligence/` — canonical evidence/state and decision capabilities.
+- `app/` — thin member-facing workflows and application orchestration.
+- `intelligence/` — canonical Discovery, Member State, Prioritization, Planning, Outcomes/Tracking, Review/Learning and related contracts.
 - `assets/` — shared product assets and UI styling.
 - `supabase/` — repository-owned backend schema, functions and configuration.
 - `tests/` — cross-domain/system validation when no natural domain owner exists; domain tests stay beside their owner.
-- `docs/` — current governance, contracts and technical authority.
+- `docs/` — current engineering governance and technical contracts.
 
-The root is intentionally deployment-oriented. Root HTML files are deployable page boundaries; shared implementation belongs with its owning domain.
+The root remains deployment-oriented while prototype pages are still required. Root pages must not become parallel owners of Intelligence logic.
 
 ## Member architecture
 
-Primary member destinations are Home, Plan, Insights and Explore. Profile is entered through the avatar. Track is a global capture action rather than a primary navigation destination.
+Permanent member jobs are organized around:
 
-Canonical onboarding progression:
+- Home / Today — what matters now, the next useful action and why.
+- Plan — priorities, proposed or active interventions, schedule, reasoning and member choices.
+- Track — the lowest-friction routes for supplying decision-useful evidence.
+- Insights — condition, trends, relationships, outcomes, uncertainty and learned patterns.
+- Explore — personalized learning, tools, programs, saved items and optional professional/expert discovery.
+- Profile / More — identity, preferences, permissions, integrations, privacy/data, subscription, settings and administration.
 
-`Personal Information → Discovery (opening snapshot + adaptive investigation) → Focus confirmation → First Plan → Introduction → Home`
+Backend capability boundaries do not dictate member navigation.
 
-The opening life-status matrix is the first question of Discovery. It provides broad starting evidence; it is not an independent Baseline stage. When Discovery has sufficient evidence and the member confirms focus, the projection into canonical Member State establishes the immutable initial baseline snapshot. Later evidence updates current state without rewriting that historical baseline.
+Onboarding is one temporary coherent journey:
 
-## Canonical MVP Intelligence loop
+`Introduction / consent → Discovery opening snapshot → adaptive Discovery → priority recommendation and member choice → intervention choice → activation`
 
-`Discovery → Member State → Prioritization → Planning → Action → Outcome evidence → Review → Planning / focused Reassessment`
+The opening snapshot is evidence collection within Discovery, not a separate Baseline stage. Completed Discovery evidence is projected into canonical Member State and establishes the immutable initial baseline before ordinary downstream decisions proceed. Later evidence updates longitudinal current state without rewriting that historical baseline.
 
-Safety can interrupt ordinary routing through the canonical Safety contract.
+## Canonical Intelligence responsibilities
 
-The subsystem responsibilities are deliberately narrow:
+- Discovery interprets evidence, uncertainty, contradictions and bounded hypotheses and determines semantic sufficiency. It does not choose Focus or Actions.
+- Member State is the authoritative longitudinal member truth.
+- Prioritization decides the smallest useful Focus set using supported evidence, materiality, member importance/choice, leverage, capacity, confidence, prior learning and material constraints. Safety remains independent; Action feasibility remains Planning authority.
+- Member confirmation preserves agency before Planning.
+- Planning owns Action eligibility, plan-specific deepening, quantitative internal Action Fit / Recommendation Confidence and the smallest useful manageable Action set.
+- Tracking / Outcomes capture only decision-useful evidence with provenance.
+- Review interprets adherence, outcomes, burden, barriers and changed circumstances, persists durable learning and routes to Planning or focused Reassessment.
+- Safety owns deterministic interruption, scope and escalation behavior and cannot be reduced by ordinary wellness scoring or recommendation confidence.
 
-- Discovery establishes what is happening and whether enough decision-relevant evidence exists. Its opening snapshot is broad evidence collection, not a separate decision engine.
-- Member State stores durable truth and establishes the initial immutable baseline snapshot from completed Discovery evidence.
-- Prioritization decides what matters now, with explicit member confirmation before Planning owns interventions.
-- Planning chooses a small feasible action set.
-- Outcomes record what happened.
-- Review decides what should change next.
-- Focused reassessment returns upstream only when evidence or circumstances genuinely require it.
+Legacy aggregate wellness scores, numeric dimension truth, a separate Baseline decision stage, parallel adaptation engines, problem-registry-era decision authority and duplicate intervention-routing systems are not canonical architecture.
 
-Legacy aggregate wellness scores, numeric dimension truth, a separate Baseline decision stage, parallel adaptation engines and duplicate intervention-routing systems are not canonical MVP architecture.
+## Engineering rules
 
-## MVP decision rule
+Before adding an engine, bridge, persistent state, service or major page, establish its unique responsibility, authoritative input/output, why an existing capability cannot own the behavior more simply, and how its necessity is proven end to end.
 
-Before adding a subsystem, abstraction or persistent workflow, ask:
+Compatibility mechanisms are temporary migration tools only. Canonical IDs and semantics should be used directly once controlled migration is complete. UI, persistence, telemetry and QA adapt to production contracts rather than redefine them.
 
-1. Is it required to prove the current member loop, safety, persistence or QA?
-2. Does an existing canonical subsystem already own this decision?
-3. Can the future need be served later through an existing clean contract instead of pre-building it now?
-4. Will early-member evidence actually tell us how this capability should work?
-
-If the answer points to later, leave the seam—not the machinery.
-
-## Development workflow
-
-Material new work starts from `development` on a short-lived `feat/`, `fix/`, `cleanup/` or `experiment/` branch. Validate the bounded objective, merge through a PR, then delete the temporary branch.
-
-`development` is an integration line, not an experiment dump. `main` remains the accepted Working Prototype until the Development candidate passes applicable automated, persistence, safety, accelerated closed-loop, regression and human-validation gates and is explicitly promoted.
-
-`npm test` is the repository-level canonical automated gate. Passing automation is necessary but does not by itself establish product validity or Stable status.
+`npm test` is the repository-level automated gate. Automated success is necessary but not sufficient for external testing or MVP validity. Before a manual/external candidate is used, the exact candidate must pass the applicable canonical regression and scenario/E2E gates and the deployed member path must be verified.
 
 ## Repository hygiene
 
-- Permanent active lines are `main` and `development`.
-- Temporary branches are short-lived and single-purpose.
-- Every temporary branch ends by merge or explicit rejection, then deletion.
-- No abandoned compatibility architecture.
-- No duplicate Stable/Development source directories.
-- No root dumping ground for temporary artifacts.
-- Git history replaces archive branches and retired-code folders.
-- Preserve future specifications only when they contain durable knowledge worth carrying forward.
-- Documentation must be updated when MVP boundaries, lifecycle, persistence or release rules change.
+- `main` is the only permanent branch.
+- Temporary branches are bounded and short-lived.
+- Git history is the code archive.
+- No duplicate decision engines, retired-code folders or permanent compatibility architecture.
+- No obsolete prototype terminology in active contracts.
+- No QA-only reasoning that differs from production Intelligence.
+- No vendor-specific persistence semantics inside canonical domain logic.
+- Documentation changes follow the current Drive authorities rather than preserving superseded implementation history.
 
-The intended repository is deliberately boring: one obvious owner for each capability, a small canonical loop, durable behavioral tests, and enough clean boundaries to extend after the MVP teaches us what is actually needed.
+The target is deliberately simple: one authoritative owner for each responsibility, explicit contracts, traceable decisions, low member burden and enough clean boundaries to extend only when validation demonstrates the need.
