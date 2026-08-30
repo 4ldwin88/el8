@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildDiscoverySnapshotHandoff} from './discovery-snapshot-handoff.js';
 
-test('positive snapshot indicator suppresses generic concern inference',()=>{
+test('positive opening indicator suppresses generic concern inference',()=>{
  const h=buildDiscoverySnapshotHandoff({candidate_concerns:['focus'],indicator_signals:{focus_motivation:{label:'Focus & motivation',value:4,concerns:['focus'],dimension:'Intellectual'}}});
  assert.ok(!h.candidateConcerns.includes('focus'));
  assert.ok(h.signals.suppressedPositiveConcerns.includes('focus'));
@@ -18,7 +18,7 @@ test('member priority can reopen a positively rated concern',()=>{
  assert.ok(h.candidateConcerns.includes('focus'));
 });
 
-test('signal-native handoff preserves feasibility without assigning Planning state',()=>{
+test('signal-native opening evidence preserves feasibility without assigning Planning state',()=>{
  const h=buildDiscoverySnapshotHandoff({candidate_concerns:['health'],member_priority_concerns:['health'],feasibility:{time:'<5 min',overall_load:'Difficult'}});
  assert.equal(h.signals.feasibility.time,'<5 min');
  assert.equal(h.signals.feasibility.overall_load,'Difficult');
@@ -36,7 +36,7 @@ test('no signal-native concern does not manufacture a concern or plan',()=>{
  assert.equal(h.selectedActionIds,undefined);
 });
 
-test('snapshot handoff never assigns synthetic evidence confidence or obsolete money actions',()=>{
+test('opening evidence never assigns synthetic evidence confidence or obsolete money actions',()=>{
  const h=buildDiscoverySnapshotHandoff({candidate_concerns:['money'],member_priority_concerns:['money'],feasibility:{}});
  assert.equal(h.evidenceConfidence,undefined);
  const serialized=JSON.stringify(h);
