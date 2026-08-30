@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import { createActionRegistry } from './action-registry.js';
+
+const base={dimensionIds:['physical'],intent:'build',instruction:'Do one bounded action',intendedOutcome:'Test useful change',rationale:'Bounded action may support the confirmed focus.',eligibility:{minimumEvidenceRefs:[]},exclusions:{contraindications:[]},burden:{effort:1,frequency:'bounded',complexity:'low'},measurement:{decisionUse:'Determine whether to continue, modify or stop',adherence:'completion',outcome:'target signal'},review:{trigger:'after enough planned opportunities',allowedDispositions:['continue','simplify','replace','reassess']},stopReconsider:['material worsening'],trackingRequirement:'log completion',additionalAssessmentRequirement:null,iconKey:'TRACK',evidenceSourceIds:['SRC-001'],evidenceStrength:'evidence_informed',permittedRationaleClaim:'May support the targeted behavior.',evidenceReviewStatus:'required',status:'provisional'};
+const registry=createActionRegistry([
+  {...base,actionId:'PHY-TEST',name:'Bounded movement test',constructIds:['ACTIVITY_LEVEL']},
+  {...base,actionId:'INT-HELD',name:'Held learning test',constructIds:['COGNITIVE_ENGAGEMENT'],dimensionIds:['intellectual'],status:'held'},
+  {...base,actionId:'FIN-EVIDENCE',name:'Financial snapshot',constructIds:['FINANCIAL_STRAIN'],dimensionIds:['financial'],intent:'assess',eligibility:{minimumEvidenceRefs:['fin-scope']},additionalAssessmentRequirement:'financial scope'},
+]);
+assert.equal(registry.get('PHY-TEST').trackingRequirement,'log completion');
+assert.equal(registry.forConstruct('COGNITIVE_ENGAGEMENT').length,0);
+assert.equal(registry.forConstruct('COGNITIVE_ENGAGEMENT',{includeHeld:true}).length,1);
+let result=registry.eligibleFor({focusIds:['ACTIVITY_LEVEL'],evidenceRefs:[]});
+assert.deepEqual(result.eligible.map(x=>x.actionId),['PHY-TEST']);
+assert.ok(result.rejected.find(x=>x.actionId==='FIN-EVIDENCE').reasonCodes.includes('not_relevant_to_confirmed_focus'));
+result=registry.eligibleFor({focusIds:['FINANCIAL_STRAIN'],evidenceRefs:[]});
+assert.equal(result.eligible.length,0);assert.ok(result.rejected.find(x=>x.actionId==='FIN-EVIDENCE').reasonCodes.includes('minimum_evidence_missing'));
+result=registry.eligibleFor({focusIds:['FINANCIAL_STRAIN'],evidenceRefs:['fin-scope'],constraintRefs:['c1']});
+assert.deepEqual(result.eligible.map(x=>x.actionId),['FIN-EVIDENCE']);assert.deepEqual(result.eligible[0].constraintRefs,['c1']);
+result=registry.eligibleFor({focusIds:['ACTIVITY_LEVEL'],safetyDisposition:'pause_ordinary_flow'});assert.equal(result.eligible.length,0);assert.ok(result.rejected.every(x=>x.reasonCodes.includes('safety_override')));
+assert.throws(()=>createActionRegistry([{...base,actionId:'BAD',name:'Bad legacy action',constructIds:['money_pressure']}]),/canonical EL8 construct ID/);
+assert.throws(()=>createActionRegistry([{...base,actionId:'NO-MEASURE',name:'No measure',constructIds:['ACTIVITY_LEVEL'],measurement:null}]),/measurement must be object/);
+console.log('Canonical Action Registry enforces constructs, evidence, Safety, tracking, assessment and review contracts');
