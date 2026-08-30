@@ -1,6 +1,6 @@
 {
   "name":"el8-prototype","private":true,"type":"module","scripts":{
-    "test:contracts":"node intelligence/contracts/contracts.test.js",
+    "test:contracts":"node intelligence/contracts/contracts.test.js && node intelligence/contracts/regulatory-boundary.test.js",
     "test:canonical-contracts":"node --test intelligence/contracts/canonical-contracts.test.js intelligence/contracts/capability-boundaries.test.js",
     "test:canonical-state":"node --test intelligence/state/taxonomy.test.js intelligence/state/member-state-contract.test.js intelligence/state/member-state-normalizer.test.js intelligence/state/member-state-transition.test.js",
     "test:safety":"node intelligence/safety/policy.test.js && node --test intelligence/safety/gate.test.mjs intelligence/safety/lifecycle-integration.test.mjs",
