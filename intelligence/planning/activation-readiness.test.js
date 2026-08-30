@@ -1,11 +1,62 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {assertPlanReadyForActivation,canonicalInterventions} from './activation-readiness.js';
+import {assertPlanReadyForActivation,canonicalActionsForActivation} from './activation-readiness.js';
 
-const activePlan=()=>({status:'active',registry_version:'test',active:[{id:'I1',intervention_id:'I1',priorityId:'priority:sleep',problemId:'problem:poor_sleep',title:'Sleep action',purpose:'ACT',rationale:'Test',effort:1,measurement:{type:'check'},reviewRule:{window:'7 days'}}]});
+const proposedPlan=()=>({
+  schemaVersion:'2.0.0',
+  status:'proposed',
+  focusIds:['SLEEP_QUALITY'],
+  proposedActions:[{
+    actionId:'PHY-004',
+    name:'Set a consistent sleep window',
+    actionScope:'construct',
+    focusIds:['SLEEP_QUALITY'],
+    intent:'Improve sleep regularity',
+    instruction:'Use a consistent sleep and wake window.',
+    rationale:'Regular timing can improve sleep consistency.',
+    measurement:{adherence:'days followed',outcome:'sleep consistency'},
+    review:{trigger:'review_after_initial_trial'},
+    burden:{level:'low'},
+    trackingRequirement:{required:true},
+    additionalAssessmentRequirement:{required:false},
+    iconKey:'track'
+  }],
+  activationStatus:'ready'
+});
 
-test('canonical active plan projects activation interventions without legacy concern ids',()=>{const x=canonicalInterventions(activePlan());assert.equal(x[0].source,'canonical-planning');assert.equal(x[0].problemId,'problem:poor_sleep');assert.equal(x[0].priorityId,'priority:sleep')});
-test('active canonical plan is activation ready',()=>{assert.equal(assertPlanReadyForActivation(activePlan()).length,1)});
-test('safety override cannot activate',()=>{assert.throws(()=>assertPlanReadyForActivation({status:'escalate',reason:'safety_override'}),/Safety clarification/)});
-test('selection deepening cannot activate',()=>{assert.throws(()=>assertPlanReadyForActivation({status:'deepen',reason:'selection_evidence_required',selectionDeepening:{required:true}}),/active canonical plan|intervention-selection evidence/)});
-test('plan-specific blocking deepening cannot activate',()=>{const p=activePlan();p.deepening={blocking:[{actionId:'I1'}],requirements:[{actionId:'I1'}]};p.activationStatus='needs_plan_specific_assessment';assert.throws(()=>assertPlanReadyForActivation(p),/plan-specific assessment/)});
+test('proposed canonical Plan projects Actions without problem, priority or intervention authority',()=>{
+  const actions=canonicalActionsForActivation(proposedPlan());
+  assert.equal(actions[0].source,'canonical-planning');
+  assert.equal(actions[0].actionId,'PHY-004');
+  assert.deepEqual(actions[0].focusIds,['SLEEP_QUALITY']);
+  assert.equal('problemId' in actions[0],false);
+  assert.equal('priorityId' in actions[0],false);
+  assert.equal('intervention_id' in actions[0],false);
+});
+
+test('proposed canonical Plan is activation ready',()=>{
+  assert.equal(assertPlanReadyForActivation(proposedPlan()).length,1);
+});
+
+test('safety override cannot activate',()=>{
+  assert.throws(()=>assertPlanReadyForActivation({status:'blocked',reason:'safety_override'}),/Safety clarification/);
+});
+
+test('Action-selection deepening cannot activate',()=>{
+  const plan=proposedPlan();
+  plan.selectionDeepening={required:true};
+  assert.throws(()=>assertPlanReadyForActivation(plan),/Action-selection evidence/);
+});
+
+test('Action-specific blocking deepening cannot activate',()=>{
+  const plan=proposedPlan();
+  plan.deepening={blocking:[{actionId:'PHY-004'}],requirements:[{actionId:'PHY-004'}]};
+  plan.activationStatus='needs_plan_specific_assessment';
+  assert.throws(()=>assertPlanReadyForActivation(plan),/Action-specific assessment/);
+});
+
+test('unidentified Actions cannot activate',()=>{
+  const plan=proposedPlan();
+  plan.proposedActions=[{}];
+  assert.throws(()=>assertPlanReadyForActivation(plan),/identified canonical Action/);
+});
