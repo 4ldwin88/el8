@@ -1,11 +1,10 @@
-import test from'node:test';import assert from'node:assert/strict';import{reviewPlan}from'./review-engine.js';import{buildCanonicalPlan}from'../planning/canonical-plan-engine.js';
-const plan={status:'active',active:[{id:'money_snapshot'}],reviewDays:7};
-test('working sustainable action is kept',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'high',outcome:'improved',burden:'low'}}).decision,'keep'));
+import test from'node:test';import assert from'node:assert/strict';import{reviewPlan}from'./review-engine.js';
+const plan={status:'active',focusIds:['FINANCIAL_CONTROL'],activeActions:[{actionId:'FIN-004',focusIds:['FINANCIAL_CONTROL'],measurement:{},review:{}}]};
+test('working sustainable Action is kept',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'high',outcome:'improved',burden:'low'}}).decision,'keep'));
 test('known execution barrier leads to simplification',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'low',outcome:'unchanged',burden:'high',barrierKnown:true}}).decision,'simplify'));
-test('executed action without benefit is replaced',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'high',outcome:'unchanged',burden:'low'}}).decision,'replace'));
+test('executed Action without benefit is replaced',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'high',outcome:'unchanged',burden:'low'}}).decision,'replace'));
 test('missing causal evidence deepens rather than guesses',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'low',outcome:'unchanged',burden:'low',barrierKnown:false}}).decision,'deepen'));
 test('changed circumstances route back to reassessment',()=>{const r=reviewPlan({plan,evidence:{adherence:'high',outcome:'improved',circumstancesChanged:true}});assert.equal(r.decision,'reassess');assert.equal(r.requiresDiscovery,true)});
-test('accelerated QA does not require elapsed reviewDays',()=>{const r=reviewPlan({plan,evidence:{adherence:'high',outcome:'improved',burden:'low',qaSimulated:true}});assert.equal(r.decision,'keep');assert.equal(plan.reviewDays,7)});
-test('review refuses non-active plans',()=>assert.throws(()=>reviewPlan({plan:{status:'observe'},evidence:{}})));
-test('Feedback consumes an unmodified canonical Planning result with intervention measurement and review metadata',()=>{const input={memberStateRevision:5,confirmedPriorityIds:['priority:poor_sleep'],memberChoice:{mode:'EXPLICIT_ACCEPTANCE'},problems:[{priorityId:'priority:poor_sleep',problemId:'problem:poor_sleep',evidenceRefs:['e1'],priorLearning:[]}],constraints:{profile:[],capacity:'medium',manageability:'manageable',throttle:{active:false},safety:{disposition:'ORDINARY_FLOW'}}};const canonical=buildCanonicalPlan(input,{selectionEvidence:{'baseline.sleep_pattern':'Timing changes a lot'}});assert.equal(canonical.status,'active');assert.ok(canonical.active[0].measurement);assert.ok(canonical.active[0].reviewRule);const r=reviewPlan({plan:canonical,evidence:{adherence:'high',outcome:'improved',burden:'low'}});assert.equal(r.decision,'keep');assert.deepEqual(r.actionIds,canonical.active.map(x=>x.id))});
-console.log('canonical accelerated plan review QA passed');
+test('Review returns canonical Action IDs and v2 contract',()=>{const r=reviewPlan({plan,evidence:{adherence:'high',outcome:'improved',burden:'low'}});assert.equal(r.contractVersion,'plan-review-v2');assert.deepEqual(r.actionIds,['FIN-004'])});
+test('Review refuses non-active Plans',()=>assert.throws(()=>reviewPlan({plan:{status:'proposed',actions:[{actionId:'FIN-004'}]},evidence:{}}),/Active canonical Plan/));
+test('Review refuses unidentified active Actions',()=>assert.throws(()=>reviewPlan({plan:{status:'active',activeActions:[{}]},evidence:{}}),/actionId/));

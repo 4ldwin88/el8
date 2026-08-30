@@ -13,13 +13,15 @@ export function mountPlanShell({ member, quickLogs = [], routes = {} } = {}) {
   return { shell, trackSheet };
 }
 
-export function planScheduleModel(plan, interventions = []) {
-  const items = interventions.map((item, index) => ({
-    id: item.id || `plan-${index + 1}`,
-    title: item.action || item.title || item.label || 'Plan action',
-    cadence: item.cadence || item.frequency || item.schedule || null,
+export function planScheduleModel(plan, actions = []) {
+  const source = actions.length ? actions : (plan?.activeActions || plan?.proposedActions || plan?.actions || []);
+  const items = source.map((item, index) => ({
+    id: item.actionId || item.id || `plan-${index + 1}`,
+    title: item.title || item.name || item.instruction || 'Plan action',
+    cadence: item.cadence || item.frequency || item.schedule || item.measurement?.cadence || null,
     timing: item.timing || item.time || null,
-    dimensions: Array.isArray(item.dimensions) ? item.dimensions : []
+    focusIds: Array.isArray(item.focusIds) ? item.focusIds : [],
+    dimensionIds: Array.isArray(item.dimensionIds) ? item.dimensionIds : []
   }));
   return { items, hasSchedule: items.some(item => item.cadence || item.timing) };
 }

@@ -5,25 +5,10 @@ import { buildCanonicalPlan } from '../planning/canonical-plan-engine.js';
 
 const planningInput = {
   memberStateRevision: 5,
-  confirmedPriorityIds: ['priority:poor_sleep'],
-  memberChoice: { mode: 'EXPLICIT_ACCEPTANCE' },
-  problems: [{
-    priorityId: 'priority:poor_sleep',
-    problemId: 'problem:poor_sleep',
-    evidenceRefs: ['e1'],
-    priorLearning: []
-  }],
-  constraints: {
-    profile: [],
-    capacity: 'medium',
-    manageability: 'manageable',
-    throttle: { active: false },
-    safety: { disposition: 'ORDINARY_FLOW' }
-  }
-};
-
-const selectionEvidence = {
-  'baseline.sleep_pattern': 'Timing changes a lot'
+  focuses: [{ constructId: 'SLEEP_QUALITY', decision: 'accepted' }],
+  evidenceRefs: ['e1'],
+  constraintRefs: [],
+  safetyDisposition: 'ordinary_flow'
 };
 
 test('Discovery pauses ordinary questions when contextual Safety needs clarification', () => {
@@ -47,30 +32,24 @@ test('Discovery retains contextual uncertainty after negative direct confirmatio
   assert.notEqual(discovery.next(s).type, 'safety');
 });
 
-test('Planning cannot compose an intervention while Safety requires ordinary flow to pause', () => {
+test('Planning cannot compose an Action while Safety requires ordinary flow to pause', () => {
   const p = buildCanonicalPlan({
     ...planningInput,
-    constraints: {
-      ...planningInput.constraints,
-      safety: { disposition: 'PAUSE_ORDINARY_FLOW' }
-    }
-  }, { selectionEvidence });
-  assert.equal(p.status, 'escalate');
+    safetyDisposition: 'pause_ordinary_flow'
+  });
+  assert.equal(p.status, 'blocked');
   assert.equal(p.reason, 'safety_override');
-  assert.deepEqual(p.active, []);
+  assert.deepEqual(p.proposedActions, []);
 });
 
-test('Planning cannot compose an intervention after positive direct Safety confirmation', () => {
+test('Planning cannot compose an Action after positive direct Safety escalation', () => {
   const p = buildCanonicalPlan({
     ...planningInput,
-    constraints: {
-      ...planningInput.constraints,
-      safety: { disposition: 'PAUSE_ORDINARY_FLOW', status: 'escalate' }
-    }
-  }, { selectionEvidence });
-  assert.equal(p.status, 'escalate');
+    safetyDisposition: 'escalate'
+  });
+  assert.equal(p.status, 'blocked');
   assert.equal(p.reason, 'safety_override');
-  assert.deepEqual(p.active, []);
+  assert.deepEqual(p.proposedActions, []);
 });
 
 console.log('Safety lifecycle integration QA passed');

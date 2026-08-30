@@ -1,3 +1,0 @@
-'use strict';
-const { applyMemberStateUpdate } = require('./member-state-update');
-function commitDiscoveryHandoff(state,{evidence=[],dimensions=[],source='discovery',at=new Date().toISOString(),establishBaseline=true}={}){let next=state;for(const item of evidence)next=applyMemberStateUpdate(next,{type:'EVIDENCE_RECORDED',payload:item,source,at,expectedRevision:next.revision});for(const item of dimensions)next=applyMemberStateUpdate(next,{type:'DIMENSION_UPDATED',payload:item,source,at,expectedRevision:next.revision});if(establishBaseline&&next.baseline.status==='NOT_ESTABLISHED')next=applyMemberStateUpdate(next,{type:'BASELINE_ESTABLISHED',payload:{},source,at,expectedRevision:next.revision});return next}module.exports={commitDiscoveryHandoff};
