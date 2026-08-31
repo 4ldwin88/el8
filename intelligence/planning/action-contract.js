@@ -1,8 +1,8 @@
 import { assertCanonicalConstructId, assertCanonicalDimension } from '../contracts/canonical-vocabulary.js';
 
-export const ACTION_CONTRACT_VERSION='1.2.0';
+export const ACTION_CONTRACT_VERSION='1.3.0';
 export const ACTION_INTENTS=Object.freeze(['stabilize','resolve','build','learn','track','assess','educate','refer']);
-export const ACTION_STATUS=Object.freeze(['active','provisional','held','deferred','retired']);
+export const ACTION_STATUS=Object.freeze(['active','provisional','unsupported_experimental','deferred','retired']);
 export const ACTION_SCOPES=Object.freeze(['construct','plan']);
 export const EVIDENCE_STRENGTH=Object.freeze(['strong','moderate','supported','evidence_informed','context_dependent','low','unknown']);
 export const CANONICAL_ACTION_ID_PATTERN=/^(?:PHY|EMT|SOC|OCC|FIN|ENV|INT|SPT|XDM)-A\d{2}$/;
