@@ -9,7 +9,7 @@
     "test:review":"node --test intelligence/review/review-engine.test.mjs intelligence/review/adaptation-router.test.mjs intelligence/review/deepen-disengagement.test.mjs intelligence/review/accelerated-closed-loop.test.mjs",
     "test:canonical-intelligence":"npm run test:canonical-contracts && npm run test:canonical-state && npm run test:prioritization && npm run test:planning && npm run test:review",
     "test:outcomes":"node intelligence/outcomes/outcomes.test.js",
-    "test:discovery":"node intelligence/discovery/discovery-runtime.test.mjs",
+    "test:discovery":"node registries/questions/questionRegistry.test.mjs && node intelligence/discovery/discovery-runtime.test.mjs",
     "test:intelligence-test":"node app/research/intelligence-test-contract.test.mjs && node intelligence-test/discovery-synthesis-regression.test.mjs && node intelligence-test/plan-selection-regression.test.mjs",
     "test:onboarding":"node app/onboarding/discovery-render-before-auth.test.mjs && node --test app/onboarding/flow.test.mjs app/onboarding/discovery-first-routing.test.mjs app/onboarding/discovery-snapshot-handoff.test.js app/onboarding/discovery-priority-candidates.test.mjs app/onboarding/canonical-planning-pipeline.test.mjs app/onboarding/member-state-projection.test.mjs app/onboarding/browser-planning-adapter.test.mjs app/onboarding/browser-member-state-plan.test.mjs app/onboarding/plan-activation-transaction.test.mjs app/onboarding/supabase-activation-runtime.test.mjs app/onboarding/accelerated-canonical-e2e.test.mjs",
     "test:insights":"node app/insights/daily-evidence.test.mjs && node app/insights/dimension-history.test.mjs",
