@@ -1,6 +1,6 @@
-import test from'node:test';import assert from'node:assert/strict';import{buildCanonicalPlan}from'../planning/canonical-plan-engine.js';import{reviewPlan}from'./review-engine.js';import{routeReview}from'./adaptation-router.js';
+import test from'node:test';import assert from'node:assert/strict';import{buildPlan}from'../planning/planningEngine.js';import{reviewPlan}from'./review-engine.js';import{routeReview}from'./adaptation-router.js';
 const focus={constructId:'ACTIVITY_LEVEL',decision:'accepted',decidedAt:'2026-08-30T16:30:00Z'};const input={memberStateRevision:1,focuses:[focus],evidenceRefs:['e:activity'],constraintRefs:[],safetyDisposition:'ordinary_flow'};
-function proposed(extra={}){return buildCanonicalPlan(input,{now:'2026-08-30T16:31:00Z',...extra})}
+function proposed(extra={}){return buildPlan(input,{now:'2026-08-30T16:31:00Z',...extra})}
 function active(plan=proposed()){return{...plan,status:'active',activeActions:plan.proposedActions}}
 
 test('accelerated loop: successful sustainable Action is preserved',()=>{const first=active();const review=reviewPlan({plan:first,evidence:{adherence:'high',outcome:'improved',burden:'low',qaSimulated:true}});assert.equal(review.decision,'keep');const route=routeReview({review,plan:first});assert.equal(route.route,'continue');assert.equal(route.preservePlan,true);assert.deepEqual(route.actionIds,first.activeActions.map(x=>x.actionId))});
