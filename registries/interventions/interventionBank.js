@@ -1,6 +1,6 @@
 // Code representation of the Drive Action Library (02.06).
 // The registry owns governed Action definitions; Planning consumes this boundary.
-import { createActionDefinition } from '../../intelligence/planning/action-contract.js';
+import { createActionDefinition } from './actionContract.js';
 
 const D=['continue','simplify','replace','reassess'];
 const dim={PHY:['physical'],EMT:['emotional'],SOC:['social'],OCC:['occupational'],FIN:['financial'],ENV:['environmental'],INT:['intellectual'],SPT:['spiritual'],XDM:[]};
