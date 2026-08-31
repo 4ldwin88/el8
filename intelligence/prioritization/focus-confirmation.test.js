@@ -29,7 +29,7 @@ const planningInput=focusConfirmationPlanningInput(confirmation,{evidenceRefs:['
 assert.deepEqual(planningInput.focuses.map(x=>x.constructId),['SLEEP_QUALITY','ACTIVITY_LEVEL']);
 assert.ok(planningInput.constraintRefs.includes('focus-constraint:1'));
 
-assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'money_pressure',decision:'accepted'}],decidedAt:at}),/canonical EL8 construct ID/);
+assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'money_pressure',decision:'accepted'}],decidedAt:at}),/governed EL8 construct ID/);
 assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'VALUES_CLARITY',decision:'accepted'}],decidedAt:at}),/not a Prioritization candidate/);
 assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'SLEEP_QUALITY',decision:'accepted'}],constraints:['severity'],decidedAt:at}),/unsupported Focus constraint/);
 
