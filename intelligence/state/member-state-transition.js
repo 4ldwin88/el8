@@ -3,7 +3,7 @@ import {
   createFocusDecision,
   validateMemberStateShape,
 } from './member-state-contract.js';
-import { isConstructId, isDimensionId } from './taxonomy.js';
+import { isConstructId, isDimensionId } from '../../registries/taxonomy/index.js';
 
 export const MEMBER_STATE_EVENT = Object.freeze({
   DIMENSION_UPDATED: 'DIMENSION_UPDATED',
@@ -34,7 +34,6 @@ export function applyMemberStateTransition(state,{type,payload={},source,at=new 
     case MEMBER_STATE_EVENT.DIMENSION_UPDATED:{
       const {dimensionId,...patch}=payload;
       if(!isDimensionId(dimensionId))throw new Error(`Unknown dimensionId: ${dimensionId}`);
-      // A dimension may summarize evidence/coverage but cannot establish constructs by implication.
       next.dimensions[dimensionId]={...next.dimensions[dimensionId],...clone(patch),dimensionId,lastDerivedAt:at};
       break;
     }
@@ -67,18 +66,7 @@ export function applyMemberStateTransition(state,{type,payload={},source,at=new 
         requireString(payload.revalidateAfter,'hypothesis revalidateAfter');
       }
       const current=next.hypotheses[payload.hypothesisId]??{};
-      next.hypotheses[payload.hypothesisId]={
-        confirmationStatus:'not_required',
-        linkedConstructIds:[],
-        linkedDimensionIds:[],
-        evidenceFor:[],
-        evidenceAgainst:[],
-        createdAt:at,
-        ...current,
-        ...clone(payload),
-        hypothesisId:payload.hypothesisId,
-        lastDerivedAt:at,
-      };
+      next.hypotheses[payload.hypothesisId]={confirmationStatus:'not_required',linkedConstructIds:[],linkedDimensionIds:[],evidenceFor:[],evidenceAgainst:[],createdAt:at,...current,...clone(payload),hypothesisId:payload.hypothesisId,lastDerivedAt:at};
       break;
     }
     case MEMBER_STATE_EVENT.FOCUS_DECIDED:{
@@ -90,15 +78,12 @@ export function applyMemberStateTransition(state,{type,payload={},source,at=new 
       if(decision==='accepted') next.activeFocusIds=unique([...next.activeFocusIds,constructId]);
       else next.activeFocusIds=next.activeFocusIds.filter(id=>id!==constructId);
       if(prior?.decision==='accepted'&&['rejected','postponed','paused'].includes(decision)&&next.activePlanRef){
-        // Member State cannot rewrite the Plan. It records that reconciliation is required;
-        // Planning owns the replacement/clear decision.
         next.activePlanRef={...next.activePlanRef,reconciliationRequired:true,reconciliation:{reason:'MEMBER_FOCUS_WITHDRAWN',constructId,withdrawnDecision:decision,at}};
       }
       break;
     }
     case MEMBER_STATE_EVENT.PLAN_ACTIVATED:{
-      requireString(payload.planId,'planId');
-      requireArray(payload.actionIds,'actionIds'); requireArray(payload.focusIds,'focusIds');
+      requireString(payload.planId,'planId'); requireArray(payload.actionIds,'actionIds'); requireArray(payload.focusIds,'focusIds');
       if(!payload.actionIds.length)throw new Error('active Plan requires at least one Action');
       for(const constructId of payload.focusIds){
         if(!next.activeFocusIds.includes(constructId)||next.focusDecisions[constructId]?.decision!=='accepted')throw new Error(`Plan Focus must be member accepted: ${constructId}`);
@@ -107,18 +92,12 @@ export function applyMemberStateTransition(state,{type,payload={},source,at=new 
       next.activeActionIds=unique(payload.actionIds);
       break;
     }
-    case MEMBER_STATE_EVENT.PLAN_CLEARED:{
-      next.activePlanRef=null; next.activeActionIds=[]; break;
-    }
+    case MEMBER_STATE_EVENT.PLAN_CLEARED:{next.activePlanRef=null; next.activeActionIds=[]; break;}
     case MEMBER_STATE_EVENT.MEMBER_CONTEXT_UPDATED:{
-      const patch=clone(payload);
-      for(const key of ['capacity','manageability','readiness'])if(patch[key]==null)patch[key]='unknown';
+      const patch=clone(payload); for(const key of ['capacity','manageability','readiness'])if(patch[key]==null)patch[key]='unknown';
       next.memberContext={...next.memberContext,...patch}; break;
     }
-    case MEMBER_STATE_EVENT.SAFETY_DISPOSITION_UPDATED:{
-      // Store references/status only. Safety reasoning remains external.
-      next.safety={...next.safety,...clone(payload),updatedAt:at}; break;
-    }
+    case MEMBER_STATE_EVENT.SAFETY_DISPOSITION_UPDATED:{next.safety={...next.safety,...clone(payload),updatedAt:at}; break;}
     case MEMBER_STATE_EVENT.REVIEW_CYCLE_LINKED:{
       requireString(payload.reviewCycleId,'reviewCycleId');
       if(!next.reviewCycles.some(x=>(typeof x==='string'?x:x.reviewCycleId)===payload.reviewCycleId))next.reviewCycles.push(clone(payload));
