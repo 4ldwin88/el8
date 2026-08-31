@@ -1,4 +1,4 @@
-export const EFFECT_TYPES = Object.freeze(['evidence','safety','immediacy','readiness','importance','member-priority','feasibility','constraint','barrier','support','access','capacity']);
+export const EFFECT_TYPES = Object.freeze(['evidence','routing','safety','immediacy','readiness','importance','member-priority','feasibility','constraint','barrier','support','access','capacity']);
 export const RESOLUTION_STATES = Object.freeze(['unscoped','triaged','narrowing','sufficient','deferred','escalated','nonIssue']);
 export const IMMEDIACY = Object.freeze(['routine','time-sensitive','acute']);
 export const TEMPORALITY = Object.freeze(['current','recurring','historical','resolved','unknown']);
@@ -22,7 +22,7 @@ export function assertEffect(effect) {
   return effect;
 }
 
-export function makeObservation({id, questionId, concernId, answerValue, specificityLevel=0, timestamp=Date.now(), effects=[]}) {
+export function makeObservation({id, questionId, constructId, answerValue, specificityLevel=0, timestamp=Date.now(), effects=[]}) {
   if (!id || !questionId) throw new Error('Observation requires id and questionId');
-  return Object.freeze({id, questionId, concernId: concernId ?? null, answerValue, specificityLevel, timestamp, effects: Object.freeze(effects.map(assertEffect))});
+  return Object.freeze({id, questionId, constructId: constructId ?? null, answerValue, specificityLevel, timestamp, effects: Object.freeze(effects.map(assertEffect))});
 }
