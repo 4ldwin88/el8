@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
-import { CONSTRUCT_IDS } from '../contracts/canonical-vocabulary.js';
-import { CONSTRUCTS, CONSTRUCT_BY_ID, validateTaxonomy } from './taxonomy.js';
+import {
+  CONSTRUCT_IDS,
+  CONSTRUCTS,
+  CONSTRUCT_BY_ID,
+  validateTaxonomy,
+} from '../../registries/taxonomy/index.js';
 
 assert.deepEqual(validateTaxonomy(), []);
 assert.deepEqual(new Set(CONSTRUCTS.map(item => item.id)), new Set(CONSTRUCT_IDS));
@@ -23,4 +27,4 @@ assert.ok(CONSTRUCT_BY_ID.MEANING_PURPOSE);
 assert.ok(CONSTRUCT_BY_ID.DIRECTION_CLARITY);
 assert.equal(CONSTRUCT_BY_ID.COGNITIVE_ENGAGEMENT.experimental, true);
 
-console.log('Canonical state taxonomy uses Drive-controlled constructs without legacy concern aliases');
+console.log('Canonical taxonomy registry uses Drive-controlled constructs without legacy concern aliases');
