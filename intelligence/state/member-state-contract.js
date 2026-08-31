@@ -31,69 +31,106 @@ export function createMemberState({ memberId = null, now = isoNow() } = {}) {
     constructs: {},
     facts: {},
     hypotheses: {},
-    focus: { decisions: {}, activeFocusIds: [], updatedAt: null },
-    memberContext: { capacity: 'unknown', readiness: 'unknown', preferences: {}, constraints: [], supports: [] },
-    safety: { disposition: 'ordinary_flow', updatedAt: null, evidenceRefs: [] },
+    indicators: {},
+    goals: {},
+    constraints: {},
+    focusDecisions: {},
+    activeFocusIds: [],
     activePlanRef: null,
-    reviewCycleRef: null,
-    provenance: { discoverySessionRefs: [], evidenceRefs: [], sourceVersions: {} },
+    activeActionIds: [],
+    reviewCycles: [],
+    memberContext: { preferences: {}, accessibility: {}, readiness: 'unknown', capacity: 'unknown', manageability: 'unknown' },
+    safety: { dispositionRef: null, active: false, signalRefs: [], updatedAt: null },
+    historyRefs: [],
   };
 }
 
-export function createConstructState({ constructId, dimensionId = null, topicIds = [], status = 'unknown', sufficiency = 'insufficient', evidenceRefs = [], confidence = null, lastObservedAt = null, lastDerivedAt = null, metadata = {} } = {}) {
+export function createConstructState({ constructId, status = CONSTRUCT_STATUS.UNKNOWN, now = isoNow() } = {}) {
   if (!isConstructId(constructId)) throw new Error(`Unknown constructId: ${constructId}`);
-  const canonical = CONSTRUCT_BY_ID[constructId];
-  const resolvedDimensionId = dimensionId ?? canonical.dimensionId;
-  if (!isDimensionId(resolvedDimensionId)) throw new Error(`Unknown dimensionId: ${resolvedDimensionId}`);
-  const resolvedTopicIds = topicIds.length ? topicIds : canonical.topicIds;
-  for (const topicId of resolvedTopicIds) if (!isTopicId(topicId)) throw new Error(`Unknown topicId: ${topicId}`);
-  if (!CONSTRUCT_STATUS.includes(status)) throw new Error(`Invalid construct status: ${status}`);
-  if (!COVERAGE_STATUS.includes(sufficiency)) throw new Error(`Invalid construct sufficiency: ${sufficiency}`);
-  return { constructId, dimensionId: resolvedDimensionId, topicIds: [...resolvedTopicIds], status, sufficiency, evidenceRefs: [...evidenceRefs], confidence, lastObservedAt, lastDerivedAt, metadata: { ...metadata } };
+  if (!Object.values(CONSTRUCT_STATUS).includes(status)) throw new Error(`Unknown construct status: ${status}`);
+  const definition = CONSTRUCT_BY_ID[constructId];
+  return {
+    constructId,
+    dimensionIds: [...definition.dimensionIds],
+    topicIds: [...definition.topicIds],
+    status,
+    evidenceConfidence: 'unknown',
+    sufficiency: 'insufficient',
+    unresolvedReasons: [],
+    factIds: [], evidenceRefs: [], observationRefs: [], indicatorIds: [], hypothesisIds: [],
+    firstObservedAt: null, lastObservedAt: null, lastDerivedAt: now,
+  };
 }
 
-export function createFact({ factId, key, value, status = 'current', observedAt = isoNow(), source = 'member', evidenceRefs = [], supersedesFactId = null, metadata = {} } = {}) {
-  if (!factId || !key) throw new Error('Fact requires factId and key');
-  if (!FACT_STATUS.includes(status)) throw new Error(`Invalid fact status: ${status}`);
-  return { factId, key, value, status, observedAt, source, evidenceRefs: [...evidenceRefs], supersedesFactId, metadata: { ...metadata } };
+export function createFact({ factId, semanticKey, value = null, sourceType, sourceRef, affectedConstructId = null, affectedDimensionId = null, observedAt = isoNow(), timeWindow = null, reliability = 'unknown', memberConfirmed = false, currentStatus = 'current' } = {}) {
+  if (!factId || !semanticKey || !sourceType || !sourceRef) throw new Error('factId, semanticKey, sourceType and sourceRef are required');
+  if (affectedConstructId !== null && !isConstructId(affectedConstructId)) throw new Error(`Unknown constructId: ${affectedConstructId}`);
+  if (affectedDimensionId !== null && !isDimensionId(affectedDimensionId)) throw new Error(`Unknown dimensionId: ${affectedDimensionId}`);
+  if (!FACT_STATUS.includes(currentStatus)) throw new Error(`Unknown fact status: ${currentStatus}`);
+  return { factId, semanticKey, value, sourceType, sourceRef, affectedConstructId, affectedDimensionId, observedAt, timeWindow, reliability, memberConfirmed, currentStatus };
 }
 
-export function createHypothesis({ hypothesisId, constructIds = [], relationship = null, status = 'generated', confidence = null, evidenceForRefs = [], evidenceAgainstRefs = [], generatedAt = isoNow(), updatedAt = generatedAt, metadata = {} } = {}) {
-  if (!hypothesisId) throw new Error('Hypothesis requires hypothesisId');
-  for (const constructId of constructIds) if (!isConstructId(constructId)) throw new Error(`Unknown constructId: ${constructId}`);
-  if (!HYPOTHESIS_STATUS.includes(status)) throw new Error(`Invalid hypothesis status: ${status}`);
-  return { hypothesisId, constructIds: [...constructIds], relationship, status, confidence, evidenceForRefs: [...evidenceForRefs], evidenceAgainstRefs: [...evidenceAgainstRefs], generatedAt, updatedAt, metadata: { ...metadata } };
+export function createHypothesis({ hypothesisId, proposition, linkedConstructIds = [], linkedDimensionIds = [], status = 'generated', confirmationStatus = 'not_required', now = isoNow() } = {}) {
+  if (!hypothesisId || !proposition) throw new Error('hypothesisId and proposition are required');
+  if (!HYPOTHESIS_STATUS.includes(status)) throw new Error(`Unknown hypothesis status: ${status}`);
+  if (!CONFIRMATION_STATUS.includes(confirmationStatus)) throw new Error(`Unknown confirmation status: ${confirmationStatus}`);
+  for (const id of linkedConstructIds) if (!isConstructId(id)) throw new Error(`Unknown constructId: ${id}`);
+  for (const id of linkedDimensionIds) if (!isDimensionId(id)) throw new Error(`Unknown dimensionId: ${id}`);
+  return { hypothesisId, proposition, linkedConstructIds: [...linkedConstructIds], linkedDimensionIds: [...linkedDimensionIds], evidenceFor: [], evidenceAgainst: [], status, confirmationStatus, createdAt: now, lastDerivedAt: now };
 }
 
-export function createFocusDecision({ constructId, decision, decidedAt = isoNow(), reason = null, evidenceRefs = [], source = 'member', metadata = {} } = {}) {
+export function createIndicator({ indicatorId, definition, constructId = null, dimensionId = null, unitOrScale = null, directionality = null } = {}) {
+  if (!indicatorId || !definition) throw new Error('indicatorId and definition are required');
+  if (constructId !== null && !isConstructId(constructId)) throw new Error(`Unknown constructId: ${constructId}`);
+  if (dimensionId !== null && !isDimensionId(dimensionId)) throw new Error(`Unknown dimensionId: ${dimensionId}`);
+  return { indicatorId, definition, constructId, dimensionId, unitOrScale, directionality, observations: [], trajectory: 'unknown' };
+}
+
+export function createFocusDecision({ constructId, decision, decidedAt = isoNow(), reasonCodes = [], constraintRefs = [] } = {}) {
   if (!isConstructId(constructId)) throw new Error(`Unknown constructId: ${constructId}`);
-  if (!FOCUS_DECISION.includes(decision)) throw new Error(`Invalid focus decision: ${decision}`);
-  return { constructId, decision, decidedAt, reason, evidenceRefs: [...evidenceRefs], source, metadata: { ...metadata } };
+  if (!FOCUS_DECISION.includes(decision)) throw new Error(`Unknown focus decision: ${decision}`);
+  return { constructId, decision, decidedAt, reasonCodes: [...reasonCodes], constraintRefs: [...constraintRefs] };
 }
 
 export function validateMemberStateShape(state) {
   const errors = [];
-  if (!state || typeof state !== 'object') return ['Member State must be an object'];
-  if (state.schemaVersion !== MEMBER_STATE_SCHEMA_VERSION) errors.push(`schemaVersion must be ${MEMBER_STATE_SCHEMA_VERSION}`);
-  if (state.taxonomyVersion !== TAXONOMY_VERSION) errors.push(`taxonomyVersion must be ${TAXONOMY_VERSION}`);
+  if (!state || typeof state !== 'object') return ['state must be an object'];
+  if (state.schemaVersion !== MEMBER_STATE_SCHEMA_VERSION) errors.push('unsupported schemaVersion');
+  if (state.taxonomyVersion !== TAXONOMY_VERSION) errors.push('unsupported taxonomyVersion');
   if (!Number.isInteger(state.revision) || state.revision < 0) errors.push('revision must be a non-negative integer');
-  if (!state.dimensions || typeof state.dimensions !== 'object') errors.push('dimensions required');
-  if (!state.constructs || typeof state.constructs !== 'object') errors.push('constructs required');
-  if (!state.facts || typeof state.facts !== 'object') errors.push('facts required');
-  if (!state.hypotheses || typeof state.hypotheses !== 'object') errors.push('hypotheses required');
-  if (!state.focus || typeof state.focus !== 'object') errors.push('focus required');
-  if (!state.memberContext || typeof state.memberContext !== 'object') errors.push('memberContext required');
-  if (!state.safety || typeof state.safety !== 'object') errors.push('safety required');
-  for (const [dimensionId, dimension] of Object.entries(state.dimensions ?? {})) {
-    if (!isDimensionId(dimensionId)) errors.push(`Unknown dimension: ${dimensionId}`);
-    if (!CONDITION_STATUS.includes(dimension.conditionState)) errors.push(`Invalid conditionState for ${dimensionId}`);
-    if (!COVERAGE_STATUS.includes(dimension.coverageState)) errors.push(`Invalid coverageState for ${dimensionId}`);
+  for (const key of ['dimensions','constructs','facts','hypotheses','indicators','goals','constraints','focusDecisions']) if (!state[key] || typeof state[key] !== 'object') errors.push(`${key} must be an object`);
+  for (const key of ['activeFocusIds','activeActionIds','reviewCycles','historyRefs']) if (!Array.isArray(state[key])) errors.push(`${key} must be an array`);
+
+  for (const { id: dimensionId } of DIMENSIONS) {
+    const d = state.dimensions?.[dimensionId];
+    if (!d) { errors.push(`missing dimension: ${dimensionId}`); continue; }
+    if (!CONDITION_STATUS.includes(d.conditionState)) errors.push(`invalid condition state: ${dimensionId}`);
+    if (!COVERAGE_STATUS.includes(d.coverageState)) errors.push(`invalid coverage state: ${dimensionId}`);
+    if (d.coverageState !== 'sufficient' && d.conditionState === 'stable' && (d.evidenceRefs?.length ?? 0) === 0) errors.push(`unassessed dimension cannot default stable: ${dimensionId}`);
+    for (const topicId of d.topicIds ?? []) if (!isTopicId(topicId)) errors.push(`unknown topic ${topicId}: ${dimensionId}`);
+    for (const constructId of d.constructIds ?? []) if (!isConstructId(constructId)) errors.push(`unknown construct ${constructId}: ${dimensionId}`);
   }
-  for (const [constructId, construct] of Object.entries(state.constructs ?? {})) {
-    if (!isConstructId(constructId)) errors.push(`Unknown construct: ${constructId}`);
-    if (construct.constructId !== constructId) errors.push(`Construct key/id mismatch: ${constructId}`);
-    if (!CONSTRUCT_STATUS.includes(construct.status)) errors.push(`Invalid construct status: ${constructId}`);
-    if (!COVERAGE_STATUS.includes(construct.sufficiency)) errors.push(`Invalid construct sufficiency: ${constructId}`);
+
+  for (const [constructId, item] of Object.entries(state.constructs ?? {})) {
+    if (item.constructId !== constructId) errors.push(`construct key/id mismatch: ${constructId}`);
+    if (!isConstructId(constructId)) errors.push(`unknown construct: ${constructId}`);
+    if (!Object.values(CONSTRUCT_STATUS).includes(item.status)) errors.push(`invalid construct status: ${constructId}`);
+  }
+  for (const [factId, fact] of Object.entries(state.facts ?? {})) {
+    if (fact.factId !== factId) errors.push(`fact key/id mismatch: ${factId}`);
+    if (!fact.semanticKey || !fact.sourceType || !fact.sourceRef) errors.push(`fact missing provenance: ${factId}`);
+    if (!FACT_STATUS.includes(fact.currentStatus)) errors.push(`invalid fact status: ${factId}`);
+  }
+  for (const [hypothesisId, h] of Object.entries(state.hypotheses ?? {})) {
+    if (h.hypothesisId !== hypothesisId) errors.push(`hypothesis key/id mismatch: ${hypothesisId}`);
+    if (!HYPOTHESIS_STATUS.includes(h.status)) errors.push(`invalid hypothesis status: ${hypothesisId}`);
+    if (!CONFIRMATION_STATUS.includes(h.confirmationStatus)) errors.push(`invalid hypothesis confirmation: ${hypothesisId}`);
+    if (h.status === 'member_confirmed' && h.confirmationStatus !== 'confirmed') errors.push(`confirmed hypothesis requires member confirmation: ${hypothesisId}`);
+  }
+  for (const constructId of state.activeFocusIds ?? []) {
+    const decision = state.focusDecisions?.[constructId];
+    if (!isConstructId(constructId)) errors.push(`active Focus references unknown construct: ${constructId}`);
+    else if (!decision || decision.decision !== 'accepted') errors.push(`active Focus must have accepted member decision: ${constructId}`);
   }
   return errors;
 }
