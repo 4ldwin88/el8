@@ -1,12 +1,11 @@
-// Canonical EL8 construct registry.
-// Historical "concern" IDs are not decision authority; this manifest filename
-// exposes the governed constructs used by Member State and Intelligence.
+// Canonical EL8 construct and concern/topic vocabulary registry.
+// Topics support Discovery routing; constructs are Member State / Intelligence decision authority.
 
 import { DIMENSION_IDS, isDimensionId } from './dimensions.js';
 
 export const CONSTRUCT_IDS = Object.freeze([
   'EMOTIONAL_STATE','PRESSURE_PATTERN','SLEEP_QUALITY','ENERGY_FUNCTION','LONELINESS',
-  'JOB_SECURITY','FINANCIAL_STRAIN','FINANCIAL_CONTROL','ENVIRONMENTAL_SUPPORT','MEANING_PURPOSE',
+  'JOB_SECURITY','FINANCIAL_STRAIN','FINANCIAL_CONTROL','ENVIRONMENTAL_INTERFERENCE','HOUSING_STABILITY','MEANING_PURPOSE',
   'COGNITIVE_ENGAGEMENT','RELATIONSHIP_STRAIN','SUPPORT_AVAILABILITY','PHYSICAL_CONDITION','ACTIVITY_LEVEL',
   'FOCUS_FUNCTION','ACTIVATION','SCHEDULE_DISRUPTION','BODY_WEIGHT_CONCERN','VALUES_CLARITY',
   'NEXT_STEP_CLARITY','DIRECTION_CLARITY',
@@ -21,7 +20,7 @@ export const TOPICS=Object.freeze([
   topic('intellectual.focus','intellectual','Focus'),topic('intellectual.clarity','intellectual','Clarity'),topic('intellectual.learning','intellectual','Learning'),topic('intellectual.curiosity','intellectual','Curiosity'),topic('intellectual.cognitive_load','intellectual','Cognitive load'),topic('intellectual.decision_capacity','intellectual','Decision capacity'),topic('intellectual.activation','intellectual','Activation and follow-through'),
   topic('occupational.employment_stability','occupational','Employment stability'),topic('occupational.workload','occupational','Workload'),topic('occupational.satisfaction','occupational','Work satisfaction'),topic('occupational.direction','occupational','Work direction'),topic('occupational.development','occupational','Development'),topic('occupational.income_stability','occupational','Income stability'),topic('occupational.schedule','occupational','Work and schedule stability'),
   topic('financial.income_adequacy','financial','Income adequacy'),topic('financial.expense_load','financial','Expense load'),topic('financial.debt_burden','financial','Debt burden'),topic('financial.liquidity','financial','Liquidity'),topic('financial.security','financial','Financial security'),topic('financial.control','financial','Financial control'),
-  topic('environmental.safety','environmental','Environmental safety'),topic('environmental.stability','environmental','Home and environmental stability'),topic('environmental.comfort','environmental','Comfort'),topic('environmental.organization','environmental','Organization'),topic('environmental.access','environmental','Access'),topic('environmental.stress','environmental','Environmental stress'),
+  topic('environmental.safety','environmental','Environmental safety'),topic('environmental.interference','environmental','Home or surroundings interference'),topic('environmental.housing_stability','environmental','Housing stability'),topic('environmental.comfort','environmental','Comfort'),topic('environmental.organization','environmental','Organization'),topic('environmental.access','environmental','Access'),topic('environmental.stress','environmental','Environmental stress'),
 ]);
 export const TOPIC_BY_ID=Object.freeze(Object.fromEntries(TOPICS.map(item=>[item.id,item])));
 export function isTopicId(value){return Object.hasOwn(TOPIC_BY_ID,value);}
@@ -36,7 +35,8 @@ export const CONSTRUCTS=Object.freeze([
   construct('JOB_SECURITY',['occupational'],['occupational.employment_stability','occupational.income_stability'],'Work / income security'),
   construct('FINANCIAL_STRAIN',['financial'],['financial.income_adequacy','financial.expense_load','financial.debt_burden','financial.liquidity','financial.security'],'Financial strain'),
   construct('FINANCIAL_CONTROL',['financial'],['financial.control'],'Financial control / agency'),
-  construct('ENVIRONMENTAL_SUPPORT',['environmental'],['environmental.stability','environmental.comfort','environmental.organization','environmental.access','environmental.stress'],'Environmental support'),
+  construct('ENVIRONMENTAL_INTERFERENCE',['environmental'],['environmental.interference','environmental.comfort','environmental.organization','environmental.access','environmental.stress'],'Environmental interference'),
+  construct('HOUSING_STABILITY',['environmental'],['environmental.housing_stability'],'Housing stability'),
   construct('MEANING_PURPOSE',['spiritual'],['spiritual.meaning','spiritual.purpose'],'Meaning / purpose'),
   construct('COGNITIVE_ENGAGEMENT',['intellectual'],['intellectual.learning','intellectual.curiosity'],'Cognitive engagement',{experimental:true}),
   construct('RELATIONSHIP_STRAIN',['social'],['social.relationship_quality'],'Relationship strain'),
