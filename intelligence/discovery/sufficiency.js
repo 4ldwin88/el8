@@ -12,6 +12,6 @@ export function stoppingDecision({states, questionsAsked, outerGuardrail = DEFAU
   if (unresolvedSafety.length) return {stop:false, reason:'unresolved-safety'};
   const coverage = coverageAudit(states);
   if (coverage.complete) return {stop:true, reason:'sufficient-coverage', incomplete:false};
-  if (questionsAsked >= outerGuardrail) return {stop:true, reason:'outer-guardrail', incomplete:true, defer:coverage.unresolved.map(s => s.concernId)};
+  if (questionsAsked >= outerGuardrail) return {stop:true, reason:'outer-guardrail', incomplete:true, defer:coverage.unresolved.map(s => s.constructId)};
   return {stop:false, reason:'coverage-incomplete'};
 }
