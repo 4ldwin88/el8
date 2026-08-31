@@ -1,8 +1,8 @@
-// Canonical EL8 Intelligence vocabulary — migration Slice 1.
+// EL8 Intelligence vocabulary contract.
 // Drive-controlled construct IDs are authoritative. Legacy aliases belong only
 // in explicit compatibility/ingestion modules and must never be emitted here.
 
-export const CANONICAL_VOCABULARY_VERSION = '2026-08-30.1';
+export const CANONICAL_VOCABULARY_VERSION = '2026-08-31.1';
 
 export const DIMENSIONS = Object.freeze([
   'physical',
@@ -24,7 +24,8 @@ export const CONSTRUCT_IDS = Object.freeze([
   'JOB_SECURITY',
   'FINANCIAL_STRAIN',
   'FINANCIAL_CONTROL',
-  'ENVIRONMENTAL_SUPPORT',
+  'ENVIRONMENTAL_INTERFERENCE',
+  'HOUSING_STABILITY',
   'MEANING_PURPOSE',
   'COGNITIVE_ENGAGEMENT',
   'RELATIONSHIP_STRAIN',
@@ -69,14 +70,14 @@ export function isCanonicalDimension(value) {
 
 export function assertCanonicalConstructId(value, field = 'constructId') {
   if (!isCanonicalConstructId(value)) {
-    throw new Error(`${field} must be a canonical EL8 construct ID`);
+    throw new Error(`${field} must be a governed EL8 construct ID`);
   }
   return value;
 }
 
 export function assertCanonicalDimension(value, field = 'dimension') {
   if (!isCanonicalDimension(value)) {
-    throw new Error(`${field} must be a canonical EL8 dimension`);
+    throw new Error(`${field} must be a governed EL8 dimension`);
   }
   return value;
 }
