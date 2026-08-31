@@ -26,10 +26,10 @@ const deterministic=prioritizeCandidates({memberStateRevision:1,candidates:[
 assert.deepEqual(deterministic.recommended.map(x=>x.constructId),['DIRECTION_CLARITY','VALUES_CLARITY']);
 assert.equal(deterministic.recommended[0].factors.urgency,'unknown');
 
-assert.throws(()=>prioritizeCandidates({memberStateRevision:1,candidates:[{constructId:'money_pressure',status:'supported'}]}),/canonical EL8 construct ID/);
+assert.throws(()=>prioritizeCandidates({memberStateRevision:1,candidates:[{constructId:'money_pressure',status:'supported'}]}),/governed EL8 construct ID/);
 assert.throws(()=>prioritizeCandidates({memberStateRevision:1,candidates:[{constructId:'FINANCIAL_STRAIN',status:'hypothesis'}]}),/established or supported/);
 
 const blocked=prioritizeCandidates(input,{safetyDisposition:{disposition:'pause_ordinary_flow'},now:'2026-08-30T15:00:00Z'});
 assert.equal(blocked.blockedBySafety,true);assert.deepEqual(blocked.recommended,[]);
 
-console.log('Prioritization v2 ranks canonical constructs, preserves unknowns and never truncates Focus count');
+console.log('Prioritization v2 ranks governed constructs, preserves unknowns and never truncates Focus count');
