@@ -11,6 +11,7 @@ const legacyV1 = {
   problems:[
     {id:'money_pressure',status:'SUPPORTED',evidenceRefs:['e1']},
     {id:'lack_direction',status:'SUSPECTED',evidenceRefs:[]},
+    {id:'problem:environment_friction',status:'SUPPORTED',evidenceRefs:['e2']},
   ],
   hypotheses:[],
   priorities:[{problemId:'money_pressure',status:'ACCEPTED',memberDecisionAt:now}],
@@ -30,6 +31,8 @@ assert.ok(migrated.state.constructs.FINANCIAL_STRAIN);
 assert.ok(migrated.state.constructs.FINANCIAL_CONTROL);
 assert.ok(migrated.state.constructs.MEANING_PURPOSE);
 assert.ok(migrated.state.constructs.DIRECTION_CLARITY);
+assert.ok(migrated.state.constructs.ENVIRONMENTAL_INTERFERENCE);
+assert.equal(migrated.state.constructs.ENVIRONMENTAL_SUPPORT,undefined);
 assert.equal(migrated.state.focusDecisions.FINANCIAL_STRAIN.decision,'accepted');
 assert.equal(migrated.state.focusDecisions.FINANCIAL_CONTROL.decision,'accepted');
 assert.ok(migrated.state.activeFocusIds.includes('FINANCIAL_STRAIN'));
@@ -43,7 +46,9 @@ const legacyV2 = {
   concerns:{
     poor_sleep:{concernId:'poor_sleep',status:'supported',evidenceRefs:['q1']},
     low_support:{concernId:'low_support',status:'candidate',evidenceRefs:['q2']},
+    home_instability:{concernId:'home_instability',status:'supported',evidenceRefs:['q3']},
   },
+  constructs:{ENVIRONMENTAL_SUPPORT:{constructId:'ENVIRONMENTAL_SUPPORT',status:'supported',evidenceRefs:['q4']}},
   facts:{}, hypotheses:{}, indicators:{}, goals:{}, constraints:{}, activePriorities:['poor_sleep'],
   plan:null, reviewCycles:[], memberContext:{preferences:{},readiness:null,capacity:null},
   safety:{active:false,signalRefs:[],updatedAt:null}, historyRefs:[],
@@ -51,11 +56,14 @@ const legacyV2 = {
 const migratedV2 = normalizeMemberState(legacyV2,{now});
 assert.ok(migratedV2.state.constructs.SLEEP_QUALITY);
 assert.ok(migratedV2.state.constructs.SUPPORT_AVAILABILITY);
+assert.ok(migratedV2.state.constructs.HOUSING_STABILITY);
+assert.ok(migratedV2.state.constructs.ENVIRONMENTAL_INTERFERENCE);
+assert.equal(migratedV2.state.constructs.ENVIRONMENTAL_SUPPORT,undefined);
 assert.equal(migratedV2.state.memberContext.capacity,'unknown');
 assert.equal(migratedV2.state.focusDecisions.SLEEP_QUALITY.decision,'accepted');
 
-const canonical = normalizeMemberState(migratedV2.state,{now});
-assert.equal(canonical.migrated,false);
-assert.deepEqual(canonical.state,migratedV2.state);
+const current = normalizeMemberState(migratedV2.state,{now});
+assert.equal(current.migrated,false);
+assert.deepEqual(current.state,migratedV2.state);
 
-console.log('Legacy Member State v1/v2 normalizes to canonical v3 without inventing medium defaults');
+console.log('Legacy Member State v1/v2 normalizes to governed v3 without retired environmental constructs or invented medium defaults');
