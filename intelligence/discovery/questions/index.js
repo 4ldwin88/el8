@@ -1,38 +1,40 @@
-import { CORE_QUESTIONS } from './core.js';
-import { PHYSICAL_QUESTIONS } from './physical.js';
-import { EMOTIONAL_QUESTIONS } from './emotional.js';
-import { FINANCIAL_QUESTIONS } from './financial.js';
-import { OCCUPATIONAL_QUESTIONS } from './occupational.js';
-import { SOCIAL_QUESTIONS } from './social.js';
-import { ENVIRONMENTAL_QUESTIONS } from './environmental.js';
-import { INTELLECTUAL_QUESTIONS } from './intellectual.js';
-import { SPIRITUAL_QUESTIONS } from './spiritual.js';
-import { CROSS_DIMENSIONAL_QUESTIONS } from './cross-dimensional.js';
+import { EMOTIONAL_QUESTION_BANK } from './emotional.js';
+import { ENVIRONMENTAL_QUESTION_BANK } from './environmental.js';
+import { FINANCIAL_QUESTION_BANK } from './financial.js';
+import { GENERAL_QUESTION_BANK } from './general.js';
+import { INTELLECTUAL_QUESTION_BANK } from './intellectual.js';
+import { OCCUPATIONAL_QUESTION_BANK } from './occupational.js';
+import { PHYSICAL_QUESTION_BANK } from './physical.js';
+import { SAFETY_QUESTION_BANK } from './safety.js';
+import { SOCIAL_QUESTION_BANK } from './social.js';
+import { SPIRITUAL_QUESTION_BANK } from './spiritual.js';
+import { CROSS_DIMENSIONAL_QUESTION_BANK } from './cross-dimensional.js';
+export { QUESTION_BANK_COLUMNS } from './schema.js';
 
-// Canonical candidate bank. Each EL8 dimension owns its own small module.
-// Explicit multi-dimension bridge questions live in cross-dimensional.js.
-// Cross-dimensional answer effects remain valid regardless of source ownership.
-export const DISCOVERY_QUESTIONS = Object.freeze([
-  ...CORE_QUESTIONS,
-  ...PHYSICAL_QUESTIONS,
-  ...EMOTIONAL_QUESTIONS,
-  ...FINANCIAL_QUESTIONS,
-  ...OCCUPATIONAL_QUESTIONS,
-  ...SOCIAL_QUESTIONS,
-  ...ENVIRONMENTAL_QUESTIONS,
-  ...INTELLECTUAL_QUESTIONS,
-  ...SPIRITUAL_QUESTIONS,
-  ...CROSS_DIMENSIONAL_QUESTIONS,
+export const QUESTION_BANK = Object.freeze([
+  ...EMOTIONAL_QUESTION_BANK,
+  ...ENVIRONMENTAL_QUESTION_BANK,
+  ...FINANCIAL_QUESTION_BANK,
+  ...GENERAL_QUESTION_BANK,
+  ...INTELLECTUAL_QUESTION_BANK,
+  ...OCCUPATIONAL_QUESTION_BANK,
+  ...PHYSICAL_QUESTION_BANK,
+  ...SAFETY_QUESTION_BANK,
+  ...SOCIAL_QUESTION_BANK,
+  ...SPIRITUAL_QUESTION_BANK,
+  ...CROSS_DIMENSIONAL_QUESTION_BANK,
 ]);
 
-const ids = new Set();
-for (const question of DISCOVERY_QUESTIONS) {
-  if (ids.has(question.id)) throw new Error(`Duplicate Discovery question id: ${question.id}`);
-  ids.add(question.id);
-}
-
-export const DISCOVERY_QUESTION_BY_ID = Object.freeze(
-  Object.fromEntries(DISCOVERY_QUESTIONS.map(question => [question.id, question])),
-);
-
-export default DISCOVERY_QUESTIONS;
+export {
+  EMOTIONAL_QUESTION_BANK,
+  ENVIRONMENTAL_QUESTION_BANK,
+  FINANCIAL_QUESTION_BANK,
+  GENERAL_QUESTION_BANK,
+  INTELLECTUAL_QUESTION_BANK,
+  OCCUPATIONAL_QUESTION_BANK,
+  PHYSICAL_QUESTION_BANK,
+  SAFETY_QUESTION_BANK,
+  SOCIAL_QUESTION_BANK,
+  SPIRITUAL_QUESTION_BANK,
+  CROSS_DIMENSIONAL_QUESTION_BANK,
+};

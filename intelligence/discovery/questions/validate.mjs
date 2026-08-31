@@ -1,55 +1,44 @@
-import { DISCOVERY_QUESTIONS } from './index.js';
+import { QUESTION_BANK, QUESTION_BANK_COLUMNS } from './index.js';
 
-const REQUIRED_DIMENSION_FILES = [
-  'physical',
-  'emotional',
-  'financial',
-  'occupational',
-  'social',
-  'environmental',
-  'intellectual',
-  'spiritual',
-];
+const EXPECTED_TOTAL = 584;
+const EXPECTED_TYPES = Object.freeze({ Question: 76, Answer: 508 });
+const EXPECTED_NAMESPACES = Object.freeze({ EMT: 40, ENV: 38, FIN: 66, GEN: 124, INT: 40, OCC: 75, PHY: 85, SFT: 16, SOC: 65, SPT: 33, XDM: 2 });
+const ALLOWED_EXTERNAL_PREREQUISITES = new Set(['XDM001']);
 
-const failures = [];
+function fail(message) { throw new Error(`Question Bank validation failed: ${message}`); }
+function namespaceOf(id) { return String(id).match(/^[A-Z]+/)?.[0] ?? ''; }
+
+if (QUESTION_BANK_COLUMNS.length !== 30) fail(`schema has ${QUESTION_BANK_COLUMNS.length} columns; expected 30`);
+if (QUESTION_BANK_COLUMNS.some((column) => /legacy|runtime id/i.test(column))) fail('obsolete compatibility column exists in schema');
+if (QUESTION_BANK.length !== EXPECTED_TOTAL) fail(`record count ${QUESTION_BANK.length}; expected ${EXPECTED_TOTAL}`);
+
 const ids = new Set();
+const typeCounts = { Question: 0, Answer: 0 };
+const namespaceCounts = {};
+const questions = new Set();
 
-for (const question of DISCOVERY_QUESTIONS) {
-  if (!question?.id) failures.push('Question missing id');
-  if (!question?.role) failures.push(`${question?.id ?? 'unknown'} missing role`);
-  if (!question?.text) failures.push(`${question?.id ?? 'unknown'} missing text`);
-  if (!Array.isArray(question?.options) || question.options.length === 0) {
-    failures.push(`${question?.id ?? 'unknown'} has no options`);
-  }
-  if (ids.has(question.id)) failures.push(`Duplicate id: ${question.id}`);
-  ids.add(question.id);
-
-  const optionIds = new Set();
-  for (const option of question.options ?? []) {
-    if (!option?.id) failures.push(`${question.id} has option without id`);
-    if (!option?.label) failures.push(`${question.id}/${option?.id ?? 'unknown'} missing label`);
-    if (optionIds.has(option.id)) failures.push(`${question.id} duplicate option id: ${option.id}`);
-    optionIds.add(option.id);
-  }
+for (const row of QUESTION_BANK) {
+  if (!Array.isArray(row) || row.length !== 30) fail(`${row?.[0] ?? '<unknown>'} has ${row?.length ?? 'non-array'} fields; expected 30`);
+  const [id, itemType] = row;
+  if (!id || typeof id !== 'string') fail('record missing Canonical ID');
+  if (ids.has(id)) fail(`duplicate Canonical ID ${id}`);
+  ids.add(id);
+  if (!(itemType in typeCounts)) fail(`${id} has invalid Item Type ${itemType}`);
+  typeCounts[itemType] += 1;
+  if (itemType === 'Question') questions.add(id);
+  const ns = namespaceOf(id);
+  namespaceCounts[ns] = (namespaceCounts[ns] ?? 0) + 1;
 }
 
-const expectedHistoricalIds = [
-  'G1', 'D1', 'D2', 'D3', 'D4', 'D5', 'C1', 'C2', 'HV1', 'HV2', 'X1',
-  'M1', 'M2', 'M3', 'M4', 'W1', 'W2', 'W3', 'W4', 'SC1', 'SC2',
-  'R1', 'R2', 'R3', 'S1', 'S2', 'S3', 'H1', 'H2', 'P1', 'P2',
-  'SL1', 'SL2', 'SL3', 'E1', 'E2', 'ST1', 'ST2', 'F1', 'F2',
-  'PH0', 'PH1', 'PH2', 'PH3', 'B1', 'B2', 'B3', 'B4',
-];
+for (const [type, expected] of Object.entries(EXPECTED_TYPES)) if (typeCounts[type] !== expected) fail(`${type} count ${typeCounts[type]}; expected ${expected}`);
+for (const [ns, expected] of Object.entries(EXPECTED_NAMESPACES)) if (namespaceCounts[ns] !== expected) fail(`${ns} count ${namespaceCounts[ns] ?? 0}; expected ${expected}`);
+for (const ns of Object.keys(namespaceCounts)) if (!(ns in EXPECTED_NAMESPACES)) fail(`unexpected namespace ${ns}`);
 
-for (const id of expectedHistoricalIds) {
-  if (!ids.has(id)) failures.push(`Historical question not represented: ${id}`);
+for (const row of QUESTION_BANK) {
+  const [id, itemType] = row;
+  if (itemType !== 'Answer') continue;
+  const parent = id.includes('.') ? id.slice(0, id.indexOf('.')) : null;
+  if (parent && !questions.has(parent) && !ALLOWED_EXTERNAL_PREREQUISITES.has(parent)) fail(`${id} has missing parent ${parent}`);
 }
 
-if (failures.length) {
-  console.error('Discovery question-bank validation failed:');
-  for (const failure of failures) console.error(`- ${failure}`);
-  process.exit(1);
-}
-
-console.log(`Discovery question bank valid: ${DISCOVERY_QUESTIONS.length} questions.`);
-console.log(`Dimension modules expected: ${REQUIRED_DIMENSION_FILES.join(', ')}.`);
+console.log(`Question Bank valid: ${QUESTION_BANK.length} records; ${typeCounts.Question} Questions; ${typeCounts.Answer} Answers; 30 fields each; Canonical IDs unique.`);
