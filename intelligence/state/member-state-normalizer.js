@@ -1,6 +1,6 @@
 // Temporary compatibility boundary for persisted/legacy Member State.
-// Canonical code consumes v3 only. This module may READ legacy semantics but
-// must emit canonical construct-native Member State and explicit migration notes.
+// Current code consumes v3 only. This module may READ legacy semantics but
+// must emit governed construct-native Member State and explicit migration notes.
 
 import {
   MEMBER_STATE_SCHEMA_VERSION,
@@ -25,7 +25,7 @@ const LEGACY_CONSTRUCT_MAP = Object.freeze({
   work_instability: ['JOB_SECURITY'],
   schedule_disruption: ['SCHEDULE_DISRUPTION'],
   money_pressure: ['FINANCIAL_STRAIN', 'FINANCIAL_CONTROL'],
-  home_instability: ['ENVIRONMENTAL_SUPPORT'],
+  home_instability: ['HOUSING_STABILITY'],
   lack_direction: ['MEANING_PURPOSE', 'DIRECTION_CLARITY'],
   'problem:financial_strain': ['FINANCIAL_STRAIN'],
   'problem:stress': ['PRESSURE_PATTERN'],
@@ -34,7 +34,8 @@ const LEGACY_CONSTRUCT_MAP = Object.freeze({
   'problem:income_gap': ['JOB_SECURITY'],
   'problem:execution_gap': ['NEXT_STEP_CLARITY', 'ACTIVATION'],
   'problem:social_disconnection': ['LONELINESS', 'SUPPORT_AVAILABILITY'],
-  'problem:environment_friction': ['ENVIRONMENTAL_SUPPORT'],
+  'problem:environment_friction': ['ENVIRONMENTAL_INTERFERENCE'],
+  ENVIRONMENTAL_SUPPORT: ['ENVIRONMENTAL_INTERFERENCE'],
 });
 
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -72,7 +73,7 @@ export function normalizeMemberState(input, { now = new Date().toISOString() } =
   if (input.schemaVersion === MEMBER_STATE_SCHEMA_VERSION) {
     const state = clone(input);
     const errors = validateMemberStateShape(state);
-    if (errors.length) throw new Error(`invalid canonical Member State: ${errors.join('; ')}`);
+    if (errors.length) throw new Error(`invalid Member State: ${errors.join('; ')}`);
     return { state, migrated: false, sourceSchemaVersion: input.schemaVersion, notes: [] };
   }
 
@@ -115,7 +116,7 @@ export function normalizeMemberState(input, { now = new Date().toISOString() } =
   }
 
   for (const [id, record] of Object.entries(input.constructs ?? {})) {
-    const constructId = isConstructId(id) ? id : mapLegacy(record)[0];
+    const constructId = isConstructId(id) ? id : (LEGACY_CONSTRUCT_MAP[id]?.[0] ?? mapLegacy(record)[0]);
     if (constructId) addConstruct(state, constructId, record);
   }
 
@@ -172,7 +173,7 @@ export function normalizeMemberState(input, { now = new Date().toISOString() } =
   };
   state.reviewCycles = clone(input.reviewCycles ?? []);
   state.historyRefs = unique((input.historyRefs ?? []).map(String));
-  if (Array.isArray(input.history) && input.history.length) notes.push(`legacy inline history retained outside canonical state: ${input.history.length} record(s)`);
+  if (Array.isArray(input.history) && input.history.length) notes.push(`legacy inline history retained outside current state: ${input.history.length} record(s)`);
 
   const errors = validateMemberStateShape(state);
   if (errors.length) throw new Error(`normalized Member State failed validation: ${errors.join('; ')}`);
