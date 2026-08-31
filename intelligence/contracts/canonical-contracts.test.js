@@ -22,7 +22,7 @@ assert.notEqual(priority.factors.importance, 0.5);
 
 assert.throws(
   () => createConstructState({ constructId: 'money_pressure' }),
-  /canonical EL8 construct ID/,
+  /governed EL8 construct ID/,
 );
 
 assert.throws(
@@ -51,4 +51,4 @@ assert.throws(
   /only member-accepted Focus/,
 );
 
-console.log('Canonical Intelligence contracts preserve canonical IDs, explicit unknowns and member-confirmed Planning boundary');
+console.log('Intelligence contracts preserve governed IDs, explicit unknowns and member-confirmed Planning boundary');
