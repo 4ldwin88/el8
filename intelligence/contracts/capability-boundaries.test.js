@@ -9,7 +9,7 @@ import {
 
 const d=discoveryToPrioritization({memberStateRevision:3,candidates:[{constructId:'SLEEP_QUALITY',status:'supported',evidenceRefs:['q1']}],evidenceRefs:['q1']});
 assert.equal(d.candidates[0].constructId,'SLEEP_QUALITY');
-assert.throws(()=>discoveryToPrioritization({memberStateRevision:3,candidates:[{constructId:'poor_sleep',status:'supported'}]}),/canonical EL8 construct ID/);
+assert.throws(()=>discoveryToPrioritization({memberStateRevision:3,candidates:[{constructId:'poor_sleep',status:'supported'}]}),/governed EL8 construct ID/);
 assert.throws(()=>discoveryToPrioritization({memberStateRevision:3,candidates:[{constructId:'SLEEP_QUALITY',status:'hypothesis'}]}),/established or supported/);
 
 const p=prioritizationToFocusConfirmation({memberStateRevision:3,recommended:[{constructId:'SLEEP_QUALITY',factors:{importance:null,urgency:.7}}]});
@@ -27,4 +27,4 @@ const next=reviewToNextDecision({memberStateRevision:4,planId:'p1',reviewCycleId
 assert.equal(next.disposition,'reassess');
 assert.throws(()=>reviewToNextDecision({memberStateRevision:4,planId:'p1',reviewCycleId:'r1',disposition:'invented',focusRefs:[]}),/invalid Review disposition/);
 
-console.log('Canonical capability boundaries preserve authority, canonical constructs, explicit unknowns and member Focus');
+console.log('Capability boundaries preserve authority, governed constructs, explicit unknowns and member Focus');
