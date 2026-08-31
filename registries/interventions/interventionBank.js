@@ -50,7 +50,4 @@ export const INTERVENTION_BANK=Object.freeze([
  make('XDM-A06','Use a member-chosen alternative with the same intended signal',[],{scope:'plan',intent:'build',icon:'swap-fit',tracking:'Same intended signal as canonical Action plus alternative identity.',assessment:'Only if equivalence is uncertain.'}),
 ]);
 export const INTERVENTION_BY_ID=Object.freeze(Object.fromEntries(INTERVENTION_BANK.map(action=>[action.actionId,action])));
-// Temporary aliases for consumers being migrated; do not create a second authority.
-export const CANONICAL_ACTION_BANK=INTERVENTION_BANK;
-export const CANONICAL_ACTION_BY_ID=INTERVENTION_BY_ID;
 export { buildTrackingRequirementIndex, getTrackingRequirements } from './trackingRequirements.js';
