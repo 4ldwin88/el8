@@ -1,58 +1,13 @@
-// Governed Discovery Answer Bank.
-// Source authority: Drive 02.04.01 EL8 Question & Signal Matrix Workbook.
-// Answer effects are evidence semantics, not aggregate wellness scores.
-
-const answer=(id,parentId,text,effect)=>Object.freeze({id,parentId,text,effect:Object.freeze({...effect})});
-
-export const ANSWER_BANK_VERSION='0.1.0-reconciliation';
-
+// Governed Discovery Answer Bank. Source authority: Drive 02.04.01 EL8 Question & Signal Matrix Workbook.
+// Effects are typed evidence semantics, never aggregate wellness scores.
+const a=(id,parentId,text,effect)=>Object.freeze({id,parentId,text,effect:Object.freeze(effect)});const state=(id,p,t,c,v)=>a(id,p,t,{kind:'state',constructId:c,value:v});const ctx=(id,p,t,k,v)=>a(id,p,t,{kind:'context',key:k,value:v});
+export const ANSWER_BANK_VERSION='0.2.0-reconciliation';
 export const ANSWER_BANK=Object.freeze([
-  // Environmental interference — direct ordinal state evidence.
-  answer('ENV001.01','ENV001','Never',{constructId:'ENVIRONMENTAL_INTERFERENCE',kind:'state',value:'never'}),
-  answer('ENV001.02','ENV001','Rarely',{constructId:'ENVIRONMENTAL_INTERFERENCE',kind:'state',value:'rarely'}),
-  answer('ENV001.03','ENV001','Sometimes',{constructId:'ENVIRONMENTAL_INTERFERENCE',kind:'state',value:'sometimes'}),
-  answer('ENV001.04','ENV001','Often',{constructId:'ENVIRONMENTAL_INTERFERENCE',kind:'state',value:'often'}),
-  answer('ENV001.05','ENV001','Almost always',{constructId:'ENVIRONMENTAL_INTERFERENCE',kind:'state',value:'almost_always'}),
-  answer('ENV001.06','ENV001','Not sure',{kind:'uncertain'}),
-
-  // Environmental factor identity — context only; never additive severity.
-  answer('ENV002.01','ENV002','Noise or frequent interruptions',{kind:'context',key:'environment_factor',value:'noise_interruptions'}),
-  answer('ENV002.02','ENV002','Not enough privacy',{kind:'context',key:'environment_factor',value:'privacy'}),
-  answer('ENV002.03','ENV002','Not enough usable space or too much crowding',{kind:'context',key:'environment_factor',value:'crowding_usable_space'}),
-  answer('ENV002.04','ENV002','Temperature, air quality, smoke, dampness, or similar physical conditions',{kind:'context',key:'environment_factor',value:'physical_conditions'}),
-  answer('ENV002.05','ENV002','Accessibility or difficulty using the space',{kind:'constraint',key:'environment_factor',value:'accessibility'}),
-  answer('ENV002.06','ENV002','Transportation or location makes important activities difficult',{kind:'constraint',key:'environment_factor',value:'transport_location'}),
-  answer('ENV002.07','ENV002','Conflict or tension with people I live with',{kind:'context',key:'household_relationship_context',value:'conflict_tension'}),
-  answer('ENV002.08','ENV002','Uncertainty about being able to stay where I live',{kind:'routing',constructId:'HOUSING_STABILITY',value:'clarify'}),
-  answer('ENV002.09','ENV002','Something else',{kind:'context',key:'environment_factor',value:'other'}),
-  answer('ENV002.10','ENV002','None of these',{kind:'none'}),
-  answer('ENV002.11','ENV002','Not sure',{kind:'uncertain'}),
-
-  // Contextual home Safety — Safety routing is independent of ordinary Environmental severity.
-  answer('ENV003.01','ENV003','Yes',{kind:'safety_context',key:'contextual_safety_home',value:'safe'}),
-  answer('ENV003.02','ENV003','Mostly',{kind:'safety_context',key:'contextual_safety_home',value:'mostly_safe'}),
-  answer('ENV003.03','ENV003','No',{kind:'safety_trigger',key:'contextual_safety_home',value:'not_physically_safe',requiresImmediacyClarification:true}),
-  answer('ENV003.04','ENV003','Not sure',{kind:'safety_context',key:'contextual_safety_home',value:'uncertain'}),
-  answer('ENV003.05','ENV003','I prefer not to answer',{kind:'nonresponse'}),
-
-  // Housing stability — separate direct state evidence.
-  answer('ENV004.01','ENV004','I expect to be able to stay here',{constructId:'HOUSING_STABILITY',kind:'state',value:'expected_secure'}),
-  answer('ENV004.02','ENV004','There is some uncertainty',{constructId:'HOUSING_STABILITY',kind:'state',value:'some_uncertainty'}),
-  answer('ENV004.03','ENV004','I may have to leave or lose this housing',{constructId:'HOUSING_STABILITY',kind:'state',value:'may_lose_housing'}),
-  answer('ENV004.04','ENV004','This is temporary housing',{constructId:'HOUSING_STABILITY',kind:'state',value:'temporary_housing'}),
-  answer('ENV004.05','ENV004','Not sure',{kind:'uncertain'}),
-  answer('ENV004.06','ENV004','Not applicable',{kind:'not_applicable'}),
-
-  // Planning feasibility only.
-  answer('ENV005.01','ENV005','A lot',{kind:'planning_context',key:'environmental_change_feasibility',value:'high'}),
-  answer('ENV005.02','ENV005','Some of it',{kind:'planning_context',key:'environmental_change_feasibility',value:'some'}),
-  answer('ENV005.03','ENV005','Very little',{kind:'planning_context',key:'environmental_change_feasibility',value:'very_little'}),
-  answer('ENV005.04','ENV005','None right now',{kind:'planning_constraint',key:'environmental_change_feasibility',value:'none'}),
-  answer('ENV005.05','ENV005','Not sure',{kind:'uncertain'}),
+state('ENV001.01','ENV001','Never','ENVIRONMENTAL_INTERFERENCE','never'),state('ENV001.02','ENV001','Rarely','ENVIRONMENTAL_INTERFERENCE','rarely'),state('ENV001.03','ENV001','Sometimes','ENVIRONMENTAL_INTERFERENCE','sometimes'),state('ENV001.04','ENV001','Often','ENVIRONMENTAL_INTERFERENCE','often'),state('ENV001.05','ENV001','Almost always','ENVIRONMENTAL_INTERFERENCE','almost_always'),a('ENV001.06','ENV001','Not sure',{kind:'uncertain'}),ctx('ENV002.01','ENV002','Noise or frequent interruptions','environment_factor','noise_interruptions'),ctx('ENV002.02','ENV002','Not enough privacy','environment_factor','privacy'),a('ENV002.08','ENV002','Uncertainty about being able to stay where I live',{kind:'routing',constructId:'HOUSING_STABILITY',value:'clarify'}),a('ENV003.03','ENV003','No',{kind:'safety_trigger',key:'contextual_safety_home',value:'not_physically_safe',requiresImmediacyClarification:true}),state('ENV004.01','ENV004','I expect to be able to stay here','HOUSING_STABILITY','expected_secure'),state('ENV004.02','ENV004','There is some uncertainty','HOUSING_STABILITY','some_uncertainty'),state('ENV004.03','ENV004','I may have to leave or lose this housing','HOUSING_STABILITY','may_lose_housing'),state('ENV004.04','ENV004','This is temporary housing','HOUSING_STABILITY','temporary_housing'),
+state('OCC002.01','OCC002','Stable and expected to continue','JOB_SECURITY','stable'),state('OCC002.02','OCC002','Mostly stable, with some uncertainty','JOB_SECURITY','some_uncertainty'),state('OCC002.03','OCC002','Hours, role, work, or schooling are uncertain','JOB_SECURITY','unstable'),state('OCC002.04','OCC002','I do not currently have work or school and want it','JOB_SECURITY','absent_wanted'),a('OCC002.05','OCC002','I am not working or in school by choice right now',{kind:'context',key:'occupational_status',value:'not_participating_by_choice'}),a('OCC002.06','OCC002','Not applicable to me right now',{kind:'not_applicable'}),a('OCC003.01','OCC003','Never',{kind:'facet',constructId:'JOB_SECURITY',key:'stability_worry',value:'never'}),a('OCC003.02','OCC003','Rarely',{kind:'facet',constructId:'JOB_SECURITY',key:'stability_worry',value:'rarely'}),a('OCC003.03','OCC003','Sometimes',{kind:'facet',constructId:'JOB_SECURITY',key:'stability_worry',value:'sometimes'}),a('OCC003.04','OCC003','Often',{kind:'facet',constructId:'JOB_SECURITY',key:'stability_worry',value:'often'}),state('OCC101.02','OCC101','Once','SCHEDULE_DISRUPTION','once'),state('OCC101.03','OCC101','A few days','SCHEDULE_DISRUPTION','few_days'),state('OCC101.04','OCC101','Most days','SCHEDULE_DISRUPTION','most_days'),a('OCC101.01','OCC101','Never',{kind:'negative_facet',constructId:'SCHEDULE_DISRUPTION',key:'routine_interference',value:'never'}),
+state('SOC001.01','SOC001','Never','RELATIONSHIP_STRAIN','never'),state('SOC001.02','SOC001','Rarely','RELATIONSHIP_STRAIN','rarely'),state('SOC001.03','SOC001','Sometimes','RELATIONSHIP_STRAIN','sometimes'),state('SOC001.04','SOC001','Often','RELATIONSHIP_STRAIN','often'),state('SOC001.05','SOC001','Almost always','RELATIONSHIP_STRAIN','almost_always'),state('SOC100.01','SOC100','Yes, reliably','SUPPORT_AVAILABILITY','reliable'),state('SOC100.02','SOC100','Probably, but not reliably','SUPPORT_AVAILABILITY','unreliable'),state('SOC100.03','SOC100','Not really','SUPPORT_AVAILABILITY','not_really'),a('SOC100.04','SOC100','I would rather not seek support right now',{kind:'preference',key:'support_seeking',value:'declined'}),state('SOC101.01','SOC101','Never','LONELINESS','never'),state('SOC101.02','SOC101','Rarely','LONELINESS','rarely'),state('SOC101.03','SOC101','Sometimes','LONELINESS','sometimes'),state('SOC101.04','SOC101','Often','LONELINESS','often'),state('SOC101.05','SOC101','Almost always','LONELINESS','almost_always'),a('SOC004.02','SOC004','Direct contact or confrontation would not feel safe or appropriate',{kind:'safety_constraint',key:'relationship_contact',value:'unsafe_or_inappropriate'}),a('SOC004.05','SOC004','I need to maintain distance or boundaries',{kind:'preference',key:'relationship_boundary',value:'maintain_distance'}),
+state('SPT001.01','SPT001','Very clear','DIRECTION_CLARITY','very_clear'),state('SPT001.02','SPT001','Mostly clear','DIRECTION_CLARITY','mostly_clear'),state('SPT001.03','SPT001','Somewhat clear','DIRECTION_CLARITY','somewhat_clear'),state('SPT001.04','SPT001','Not very clear','DIRECTION_CLARITY','not_very_clear'),state('SPT001.05','SPT001','Not clear at all','DIRECTION_CLARITY','not_clear'),state('SPT002.01','SPT002','Very much','MEANING_PURPOSE','very_strong'),state('SPT002.02','SPT002','Quite a bit','MEANING_PURPOSE','strong'),state('SPT002.03','SPT002','Somewhat','MEANING_PURPOSE','moderate'),state('SPT002.04','SPT002','A little','MEANING_PURPOSE','low'),state('SPT002.05','SPT002','Not at all','MEANING_PURPOSE','absent'),a('SPT003.03','SPT003','My daily life does not feel very meaningful or worthwhile',{kind:'routing',constructId:'MEANING_PURPOSE',value:'clarify'}),a('SPT003.04','SPT003','I am unsure what matters most to me when making choices',{kind:'routing',constructId:'VALUES_CLARITY',value:'clarify'}),a('SPT003.05','SPT003','I know what matters, but I am unsure what next step to take',{kind:'routing',constructId:'NEXT_STEP_CLARITY',value:'clarify'}),
+// SFT answers remain design-only. They must never be exposed as an externally validated screener.
+a('SFT000.01','SFT000','Yes',{kind:'safety_design_only',key:'immediate_danger',value:'affirmed',expertValidationRequired:true}),a('SFT000.02','SFT000','No',{kind:'safety_design_only',key:'immediate_danger',value:'not_affirmed',cannotClearSafety:true,expertValidationRequired:true}),a('SFT000.03','SFT000','I’m not sure',{kind:'safety_design_only',key:'immediate_danger',value:'uncertain',expertValidationRequired:true}),a('SFT000.04','SFT000','I prefer not to answer',{kind:'safety_design_only',key:'immediate_danger',value:'declined',expertValidationRequired:true}),a('SFT001.01','SFT001','Yes',{kind:'safety_design_only',key:'self_harm_intent',value:'affirmed',expertValidationRequired:true}),a('SFT001.02','SFT001','I’m having thoughts, but I do not intend to act on them',{kind:'safety_design_only',key:'self_harm_thoughts',value:'reported_without_stated_intent',expertValidationRequired:true}),a('SFT001.03','SFT001','No',{kind:'safety_design_only',key:'self_harm_intent',value:'not_affirmed',cannotClearSafety:true,expertValidationRequired:true}),a('SFT002.01','SFT002','Yes',{kind:'safety_design_only',key:'can_stay_safe',value:'affirmed',cannotClearSafety:true,expertValidationRequired:true}),a('SFT002.02','SFT002','No',{kind:'safety_design_only',key:'can_stay_safe',value:'not_affirmed',expertValidationRequired:true}),a('SFT002.03','SFT002','I’m not sure',{kind:'safety_design_only',key:'can_stay_safe',value:'uncertain',expertValidationRequired:true}),
 ]);
-
-export const ANSWER_BY_ID=Object.freeze(Object.fromEntries(ANSWER_BANK.map(item=>[item.id,item])));
-export const ANSWERS_BY_QUESTION=Object.freeze(Object.fromEntries([...new Set(ANSWER_BANK.map(item=>item.parentId))].map(parentId=>[parentId,Object.freeze(ANSWER_BANK.filter(item=>item.parentId===parentId))])));
-
-export function assertUniqueAnswerIds(){if(Object.keys(ANSWER_BY_ID).length!==ANSWER_BANK.length)throw new Error('Duplicate governed Discovery answer ID');return true;}
-export default ANSWER_BANK;
+export const ANSWER_BY_ID=Object.freeze(Object.fromEntries(ANSWER_BANK.map(x=>[x.id,x])));export const ANSWERS_BY_QUESTION=Object.freeze(Object.fromEntries([...new Set(ANSWER_BANK.map(x=>x.parentId))].map(id=>[id,Object.freeze(ANSWER_BANK.filter(x=>x.parentId===id))])));export function assertUniqueAnswerIds(){if(Object.keys(ANSWER_BY_ID).length!==ANSWER_BANK.length)throw new Error('Duplicate governed Discovery answer ID');return true;}export default ANSWER_BANK;
