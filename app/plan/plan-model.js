@@ -1,7 +1,7 @@
 export function planFocus(plan){
   if(!plan)return[];
-  if(Array.isArray(plan.focusIds))return plan.focusIds.filter(Boolean).map(constructId=>({constructId,source:'canonical'}));
-  if(Array.isArray(plan.focuses))return plan.focuses.filter(Boolean).map(f=>typeof f==='string'?{constructId:f,source:'canonical'}:{...f,source:f.source||'canonical'});
+  if(Array.isArray(plan.focusIds))return plan.focusIds.filter(Boolean).map(constructId=>({constructId,source:'governed'}));
+  if(Array.isArray(plan.focuses))return plan.focuses.filter(Boolean).map(f=>typeof f==='string'?{constructId:f,source:'governed'}:{...f,source:f.source||'governed'});
   return[];
 }
 export function planActions(plan){
