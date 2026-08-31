@@ -1,9 +1,57 @@
-import assert from 'node:assert/strict';import * as discovery from './discovery-engine.js';import{deriveConcernState}from'./concern-projection.js';import{makeObservation}from'./contracts.js';import{DISCOVERY_BANK,observationsForAnswer}from'./question-bank-adapter.js';import{createDiscoverySession,nextDiscoveryStep,discoveryOutput,discoveryPriorityCandidates}from'../../app/onboarding/discovery-runtime.js';
-assert.equal(discovery.DISCOVERY_VERSION,'v4');const runtime=discovery.session({concernIds:[]});assert.ok(runtime);assert.equal(typeof discovery.next(runtime),'object');const trace=discovery.trace(runtime);assert.equal('plan'in trace,false);assert.equal('memberPlan'in trace,false);assert.equal('selectedActions'in trace,false);assert.equal('priorityChoices'in trace,false);assert.equal(typeof discovery.memberPlan,'undefined');assert.equal(typeof discovery.chooseActions,'undefined');assert.equal(typeof discovery.prioritize,'undefined');
-const portSession=createDiscoverySession({concernIds:[]});assert.ok(portSession);assert.equal(typeof nextDiscoveryStep(portSession),'object');const proposal=discoveryOutput(portSession);assert.ok(proposal&&typeof proposal==='object');assert.ok('trace'in proposal);
-const broad=discovery.session({concernIds:[]});let broadStep=discovery.next(broad);assert.equal(broadStep.question.id,'O1');discovery.answer(broad,broadStep.question,'busy');for(const answerId of ['little','progress','money','stability']){broadStep=discovery.next(broad);assert.equal(broadStep.question.role,'orientation');discovery.answer(broad,broadStep.question,answerId)}broadStep=discovery.next(broad);assert.ok(broad.concernIds.length>0);assert.notEqual(broadStep.question?.id,'G1');assert.equal(broad.phase,'deepen');
-const once=createDiscoverySession({concernIds:['money_pressure','physical_condition','poor_sleep','low_focus']});once.phase='deepen';let step=nextDiscoveryStep(once);assert.equal(step.type,'triage');discovery.triage(once,{money_pressure:3,physical_condition:3,poor_sleep:1,low_focus:1});step=nextDiscoveryStep(once);assert.notEqual(step.type,'triage');
-const emphasizedOutput={trace:{states:[{concernId:'money_pressure',resolutionState:'triaged',memberImportance:3,evidenceConfidence:0},{concernId:'physical_condition',resolutionState:'triaged',memberImportance:3,evidenceConfidence:0},{concernId:'poor_sleep',resolutionState:'triaged',memberImportance:1,evidenceConfidence:0},{concernId:'low_focus',resolutionState:'triaged',memberImportance:1,evidenceConfidence:0},{concernId:'low_energy',resolutionState:'triaged',memberImportance:null,evidenceConfidence:0}]}};const emphasized=discoveryPriorityCandidates(emphasizedOutput);assert.equal(emphasized.some(x=>x.concernId==='low_energy'),false);
-const fitObservation=makeObservation({id:'fit:1',questionId:'FIT1',concernId:'low_activity',effects:[{type:'feasibility',target:'low_activity',feasibility:{capacity:'low',scheduleFlexibility:'low'}},{type:'constraint',target:'low_activity',value:'limited_transport'},{type:'support',target:'low_activity',value:'partner_support'}]}),fitState=deriveConcernState([fitObservation],'low_activity');assert.equal(fitState.feasibility.values.capacity,'low');assert.deepEqual(fitState.feasibility.constraints,['limited_transport']);
-const activityFitQuestion=DISCOVERY_BANK.find(q=>q.id==='PH1B'),activityFitObservations=observationsForAnswer(activityFitQuestion,['time','cost','mobility']),activityFitState=deriveConcernState(activityFitObservations,'energy');assert.equal(activityFitState.feasibility.values.scheduleFlexibility,'low');assert.equal(activityFitState.feasibility.values.costSensitivity,'high');assert.equal(activityFitState.feasibility.values.accessibilityNeeds,true);
-const output=discoveryOutput(createDiscoverySession({concernIds:['low_energy']}));assert.equal('candidateActions'in output,false);assert.equal('selectedActionIds'in output,false);console.log('Discovery owns evidence, sufficiency and feasibility only; downstream authority leakage is blocked');
+import assert from 'node:assert/strict';
+import * as discovery from './discovery-engine.js';
+import {deriveConstructState} from './construct-projection.js';
+import {makeObservation} from './contracts.js';
+import {DISCOVERY_BANK,observationsForAnswer,constructsForAnswer} from './observationNormalizer.js';
+import {createDiscoverySession,nextDiscoveryStep,discoveryOutput,discoveryPriorityCandidates} from '../../app/onboarding/discovery-runtime.js';
+
+assert.equal(discovery.DISCOVERY_VERSION,'v5');
+const runtime=discovery.session({constructIds:[]});
+assert.ok(runtime);
+assert.equal(typeof discovery.next(runtime),'object');
+const trace=discovery.trace(runtime);
+for(const forbidden of ['plan','memberPlan','selectedActions','priorityChoices'])assert.equal(forbidden in trace,false);
+assert.equal(typeof discovery.memberPlan,'undefined');
+assert.equal(typeof discovery.chooseActions,'undefined');
+assert.equal(typeof discovery.prioritize,'undefined');
+
+const portSession=createDiscoverySession({constructIds:[]});
+assert.ok(portSession);
+assert.equal(typeof nextDiscoveryStep(portSession),'object');
+assert.ok('trace' in discoveryOutput(portSession));
+
+// Governed opening selections route to canonical constructs without creating severity evidence.
+const opening=DISCOVERY_BANK.find(q=>q.id==='GEN001');
+assert.ok(opening);
+assert.deepEqual(constructsForAnswer(opening,'GEN001.01'),['FINANCIAL_STRAIN']);
+const openingObservations=observationsForAnswer(opening,'GEN001.01');
+assert.equal(openingObservations.length,1);
+assert.equal(openingObservations[0].effects.length,0);
+const routed=discovery.session({constructIds:[]});
+discovery.answer(routed,opening,'GEN001.01');
+assert.ok(routed.constructIds.includes('FINANCIAL_STRAIN'));
+
+// Triage is construct-native and occurs only once for a broad active set.
+const triageSession=createDiscoverySession({constructIds:['FINANCIAL_STRAIN','PHYSICAL_CONDITION','SLEEP_QUALITY','FOCUS_FUNCTION']});
+triageSession.phase='deepen';
+let step=nextDiscoveryStep(triageSession);
+assert.equal(step.type,'triage');
+discovery.triage(triageSession,{FINANCIAL_STRAIN:3,PHYSICAL_CONDITION:3,SLEEP_QUALITY:1,FOCUS_FUNCTION:1});
+step=nextDiscoveryStep(triageSession);
+assert.notEqual(step.type,'triage');
+
+// Projection accepts canonical construct evidence and feasibility constraints only.
+const fitObservation=makeObservation({id:'fit:1',questionId:'FIT1',constructId:'ACTIVITY_LEVEL',effects:[{type:'feasibility',target:'ACTIVITY_LEVEL',sourceType:'direct',temporality:'current',feasibility:{capacity:'low',scheduleFlexibility:'low'}},{type:'constraint',target:'ACTIVITY_LEVEL',sourceType:'direct',temporality:'current',value:'limited_transport'},{type:'support',target:'ACTIVITY_LEVEL',sourceType:'direct',temporality:'current',value:'partner_support'}]});
+const fitState=deriveConstructState([fitObservation],'ACTIVITY_LEVEL');
+assert.equal(fitState.feasibility.values.capacity,'low');
+assert.deepEqual(fitState.feasibility.constraints,['limited_transport']);
+
+const emphasizedOutput={trace:{states:[{constructId:'FINANCIAL_STRAIN',resolutionState:'triaged',memberImportance:3,evidenceConfidence:.8},{constructId:'PHYSICAL_CONDITION',resolutionState:'triaged',memberImportance:1,evidenceConfidence:.6},{constructId:'ENERGY_FUNCTION',resolutionState:'triaged',memberImportance:null,evidenceConfidence:0}]}};
+const emphasized=discoveryPriorityCandidates(emphasizedOutput);
+assert.equal(emphasized.some(x=>x.constructId==='ENERGY_FUNCTION'),false);
+assert.equal(emphasized[0].constructId,'FINANCIAL_STRAIN');
+
+const output=discoveryOutput(createDiscoverySession({constructIds:['ENERGY_FUNCTION']}));
+assert.equal('candidateActions' in output,false);
+assert.equal('selectedActionIds' in output,false);
+console.log('Discovery v5 uses governed questions, canonical constructs and evidence-only downstream output');
