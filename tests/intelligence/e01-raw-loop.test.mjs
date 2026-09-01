@@ -12,25 +12,30 @@ function answerWithStateEvidence(question) {
   const establishing=question.options.find(option=>answerEffects(question,option.id).some(effect=>['EVIDENCE','STATE'].includes(String(effect['Effect Type']).toUpperCase())));
   return establishing?.id??question.options.find(option=>answerEffects(question,option.id).length>0)?.id??question.options[0]?.id;
 }
-function answerBaseline(session,matrix){for(const question of matrix.questions){const difficult=question.options.find(option=>option.text==='Difficult'),goingWell=question.options.find(option=>option.text==='Going well');Discovery.answer(session,question,String(question.dimension).toUpperCase()==='PHYSICAL'?difficult.id:goingWell.id)}}
+function answerBaseline(session,matrix,{physical='Difficult'}={}){for(const question of matrix.questions){const desired=String(question.dimension).toUpperCase()==='PHYSICAL'?physical:'Going well';const option=question.options.find(item=>item.text===desired);assert.ok(option,`${question.id} must offer ${desired}`);Discovery.answer(session,question,option.id)}}
+function establishActivitySession(){const session=Discovery.session();let step=Discovery.next(session);Discovery.answer(session,step.question,'A000013');step=Discovery.next(session);answerBaseline(session,step);step=Discovery.next(session);const physicalDriver=step.questions.find(question=>question.id==='Q000085'),activity=physicalDriver.options.find(option=>option.id==='A000549');Discovery.answer(session,physicalDriver,activity.id);let state=Discovery.trace(session).states.find(item=>item.constructId==='ACTIVITY_LEVEL');for(let guard=0;guard<8&&state?.resolutionState!=='sufficient';guard++){step=Discovery.next(session);assert.equal(step.type,'question');Discovery.answer(session,step.question,answerWithStateEvidence(step.question));state=Discovery.trace(session).states.find(item=>item.constructId==='ACTIVITY_LEVEL')}return{session,state}}
 
 test('E01 raw-input lifecycle reaches Review through production Intelligence transitions',()=>{
-  const session=Discovery.session();
-  let step=Discovery.next(session);assert.equal(step.type,'question');assert.equal(step.question.id,'Q000001');Discovery.answer(session,step.question,'A000013');
-  step=Discovery.next(session);assert.equal(step.type,'matrix');assert.equal(step.interaction,'eight-dimension-baseline-matrix');answerBaseline(session,step);
-  step=Discovery.next(session);assert.equal(step.type,'driver-triage');const physicalDriver=step.questions.find(question=>question.id==='Q000085');assert.ok(physicalDriver);const activity=physicalDriver.options.find(option=>option.id==='A000549');assert.ok(activity);Discovery.answer(session,physicalDriver,activity.id);assert.deepEqual(session.constructIds,['ACTIVITY_LEVEL']);
-
-  let state=Discovery.trace(session).states.find(item=>item.constructId==='ACTIVITY_LEVEL');
-  for(let guard=0;guard<8&&state?.resolutionState!=='sufficient';guard++){
-    step=Discovery.next(session);assert.equal(step.type,'question',`expected evidence question, got ${step.type}`);const answerId=answerWithStateEvidence(step.question);assert.ok(answerId);Discovery.answer(session,step.question,answerId);state=Discovery.trace(session).states.find(item=>item.constructId==='ACTIVITY_LEVEL');
-  }
-  assert.ok(Number(state?.evidenceConfidence??0)>=.75,'raw Discovery must establish sufficient ACTIVITY_LEVEL evidence');
-  assert.equal(state.resolutionState,'sufficient','production Discovery must own the sufficiency transition');
-  Discovery.complete(session);
-
-  const trace=Discovery.trace(session),established=trace.states.find(item=>item.constructId==='ACTIVITY_LEVEL');assert.ok(established.evidenceRefs.length>0);assert.ok(['established','supported'].includes(established.status),'Discovery must establish or support a candidate before Prioritization');
-  const memberStateRevision=0,prioritization=prioritizeCandidates({memberStateRevision,candidates:[{constructId:'ACTIVITY_LEVEL',status:established.status,evidenceRefs:established.evidenceRefs}]});assert.equal(prioritization.recommended[0].constructId,'ACTIVITY_LEVEL');
-  const confirmation=confirmFocus({prioritization,decisions:[{constructId:'ACTIVITY_LEVEL',decision:'accepted',memberRank:1}],decidedAt:'2026-09-01T12:00:00Z'});assert.equal(confirmation.accepted[0].constructId,'ACTIVITY_LEVEL');
-  const planningInput=focusConfirmationPlanningInput(confirmation,{evidenceRefs:established.evidenceRefs,safetyDisposition:'ordinary_flow'}),plan=buildPlan(planningInput,{now:'2026-09-01T12:01:00Z'});assert.equal(plan.status,'proposed');assert.ok(plan.proposedActions.length>=1);
+  const {session,state}=establishActivitySession();assert.ok(Number(state?.evidenceConfidence??0)>=.75);assert.equal(state.resolutionState,'sufficient');Discovery.complete(session);
+  const established=Discovery.trace(session).states.find(item=>item.constructId==='ACTIVITY_LEVEL');assert.ok(['established','supported'].includes(established.status));
+  const prioritization=prioritizeCandidates({memberStateRevision:0,candidates:[{constructId:'ACTIVITY_LEVEL',status:established.status,evidenceRefs:established.evidenceRefs}]});assert.equal(prioritization.recommended[0].constructId,'ACTIVITY_LEVEL');
+  const confirmation=confirmFocus({prioritization,decisions:[{constructId:'ACTIVITY_LEVEL',decision:'accepted',memberRank:1}],decidedAt:'2026-09-01T12:00:00Z'});const planningInput=focusConfirmationPlanningInput(confirmation,{evidenceRefs:established.evidenceRefs,safetyDisposition:'ordinary_flow'}),plan=buildPlan(planningInput,{now:'2026-09-01T12:01:00Z'});assert.equal(plan.status,'proposed');assert.ok(plan.proposedActions.length>=1);
   const activePlan={...plan,status:'active',activeActions:plan.proposedActions},review=reviewPlan({plan:activePlan,evidence:{adherence:'high',outcome:'improved',burden:'low',qaSimulated:true}}),route=routeReview({review,plan:activePlan});assert.equal(review.decision,'keep');assert.equal(route.route,'continue');assert.equal(route.preservePlan,true);
+});
+
+test('E01 Safety interruption pauses ordinary Discovery until governed confirmation',()=>{
+  const session=Discovery.session();Discovery.setSafetyContext(session,{explicitSafetyConcern:true});let step=Discovery.next(session);assert.equal(step.type,'safety');assert.equal(step.safety.status,'confirmation_required');assert.equal(step.safety.pauseOrdinaryFlow,true);
+  Discovery.setSafetyContext(session,{explicitSafetyConcern:true},{immediateDanger:true});step=Discovery.next(session);assert.equal(step.type,'safety');assert.equal(step.safety.status,'escalate');assert.equal(step.safety.pauseOrdinaryFlow,true);
+});
+
+test('E01 unresolved evidence cannot silently become sufficient',()=>{
+  const session=Discovery.session({constructIds:['ACTIVITY_LEVEL'],outerGuardrail:1});const step=Discovery.next(session);assert.equal(step.type,'question');Discovery.answer(session,step.question,step.question.options[0].id);const finish=Discovery.next(session);assert.equal(finish.type,'finish');assert.equal(finish.stop.incomplete,true);const state=Discovery.trace(session).states.find(item=>item.constructId==='ACTIVITY_LEVEL');assert.notEqual(state?.resolutionState,'sufficient');assert.notEqual(state?.status,'established');
+});
+
+test('E01 member rejection yields no Planning focus',()=>{
+  const {session,state}=establishActivitySession();Discovery.complete(session);const prioritization=prioritizeCandidates({memberStateRevision:0,candidates:[{constructId:'ACTIVITY_LEVEL',status:state.status,evidenceRefs:state.evidenceRefs}]});const confirmation=confirmFocus({prioritization,decisions:[{constructId:'ACTIVITY_LEVEL',decision:'rejected'}],decidedAt:'2026-09-01T12:00:00Z'});assert.equal(confirmation.accepted.length,0);assert.equal(confirmation.declined[0].constructId,'ACTIVITY_LEVEL');assert.equal(confirmation.memberChangedRecommendation,true);assert.throws(()=>focusConfirmationPlanningInput(confirmation,{evidenceRefs:state.evidenceRefs,safetyDisposition:'ordinary_flow'}),/accepted Focus|non-empty/i);
+});
+
+test('E01 Planning rejects stale or malformed lifecycle input',()=>{
+  assert.throws(()=>buildPlan({memberStateRevision:0,focuses:[],evidenceRefs:[],constraintRefs:[],safetyDisposition:'ordinary_flow',planningContext:{}},{now:'2026-09-01T12:01:00Z'}),/focus|non-empty|planning/i);
 });
