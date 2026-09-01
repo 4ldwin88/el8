@@ -16,3 +16,4 @@ export { PROTOCOL_STANDARDS } from './protocol-standards.js';
 export { DISCOVERY_PLANNING_CONTRACT } from './discovery-planning-contract.js';
 export { ACTION_DISCOVERY_COVERAGE } from './action-discovery-coverage.js';
 export { ORIENTATION_BASELINE_QUESTIONS, ORIENTATION_BASELINE_ANSWERS, ORIENTATION_BASELINE_EFFECTS, ORIENTATION_BASELINE_SOURCES } from './orientation-baseline.js';
+export { BASELINE_DISCRIMINATOR_QUESTIONS, BASELINE_DISCRIMINATOR_ANSWERS, BASELINE_DISCRIMINATOR_EFFECTS } from './baseline-discriminators.js';
