@@ -9,11 +9,11 @@ function action(actionId){return {
   measurement:{decisionUse:'test'},review:{trigger:'test',allowedDispositions:['continue']}
 }}
 
-test('governed Action IDs are accepted',()=>{
-  for(const id of ['PHY-A01','EMT-A01','SPT-A03','XDM-A06']) assert.equal(assertGovernedActionId(id),id);
+test('governed permanent Action IDs are accepted',()=>{
+  for(const id of ['ACT000001','ACT000008','ACT000031','ACT000041']) assert.equal(assertGovernedActionId(id),id);
 });
 
-test('legacy Action IDs are rejected rather than normalized',()=>{
-  for(const id of ['PHY-001','EMO-001','SPI-003']) assert.throws(()=>assertGovernedActionId(id),/non-governed Action ID/);
+test('legacy Action aliases are rejected rather than normalized',()=>{
+  for(const id of ['PHY-A01','EMT-A01','SPT-A03','XDM-A06','PHY-001','EMO-001','SPI-003']) assert.throws(()=>assertGovernedActionId(id),/non-governed Action ID/);
   assert.throws(()=>createActionDefinition(action('EMO-001')),/non-governed Action ID/);
 });
