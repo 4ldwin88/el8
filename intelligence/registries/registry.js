@@ -1,43 +1,29 @@
-import { QUESTIONS, ANSWERS, EFFECTS, SIGNALS, ACTIONS, EVIDENCE, SOURCES, ID_MIGRATION_MAP } from './index.js';
+import { QUESTIONS, ANSWERS, EFFECTS, SIGNALS, ACTIONS, EVIDENCE, SOURCES, ID_MIGRATION_MAP, ORIENTATION_BASELINE_QUESTIONS, ORIENTATION_BASELINE_ANSWERS, ORIENTATION_BASELINE_EFFECTS, ORIENTATION_BASELINE_SOURCES } from './index.js';
 
+export const ALL_QUESTIONS = Object.freeze([...QUESTIONS,...ORIENTATION_BASELINE_QUESTIONS]);
+export const ALL_ANSWERS = Object.freeze([...ANSWERS,...ORIENTATION_BASELINE_ANSWERS]);
+export const ALL_EFFECTS = Object.freeze([...EFFECTS,...ORIENTATION_BASELINE_EFFECTS]);
+export const ALL_SOURCES = Object.freeze([...SOURCES,...ORIENTATION_BASELINE_SOURCES]);
 const indexBy = (rows, key) => Object.freeze(Object.fromEntries(rows.map(row => [row[key], row])));
-const groupBy = (rows, key) => {
-  const grouped = {};
-  for (const row of rows) (grouped[row[key]] ??= []).push(row);
-  return Object.freeze(Object.fromEntries(Object.entries(grouped).map(([k,v]) => [k, Object.freeze(v)])));
-};
+const groupBy = (rows, key) => { const grouped = {}; for (const row of rows) (grouped[row[key]] ??= []).push(row); return Object.freeze(Object.fromEntries(Object.entries(grouped).map(([k,v]) => [k, Object.freeze(v)]))); };
 
-export const QUESTION_BY_ID = indexBy(QUESTIONS, 'Question ID');
-export const ANSWER_BY_ID = indexBy(ANSWERS, 'Answer ID');
-export const EFFECT_BY_ID = indexBy(EFFECTS, 'Effect ID');
+export const QUESTION_BY_ID = indexBy(ALL_QUESTIONS, 'Question ID');
+export const ANSWER_BY_ID = indexBy(ALL_ANSWERS, 'Answer ID');
+export const EFFECT_BY_ID = indexBy(ALL_EFFECTS, 'Effect ID');
 export const SIGNAL_BY_ID = indexBy(SIGNALS, 'Signal ID');
 export const ACTION_BY_ID = indexBy(ACTIONS, 'Action ID');
 export const EVIDENCE_BY_ID = indexBy(EVIDENCE, 'Evidence ID');
-export const SOURCE_BY_ID = indexBy(SOURCES, 'Source ID');
-export const ANSWERS_BY_QUESTION_ID = groupBy(ANSWERS, 'Parent Question ID');
-export const EFFECTS_BY_ANSWER_ID = groupBy(EFFECTS, 'Answer ID');
+export const SOURCE_BY_ID = indexBy(ALL_SOURCES, 'Source ID');
+export const ANSWERS_BY_QUESTION_ID = groupBy(ALL_ANSWERS, 'Parent Question ID');
+export const EFFECTS_BY_ANSWER_ID = groupBy(ALL_EFFECTS, 'Answer ID');
 
-const aliasEntries = ID_MIGRATION_MAP
-  .filter(row => row['Legacy ID'] && row['New Permanent ID'] && row.Status === 'MAPPED')
-  .map(row => [row['Legacy ID'], row['New Permanent ID']]);
+const aliasEntries = ID_MIGRATION_MAP.filter(row => row['Legacy ID'] && row['New Permanent ID'] && row.Status === 'MAPPED').map(row => [row['Legacy ID'], row['New Permanent ID']]);
 export const PERMANENT_ID_BY_ALIAS = Object.freeze(Object.fromEntries(aliasEntries));
-
-export function resolvePermanentId(id) {
-  if (typeof id !== 'string' || !id) throw new Error('id required');
-  return PERMANENT_ID_BY_ALIAS[id] ?? id;
-}
-
+export function resolvePermanentId(id) { if (typeof id !== 'string' || !id) throw new Error('id required'); return PERMANENT_ID_BY_ALIAS[id] ?? id; }
 export function getQuestion(id) { return QUESTION_BY_ID[resolvePermanentId(id)] ?? null; }
 export function getAnswer(id) { return ANSWER_BY_ID[resolvePermanentId(id)] ?? null; }
 export function getAction(id) { return ACTION_BY_ID[resolvePermanentId(id)] ?? null; }
 export function getEffectsForAnswer(id) { return EFFECTS_BY_ANSWER_ID[resolvePermanentId(id)] ?? Object.freeze([]); }
 export function getAnswersForQuestion(id) { return ANSWERS_BY_QUESTION_ID[resolvePermanentId(id)] ?? Object.freeze([]); }
-
-export function isRuntimeQuestion(row) {
-  const status = String(row?.['Runtime Status'] ?? '').toLowerCase();
-  return status.includes('active') || status.includes('conditional') || status.includes('member-controlled');
-}
-
-export function isExecutableEffect(row) {
-  return String(row?.['Runtime Status'] ?? '').toLowerCase() === 'executable';
-}
+export function isRuntimeQuestion(row) { const status = String(row?.['Runtime Status'] ?? '').toLowerCase(); return status.includes('active') || status.includes('conditional') || status.includes('member-controlled'); }
+export function isExecutableEffect(row) { return String(row?.['Runtime Status'] ?? '').toLowerCase() === 'executable'; }
