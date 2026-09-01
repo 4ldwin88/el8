@@ -11,6 +11,7 @@
     "test:e02-e03":"node --test tests/intelligence/e02-e03-qa-isolation-reset.test.mjs",
     "test:t01-t02":"node --test tests/intelligence/t01-t02-decision-trace.test.mjs",
     "test:s01":"node --test tests/intelligence/s01-safety-validation.test.mjs",
+    "test:s02":"node --test tests/intelligence/s02-adversarial-safety.test.mjs",
     "test:intelligence":"npm run test:intelligence-contracts && npm run test:state && npm run test:prioritization && npm run test:planning && npm run test:review",
     "test:outcomes":"node intelligence/outcomes/outcomes.test.js",
     "test:discovery":"node intelligence/registries/registry.test.mjs && node intelligence/discovery/discovery-runtime.test.mjs",
@@ -20,6 +21,6 @@
     "test:profile":"node --test app/profile/history.test.mjs app/profile/qa-runner.test.mjs app/profile/qa-lifecycle.test.mjs",
     "test:persistence":"node --test intelligence/state/supabase-persistence.test.js intelligence/planning/supabase-plan-persistence.test.js app/auth/member-state-session.test.js",
     "test:persistence:live":"node tests/persistence-concurrency.test.mjs",
-    "test":"npm run test:contracts && npm run test:intelligence && npm run test:persistence && npm run test:safety && npm run test:discovery && npm run test:intelligence-test && npm run test:onboarding && npm run test:outcomes && npm run test:insights && npm run test:profile && npm run test:e01 && npm run test:e02-e03 && npm run test:t01-t02 && npm run test:s01"
+    "test":"npm run test:contracts && npm run test:intelligence && npm run test:persistence && npm run test:safety && npm run test:discovery && npm run test:intelligence-test && npm run test:onboarding && npm run test:outcomes && npm run test:insights && npm run test:profile && npm run test:e01 && npm run test:e02-e03 && npm run test:t01-t02 && npm run test:s01 && npm run test:s02"
   }
 }
