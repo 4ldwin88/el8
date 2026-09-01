@@ -28,10 +28,11 @@ import { evaluateContextualSafety, evaluateDirectConfirmation } from './policy.j
 
 {
   const contextual = evaluateContextualSafety({ contextualSignals: { explicitSafetyConcern: true } });
-  const disposition = evaluateDirectConfirmation({ signalRefs: contextual.signals.map(signal => signal.signalId), confirmation: { canStaySafe: false } });
+  const disposition = evaluateDirectConfirmation({ signalRefs: contextual.signals.map(signal => signal.signalId), confirmation: { immediateDanger: false, intent: false, canStaySafe: false } });
   assert.equal(disposition.disposition, 'escalate');
   assert.ok(disposition.rationaleCodes.includes('direct_confirmation_positive'));
 }
 
 assert.throws(() => evaluateDirectConfirmation({ signalRefs: [] }), /signalRefs must be non-empty/);
+assert.throws(() => evaluateDirectConfirmation({ signalRefs: ['safety:test'], confirmation: { canStaySafe: false } }), /direct Safety confirmation must contain boolean immediateDanger, intent, and canStaySafe/);
 console.log('canonical Safety policy tests passed');
