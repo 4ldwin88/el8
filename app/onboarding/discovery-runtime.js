@@ -1,9 +1,21 @@
 import * as Discovery from '../../intelligence/discovery/discovery-engine.js';
 const STORAGE_KEY='el8_onboarding_discovery_v5';
 export function createDiscoverySession(options={}){return Discovery.session(options)}
+export function createDiscoverySessionFromHandoff(handoff={},options={}){
+ const concernIds=[...new Set([...(handoff?.candidateConcerns||[]),...(options.concernIds||[])].filter(Boolean))];
+ return Discovery.session({...options,concernIds});
+}
 export function nextDiscoveryStep(session){return Discovery.next(session)}
 export function answerDiscoveryQuestion(session,question,answerIds){return Discovery.answer(session,question,answerIds)}
 export function submitDiscoveryTriage(session,importanceByConstruct){return Discovery.triage(session,importanceByConstruct)}
+export function submitDiscoveryPriority(session,constructIds=[]){
+ if(!Array.isArray(constructIds)||!constructIds.length)throw new Error('constructIds must be a non-empty array');
+ const selected=new Set(constructIds);
+ for(const constructId of session.concernIds||[]){
+  Discovery.resolve(session,constructId,selected.has(constructId)?'member_prioritized':'deferred',{memberPriority:selected.has(constructId)});
+ }
+ return session;
+}
 export function resolveDiscoveryConstruct(session,constructId,resolutionState,options={}){return Discovery.resolve(session,constructId,resolutionState,options)}
 export function finishDiscovery(session){Discovery.complete(session);return discoveryOutput(session)}
 export function discoveryOutput(session){return Object.freeze({trace:Discovery.trace(session)})}
