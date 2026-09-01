@@ -35,3 +35,6 @@ jobs:
 
       - name: Run Discovery validation
         run: npm run test:discovery
+
+      - name: Run E01 raw lifecycle validation
+        run: npm run test:e01
