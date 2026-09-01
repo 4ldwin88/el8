@@ -15,3 +15,4 @@ export { ACTION_SOURCE_USAGE } from './action-source-usage.js';
 export { PROTOCOL_STANDARDS } from './protocol-standards.js';
 export { DISCOVERY_PLANNING_CONTRACT } from './discovery-planning-contract.js';
 export { ACTION_DISCOVERY_COVERAGE } from './action-discovery-coverage.js';
+export { ORIENTATION_BASELINE_QUESTIONS, ORIENTATION_BASELINE_ANSWERS, ORIENTATION_BASELINE_EFFECTS, ORIENTATION_BASELINE_SOURCES } from './orientation-baseline.js';
