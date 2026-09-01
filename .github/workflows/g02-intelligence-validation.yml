@@ -38,3 +38,6 @@ jobs:
 
       - name: Run E01 raw lifecycle validation
         run: npm run test:e01
+
+      - name: Run E02 E03 QA isolation and replay validation
+        run: npm run test:e02-e03
