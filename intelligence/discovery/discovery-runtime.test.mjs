@@ -24,13 +24,14 @@ assert.ok('trace' in discoveryOutput(portSession));
 
 const opening=DISCOVERY_BANK.find(q=>q.id==='Q000001');
 assert.ok(opening);
-assert.deepEqual(constructsForAnswer(opening,'A000001'),['FINANCIAL_STRAIN']);
+// General opening answers intentionally have no executable Effects; they must not invent construct routing.
+assert.deepEqual(constructsForAnswer(opening,'A000001'),[]);
 const openingObservations=observationsForAnswer(opening,'A000001');
 assert.equal(openingObservations.length,1);
 assert.equal(openingObservations[0].effects.length,0);
-const routed=discovery.session({constructIds:[]});
-discovery.answer(routed,opening,'A000001');
-assert.ok(routed.constructIds.includes('FINANCIAL_STRAIN'));
+const unrouted=discovery.session({constructIds:[]});
+discovery.answer(unrouted,opening,'A000001');
+assert.deepEqual(unrouted.constructIds,[]);
 
 // Composite Orientation baseline is one member-facing matrix while preserving eight governed question records.
 const baselineSession=createDiscoverySession({constructIds:[]});
