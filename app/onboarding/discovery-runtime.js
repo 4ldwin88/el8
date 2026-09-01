@@ -1,17 +1,24 @@
 import * as Discovery from '../../intelligence/discovery/discovery-engine.js';
-const STORAGE_KEY='el8_onboarding_discovery_v5';
+import {isConstructId} from '../../registries/taxonomy/index.js';
+const STORAGE_KEY='el8_onboarding_discovery_v6';
 export function createDiscoverySession(options={}){return Discovery.session(options)}
 export function createDiscoverySessionFromHandoff(handoff={},options={}){
- const concernIds=[...new Set([...(handoff?.candidateConcerns||[]),...(options.concernIds||[])].filter(Boolean))];
- return Discovery.session({...options,concernIds});
+ const constructIds=[...new Set([...(handoff?.candidateConcerns||[]),...(options.constructIds||[])].filter(isConstructId))];
+ return Discovery.session({...options,constructIds});
 }
 export function nextDiscoveryStep(session){return Discovery.next(session)}
 export function answerDiscoveryQuestion(session,question,answerIds){return Discovery.answer(session,question,answerIds)}
+// Composite Orientation interactions remain one member-facing event while preserving permanent question/answer provenance underneath.
+export function answerDiscoveryInteraction(session,interaction,answersByQuestion={}){
+ const questions=Array.isArray(interaction?.questions)?interaction.questions:[];
+ for(const question of questions){const answerIds=answersByQuestion[question.id];if(answerIds!==undefined&&answerIds!==null)Discovery.answer(session,question,answerIds)}
+ return session;
+}
 export function submitDiscoveryTriage(session,importanceByConstruct){return Discovery.triage(session,importanceByConstruct)}
 export function submitDiscoveryPriority(session,constructIds=[]){
  if(!Array.isArray(constructIds)||!constructIds.length)throw new Error('constructIds must be a non-empty array');
- const selected=new Set(constructIds);
- for(const constructId of session.concernIds||[]){
+ const selected=new Set(constructIds.filter(isConstructId));
+ for(const constructId of session.constructIds||[]){
   Discovery.resolve(session,constructId,selected.has(constructId)?'member_prioritized':'deferred',{memberPriority:selected.has(constructId)});
  }
  return session;
