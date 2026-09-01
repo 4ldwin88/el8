@@ -1,7 +1,17 @@
-// Public governed registry boundary. Intelligence and application code should
-// consume registries through these domain surfaces rather than duplicate governed
-// vocabulary or definitions.
-export * from './taxonomy/dimensions.js';
-export * from './taxonomy/concerns.js';
-export * from './interventions/index.js';
-export * from './evidence/index.js';
+// GENERATED registry barrel — 2026-09-01
+export { QUESTIONS } from './questions.js';
+export { ANSWERS } from './answers.js';
+export { EFFECTS } from './effects.js';
+export { SIGNALS } from './signals.js';
+export { RELATIONSHIPS } from './relationships.js';
+export { SOURCES } from './sources.js';
+export { EVIDENCE } from './evidence.js';
+export { ID_SEMANTIC_STANDARD } from './id-standard.js';
+export { ID_MIGRATION_MAP } from './migration-map.js';
+export { ACTIONS } from './actions.js';
+export { ACTION_EVIDENCE } from './action-evidence.js';
+export { ACTION_EVIDENCE_REGISTRY } from './action-evidence-registry.js';
+export { ACTION_SOURCE_USAGE } from './action-source-usage.js';
+export { PROTOCOL_STANDARDS } from './protocol-standards.js';
+export { DISCOVERY_PLANNING_CONTRACT } from './discovery-planning-contract.js';
+export { ACTION_DISCOVERY_COVERAGE } from './action-discovery-coverage.js';
