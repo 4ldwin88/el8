@@ -50,3 +50,6 @@ jobs:
 
       - name: Run S02 adversarial Safety validation
         run: npm run test:s02
+
+      - name: Run R01 registry governance validation
+        run: npm run test:r01
