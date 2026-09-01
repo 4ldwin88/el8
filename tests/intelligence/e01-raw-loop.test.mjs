@@ -28,8 +28,8 @@ test('E01 raw-input lifecycle reaches Review through production Intelligence tra
   assert.equal(state.resolutionState,'sufficient','production Discovery must own the sufficiency transition');
   Discovery.complete(session);
 
-  const trace=Discovery.trace(session),established=trace.states.find(item=>item.constructId==='ACTIVITY_LEVEL');assert.ok(established.evidenceRefs.length>0);
-  const memberStateRevision=0,prioritization=prioritizeCandidates({memberStateRevision,candidates:[{constructId:'ACTIVITY_LEVEL',evidenceRefs:established.evidenceRefs}]});assert.equal(prioritization.recommended[0].constructId,'ACTIVITY_LEVEL');
+  const trace=Discovery.trace(session),established=trace.states.find(item=>item.constructId==='ACTIVITY_LEVEL');assert.ok(established.evidenceRefs.length>0);assert.ok(['established','supported'].includes(established.status),'Discovery must establish or support a candidate before Prioritization');
+  const memberStateRevision=0,prioritization=prioritizeCandidates({memberStateRevision,candidates:[{constructId:'ACTIVITY_LEVEL',status:established.status,evidenceRefs:established.evidenceRefs}]});assert.equal(prioritization.recommended[0].constructId,'ACTIVITY_LEVEL');
   const confirmation=confirmFocus({prioritization,decisions:[{constructId:'ACTIVITY_LEVEL',decision:'accepted',memberRank:1}],decidedAt:'2026-09-01T12:00:00Z'});assert.equal(confirmation.accepted[0].constructId,'ACTIVITY_LEVEL');
   const planningInput=focusConfirmationPlanningInput(confirmation,{evidenceRefs:established.evidenceRefs,safetyDisposition:'ordinary_flow'}),plan=buildPlan(planningInput,{now:'2026-09-01T12:01:00Z'});assert.equal(plan.status,'proposed');assert.ok(plan.proposedActions.length>=1);
   const activePlan={...plan,status:'active',activeActions:plan.proposedActions},review=reviewPlan({plan:activePlan,evidence:{adherence:'high',outcome:'improved',burden:'low',qaSimulated:true}}),route=routeReview({review,plan:activePlan});assert.equal(review.decision,'keep');assert.equal(route.route,'continue');assert.equal(route.preservePlan,true);
