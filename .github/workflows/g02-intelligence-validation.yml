@@ -44,3 +44,6 @@ jobs:
 
       - name: Run T01 T02 decision trace validation
         run: npm run test:t01-t02
+
+      - name: Run S01 deterministic Safety validation
+        run: npm run test:s01
