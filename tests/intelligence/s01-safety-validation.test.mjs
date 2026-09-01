@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { safetyGate, assertSafetyAllowsOrdinaryFlow } from '../../intelligence/safety/gate.js';
+import { SAFETY_LEVEL } from '../../intelligence/contracts/safety.js';
 import { buildPlan } from '../../intelligence/planning/planningEngine.js';
 
 const stages=['discovery','prioritization','focus_confirmation','planning','activation','execution','review'];
@@ -26,7 +27,7 @@ test('S01 strong context requests direct confirmation but does not itself declar
  const r=safetyGate({stage:'review',contextualSignals:{functionalDeterioration:.91}});
  assert.equal(r.status,'confirmation_required');
  assert.equal(r.disposition,null);
- assert.equal(r.contextual.signals[0].level,'attention');
+ assert.equal(r.contextual.signals[0].level,SAFETY_LEVEL.ATTENTION);
 });
 
 for(const confirmation of [
