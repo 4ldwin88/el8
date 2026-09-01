@@ -5,17 +5,11 @@ import { applyMemberStateTransition, MEMBER_STATE_EVENT } from '../../intelligen
 
 const AT='2026-09-01T12:00:00.000Z';
 const seed=()=>seedCanonicalQaPlan({memberId:'TQA-E03',constructId:'ACTIVITY_LEVEL',actionId:'ACT000002',at:AT});
-
-function normalized(state){
-  return JSON.parse(JSON.stringify(state));
-}
+const normalized=state=>JSON.parse(JSON.stringify(state));
 
 test('E02 QA simulation remains explicitly provenance-marked and cannot masquerade as member evidence',()=>{
-  const initial=seed();
-  const review={decision:'keep',reason:'qa deterministic fixture'};
-  const route={route:'continue',preservePlan:true};
-  const result=applyQaReviewToBrowserState(initial,{scenario:{id:'e02-isolation'},review,route,at:AT});
-  const qaFacts=result.facts.filter(f=>String(f.sourceType)==='qa_simulation');
+  const result=applyQaReviewToBrowserState(seed(),{scenario:{id:'e02-isolation'},review:{decision:'keep',reason:'qa deterministic fixture'},route:{route:'continue',preservePlan:true},at:AT});
+  const qaFacts=Object.values(result.facts).filter(f=>String(f.sourceType)==='qa_simulation');
   assert.equal(qaFacts.length,1);
   assert.equal(qaFacts[0].memberConfirmed,false);
   assert.match(qaFacts[0].sourceRef,/^e02-/);
@@ -33,7 +27,7 @@ test('E03 reset returns the exact canonical fixture without retaining prior-run 
   assert.notDeepEqual(normalized(mutated),normalized(seed()));
   const reset=seed();
   assert.deepEqual(normalized(reset),normalized(seed()));
-  assert.equal(reset.facts.some(f=>f.semanticKey==='qa.review.e03-mutate'),false);
+  assert.equal(Object.values(reset.facts).some(f=>f.semanticKey==='qa.review.e03-mutate'),false);
   assert.equal(reset.reviewCycles.length,0);
 });
 
