@@ -1,0 +1,36 @@
+name: G-02 Intelligence Validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [reconcile/g02-intelligence]
+
+permissions:
+  contents: read
+
+jobs:
+  discovery:
+    name: Discovery v8
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install --ignore-scripts --no-audit --no-fund
+          fi
+
+      - name: Run Discovery validation
+        run: npm run test:discovery
