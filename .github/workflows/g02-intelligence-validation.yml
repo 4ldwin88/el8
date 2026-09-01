@@ -41,3 +41,6 @@ jobs:
 
       - name: Run E02 E03 QA isolation and replay validation
         run: npm run test:e02-e03
+
+      - name: Run T01 T02 decision trace validation
+        run: npm run test:t01-t02
