@@ -1,5 +1,5 @@
 // GENERATED FROM RECONCILED EL8 DRIVE AUTHORITY — 2026-09-01
-// Eight-dimension Orientation baseline added after research reconciliation.
+// Eight-area Orientation baseline. Permanent retired IDs remain for provenance.
 // Source authority: 02.01.02 Discovery Specification + 02.01.06.01 Question & Signal Registry.
 
 const dimensions = Object.freeze([
@@ -13,7 +13,7 @@ const dimensions = Object.freeze([
   ['Spiritual','Q000084','Thinking about your life as a whole, how have your sense of meaning, direction, and connection to what matters to you felt recently?','SRC000125']
 ]);
 const states = Object.freeze([
-  ['Going well','going_well'],['Mostly okay','mostly_okay'],['Mixed','mixed'],['Difficult','difficult'],['Not sure / not enough information','unknown']
+  ['Going well','going_well',true],['Mostly okay','mostly_okay',true],['Mixed','mixed',true],['Difficult','difficult',true],['Not sure / not enough information','unknown',false]
 ]);
 const slug = value => value.toUpperCase();
 
@@ -27,23 +27,23 @@ export const ORIENTATION_BASELINE_QUESTIONS = Object.freeze(dimensions.map(([dim
   'Registry Notes':`Original EL8 wording informed by ${sources}; not a validated scale item.`
 })));
 
-export const ORIENTATION_BASELINE_ANSWERS = Object.freeze(dimensions.flatMap(([dimension,qid],di)=>states.map(([label,state],si)=>{
+export const ORIENTATION_BASELINE_ANSWERS = Object.freeze(dimensions.flatMap(([dimension,qid],di)=>states.map(([label,state,active],si)=>{
   const n=507+di*5+si;
   return Object.freeze({'Answer ID':`A${String(n).padStart(6,'0')}`,'Sort Key':`1.010${di+1}.0${si+1}`,'Parent Question ID':qid,'Legacy ID':'',
-    'Answer':label,'Primary Dimension':dimension,'Primary Construct':`${dimension} dimension baseline`,'Audit Status':'Keep',
-    'Runtime Status':'Available when parent is asked','Evidence Status':state==='unknown'?'Uncertain':'Evidence-informed',
-    'Mapping Notes':state==='unknown'?'Explicit unknown; never neutral.':'Broad dimension baseline; specific evidence remains authoritative.',
-    'Decision Use':state==='mixed'||state==='difficult'?`Route ${dimension} Narrow clarification.`:state==='unknown'?`Preserve ${dimension} baseline uncertainty.`:`Establish ${dimension} baseline coverage.`,
+    'Answer':label,'Primary Dimension':dimension,'Primary Construct':`${dimension} dimension baseline`,'Audit Status':active?'Keep':'Retire — removed from baseline snapshot',
+    'Runtime Status':active?'Available when parent is asked':'Retired / unavailable','Evidence Status':active?'Evidence-informed':'Retired',
+    'Mapping Notes':active?'Broad dimension baseline; specific evidence remains authoritative.':'Retained only for permanent-ID provenance; not member-facing.',
+    'Decision Use':!active?'None — retired':state==='mixed'||state==='difficult'?`Route ${dimension} Narrow clarification.`:`Establish ${dimension} baseline coverage.`,
     'Variant Group':`ORIENTATION_BASELINE_${slug(dimension)}`,'Safety Meaning':'No automatic Safety classification','Source Sheet':'General','Registry Notes':'EL8-authored orientation response'});
 })));
 
 export const ORIENTATION_BASELINE_EFFECTS = Object.freeze(ORIENTATION_BASELINE_ANSWERS.map((answer,i)=>{
-  const dimension=answer['Primary Dimension'],state=states[i%5][1],n=399+i;
+  const dimension=answer['Primary Dimension'],[,state,active]=states[i%5],n=399+i;
   return Object.freeze({'Effect ID':`EFX${String(n).padStart(6,'0')}`,'Answer ID':answer['Answer ID'],'Effect Type':'BASELINE_COVERAGE',
     'Target ID / Construct':`DIMENSION_${slug(dimension)}`,'Key':'baseline_state','Value':state,
-    'Qualifier / Semantics':state==='unknown'?'Unknown is not neutral':'Broad dimension evidence only; no specific construct inference',
-    'Decision Use':state==='mixed'||state==='difficult'?`Activate ${dimension} Narrow clarification`:state==='unknown'?`Mark ${dimension} baseline explicitly unknown`:`Mark ${dimension} baseline covered`,
-    'Evidence Status':'Evidence-informed','Runtime Status':'Executable','Legacy Answer ID':'','Source Sheet':'General',
+    'Qualifier / Semantics':active?'Broad dimension evidence only; no specific construct inference':'Retired baseline state',
+    'Decision Use':!active?'None — retired':state==='mixed'||state==='difficult'?`Activate ${dimension} Narrow clarification`:`Mark ${dimension} baseline covered`,
+    'Evidence Status':active?'Evidence-informed':'Retired','Runtime Status':active?'Executable':'Retired / non-executable','Legacy Answer ID':'','Source Sheet':'General',
     'Registry Notes':'Orientation baseline evidence cannot erase contrary specific evidence or independently determine Safety.'});
 }));
 
