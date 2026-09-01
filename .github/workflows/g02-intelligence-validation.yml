@@ -47,3 +47,6 @@ jobs:
 
       - name: Run S01 deterministic Safety validation
         run: npm run test:s01
+
+      - name: Run S02 adversarial Safety validation
+        run: npm run test:s02
