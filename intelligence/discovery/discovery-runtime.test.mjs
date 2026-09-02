@@ -6,7 +6,7 @@ import {DISCOVERY_BANK,observationsForAnswer,constructsForAnswer,safetyContextFo
 import {migrateLegacyRegistryId} from '../registries/registry.js';
 import {createDiscoverySession,nextDiscoveryStep,answerDiscoveryInteraction,discoveryOutput,discoveryPriorityCandidates} from '../../app/onboarding/discovery-runtime.js';
 
-assert.equal(discovery.DISCOVERY_VERSION,'v8');
+assert.equal(discovery.DISCOVERY_VERSION,'v9');
 const runtime=discovery.session({constructIds:[]});
 assert.ok(runtime);
 assert.equal(typeof discovery.next(runtime),'object');
@@ -19,13 +19,14 @@ assert.equal(typeof discovery.prioritize,'undefined');
 const portSession=createDiscoverySession({constructIds:[]});
 assert.ok(portSession);
 let portStep=nextDiscoveryStep(portSession);
-assert.equal(portStep.type,'question');
-assert.equal(portStep.question.id,'Q000001');
+assert.equal(portStep.type,'matrix');
+assert.equal(portStep.interaction,'eight-dimension-baseline-matrix');
+assert.equal(portStep.questions.length,8);
 assert.ok('trace' in discoveryOutput(portSession));
 
 const opening=DISCOVERY_BANK.find(q=>q.id==='Q000001');
 assert.ok(opening);
-// General opening answers intentionally have no executable Effects; they must not invent construct routing.
+// General concern answers intentionally have no executable Effects; they must not invent construct routing.
 assert.deepEqual(constructsForAnswer(opening,'A000001'),[]);
 const openingObservations=observationsForAnswer(opening,'A000001');
 assert.equal(openingObservations.length,1);
@@ -34,30 +35,34 @@ const unrouted=discovery.session({constructIds:[]});
 discovery.answer(unrouted,opening,'A000001');
 assert.deepEqual(unrouted.constructIds,[]);
 
-// Composite Orientation baseline is one member-facing matrix while preserving eight governed question records.
+// Broad state is the first member-facing interaction. Concern follows after the eight-area snapshot.
 const baselineSession=createDiscoverySession({constructIds:[]});
-const baselineOpening=nextDiscoveryStep(baselineSession);
-discovery.answer(baselineSession,baselineOpening.question,'A000013');
 const matrix=nextDiscoveryStep(baselineSession);
 assert.equal(matrix.type,'matrix');
 assert.equal(matrix.interaction,'eight-dimension-baseline-matrix');
 assert.equal(matrix.questions.length,8);
-assert.equal(baselineSession.questionsAsked,2);
+assert.equal(baselineSession.questionsAsked,1);
 const answersByQuestion={};
 for(const q of matrix.questions)answersByQuestion[q.id]=q.options.find(o=>o.text==='Going well')?.id;
 answerDiscoveryInteraction(baselineSession,matrix,answersByQuestion);
 assert.equal(Object.keys(baselineSession.baselineCoverage).length,8);
+const concernStep=nextDiscoveryStep(baselineSession);
+assert.equal(concernStep.type,'question');
+assert.equal(concernStep.question.id,'Q000001');
+assert.equal(concernStep.reason,'member-concern-after-baseline');
 
-// Mixed/Difficult baseline evidence routes to adaptive driver triage rather than eight separate deep dives.
+// Mixed/Difficult broad-state evidence is retained, then concern is asked, then adaptive driver triage narrows relevant dimensions.
 const driverSession=createDiscoverySession({constructIds:[]});
-const driverOpening=nextDiscoveryStep(driverSession);
-discovery.answer(driverSession,driverOpening.question,'A000013');
 const driverMatrix=nextDiscoveryStep(driverSession);
 const driverAnswers={};
 for(const q of driverMatrix.questions)driverAnswers[q.id]=q.options.find(o=>o.text==='Going well')?.id;
 const physicalBaseline=driverMatrix.questions.find(q=>String(q.dimension).toUpperCase()==='PHYSICAL');
 driverAnswers[physicalBaseline.id]=physicalBaseline.options.find(o=>o.text==='Difficult')?.id;
 answerDiscoveryInteraction(driverSession,driverMatrix,driverAnswers);
+const driverConcern=nextDiscoveryStep(driverSession);
+assert.equal(driverConcern.type,'question');
+assert.equal(driverConcern.question.id,'Q000001');
+discovery.answer(driverSession,driverConcern.question,'A000013');
 const driverStep=nextDiscoveryStep(driverSession);
 assert.equal(driverStep.type,'driver-triage');
 assert.equal(driverStep.interaction,'adaptive-driver-triage');
@@ -115,4 +120,4 @@ assert.equal(emphasized.every(x=>typeof x.evidenceConfidence!=='number'),true);
 const output=discoveryOutput(createDiscoverySession({constructIds:['ENERGY_FUNCTION']}));
 assert.equal('candidateActions' in output,false);
 assert.equal('selectedActionIds' in output,false);
-console.log('Discovery v8 uses governed permanent IDs, composite eight-area Orientation, adaptive driver triage, deterministic Safety interruption and evidence-only downstream output');
+console.log('Discovery v9 uses broad-state-first Orientation, member concern second, adaptive driver triage, governed permanent IDs, deterministic Safety interruption and evidence-only downstream output');
