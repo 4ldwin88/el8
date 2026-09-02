@@ -1,8 +1,9 @@
 // Cross-boundary Observation/Evidence references.
 // Full Discovery effect semantics remain owned by Discovery until promotion.
+import { assertGovernedConstructId } from './vocabulary.js';
 
 export const OBSERVATION_CONTRACT_VERSION = '1.0.0';
-export const EVIDENCE_REFERENCE_VERSION = '1.0.0';
+export const EVIDENCE_REFERENCE_VERSION = '1.1.0';
 
 export const OBSERVATION_SOURCE = Object.freeze([
   'assessment',
@@ -50,8 +51,9 @@ export function createEvidenceRef({
 } = {}) {
   if (!evidenceId) throw new Error('evidenceId is required');
   if (!observationId) throw new Error('observationId is required');
-  if (!['concern', 'driver', 'driver_relationship'].includes(targetType)) throw new Error(`unknown evidence target type: ${targetType}`);
+  if (!['construct', 'driver', 'driver_relationship'].includes(targetType)) throw new Error(`unknown evidence target type: ${targetType}`);
   if (!targetId) throw new Error('targetId is required');
+  if (targetType === 'construct') assertGovernedConstructId(targetId);
   if (!['supports', 'contradicts', 'neutral'].includes(polarity)) throw new Error(`unknown evidence polarity: ${polarity}`);
 
   return {
