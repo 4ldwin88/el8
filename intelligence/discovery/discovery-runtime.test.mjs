@@ -3,6 +3,7 @@ import * as discovery from './discovery-engine.js';
 import {deriveConstructState} from './construct-projection.js';
 import {makeObservation} from './contracts.js';
 import {DISCOVERY_BANK,observationsForAnswer,constructsForAnswer,safetyContextForAnswer} from './observationNormalizer.js';
+import {migrateLegacyRegistryId} from '../registries/registry.js';
 import {createDiscoverySession,nextDiscoveryStep,answerDiscoveryInteraction,discoveryOutput,discoveryPriorityCandidates} from '../../app/onboarding/discovery-runtime.js';
 
 assert.equal(discovery.DISCOVERY_VERSION,'v8');
@@ -63,11 +64,12 @@ assert.equal(driverStep.interaction,'adaptive-driver-triage');
 assert.ok(driverStep.questions.some(q=>String(q.dimension).toUpperCase()==='PHYSICAL'));
 
 // Governed Environmental Safety semantics interrupt ordinary Discovery without becoming construct severity evidence.
-const homeSafety=DISCOVERY_BANK.find(q=>q.legacyId==='ENV003');
+// Historical aliases are translated only at the explicit migration boundary; runtime lookup remains permanent-ID-only.
+const homeSafety=DISCOVERY_BANK.find(q=>q.id===migrateLegacyRegistryId('ENV003'));
 assert.ok(homeSafety);
-const unsafeAnswer=homeSafety.options.find(o=>o.legacyId==='ENV003.03');
-const uncertainAnswer=homeSafety.options.find(o=>o.legacyId==='ENV003.04');
-const safeAnswer=homeSafety.options.find(o=>o.legacyId==='ENV003.01');
+const unsafeAnswer=homeSafety.options.find(o=>o.id===migrateLegacyRegistryId('ENV003.03'));
+const uncertainAnswer=homeSafety.options.find(o=>o.id===migrateLegacyRegistryId('ENV003.04'));
+const safeAnswer=homeSafety.options.find(o=>o.id===migrateLegacyRegistryId('ENV003.01'));
 assert.ok(unsafeAnswer&&uncertainAnswer&&safeAnswer);
 const unsafeContext=safetyContextForAnswer(homeSafety,unsafeAnswer.id);
 assert.equal(unsafeContext.contextualSignals.explicitSafetyConcern,true);
@@ -104,10 +106,11 @@ const fitState=deriveConstructState([fitObservation],'ACTIVITY_LEVEL');
 assert.equal(fitState.feasibility.values.capacity,'low');
 assert.deepEqual(fitState.feasibility.constraints,['limited_transport']);
 
-const emphasizedOutput={trace:{states:[{constructId:'FINANCIAL_STRAIN',resolutionState:'triaged',memberImportance:3,evidenceConfidence:.8},{constructId:'PHYSICAL_CONDITION',resolutionState:'triaged',memberImportance:1,evidenceConfidence:.6},{constructId:'ENERGY_FUNCTION',resolutionState:'triaged',memberImportance:null,evidenceConfidence:0}]}};
+const emphasizedOutput={trace:{states:[{constructId:'FINANCIAL_STRAIN',resolutionState:'triaged',memberImportance:3,qualitativeConfidence:'WELL_SUPPORTED'},{constructId:'PHYSICAL_CONDITION',resolutionState:'triaged',memberImportance:1,qualitativeConfidence:'MODERATE'},{constructId:'ENERGY_FUNCTION',resolutionState:'triaged',memberImportance:null,qualitativeConfidence:'UNKNOWN'}]}};
 const emphasized=discoveryPriorityCandidates(emphasizedOutput);
 assert.equal(emphasized.some(x=>x.constructId==='ENERGY_FUNCTION'),false);
 assert.equal(emphasized[0].constructId,'FINANCIAL_STRAIN');
+assert.equal(emphasized.every(x=>typeof x.evidenceConfidence!=='number'),true);
 
 const output=discoveryOutput(createDiscoverySession({constructIds:['ENERGY_FUNCTION']}));
 assert.equal('candidateActions' in output,false);
