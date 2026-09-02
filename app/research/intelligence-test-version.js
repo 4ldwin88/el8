@@ -1,9 +1,7 @@
-export const INTELLIGENCE_TEST_VERSION='0.3.3';
-export const INTELLIGENCE_TEST_HARNESS_VERSION='g02-human-qa.2026-09-02.6';
+export const INTELLIGENCE_TEST_VERSION='0.3.4';
+export const INTELLIGENCE_TEST_HARNESS_VERSION='g02-human-qa.2026-09-02.7';
 export const INTELLIGENCE_TEST_BUILD_VERSION=INTELLIGENCE_TEST_HARNESS_VERSION;
 export const INTELLIGENCE_TEST_CANDIDATE_REF='reconcile/g02-intelligence';
-// This identifies the exact reconciled Intelligence + browser-flow candidate now under
-// internal human QA. Advance it whenever authoritative candidate behavior changes.
 export const INTELLIGENCE_TEST_ENGINE_CANDIDATE_SHA='2293def6ab74fb84593d112306286f6f2c59304f';
 export const INTELLIGENCE_TEST_CANDIDATE_SHA=INTELLIGENCE_TEST_ENGINE_CANDIDATE_SHA;
 export const INTELLIGENCE_TEST_DEPLOYMENT_ID='github-pages:reconcile-g02-intelligence';
