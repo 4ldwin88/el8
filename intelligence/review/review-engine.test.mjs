@@ -1,10 +1,12 @@
-import test from'node:test';import assert from'node:assert/strict';import{reviewPlan}from'./review-engine.js';
+import test from'node:test';import assert from'node:assert/strict';import{reviewPlan}from'./review-engine.js';import{REVIEW_OUTCOME}from'./review-sufficiency.js';
 const plan={status:'active',focusIds:['FINANCIAL_CONTROL'],activeActions:[{actionId:'FIN-004',focusIds:['FINANCIAL_CONTROL'],measurement:{},review:{}}]};
 test('working sustainable Action is kept',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'high',outcome:'improved',burden:'low'}}).decision,'keep'));
 test('known execution barrier leads to simplification',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'low',outcome:'unchanged',burden:'high',barrierKnown:true}}).decision,'simplify'));
 test('executed Action without benefit is replaced',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'high',outcome:'unchanged',burden:'low'}}).decision,'replace'));
 test('missing causal evidence deepens rather than guesses',()=>assert.equal(reviewPlan({plan,evidence:{adherence:'low',outcome:'unchanged',burden:'low',barrierKnown:false}}).decision,'deepen'));
 test('changed circumstances route back to reassessment',()=>{const r=reviewPlan({plan,evidence:{adherence:'high',outcome:'improved',circumstancesChanged:true}});assert.equal(r.decision,'reassess');assert.equal(r.requiresDiscovery,true)});
-test('Review returns canonical Action IDs and v2 contract',()=>{const r=reviewPlan({plan,evidence:{adherence:'high',outcome:'improved',burden:'low'}});assert.equal(r.contractVersion,'plan-review-v2');assert.deepEqual(r.actionIds,['FIN-004'])});
+test('Review returns canonical Action IDs and v3 classification contract',()=>{const r=reviewPlan({plan,evidence:{adherence:'high',outcome:'improved',burden:'low'}});assert.equal(r.contractVersion,'plan-review-v3');assert.deepEqual(r.actionIds,['FIN-004']);assert.equal(r.classification.outcome,REVIEW_OUTCOME.IMPROVING);assert.equal(r.classification.causalClaim,false)});
+test('Action-specific Review requirements deepen for the smallest missing signal',()=>{const r=reviewPlan({plan,evidence:{adherence:'high',outcome:'improved'},measurementContract:{requiredReviewSignals:['adherence','outcome','burden']}});assert.equal(r.decision,'deepen');assert.equal(r.reason,'review_evidence_incomplete');assert.equal(r.nextEvidenceRequest,'burden')});
+test('unknown adherence cannot be treated as successful execution',()=>{const r=reviewPlan({plan,evidence:{outcome:'improved',burden:'low'}});assert.equal(r.decision,'deepen');assert.equal(r.classification.outcome,REVIEW_OUTCOME.INSUFFICIENT_EVIDENCE)});
 test('Review refuses non-active Plans',()=>assert.throws(()=>reviewPlan({plan:{status:'proposed',actions:[{actionId:'FIN-004'}]},evidence:{}}),/Active canonical Plan/));
 test('Review refuses unidentified active Actions',()=>assert.throws(()=>reviewPlan({plan:{status:'active',activeActions:[{}]},evidence:{}}),/actionId/));
