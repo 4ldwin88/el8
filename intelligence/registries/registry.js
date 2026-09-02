@@ -17,13 +17,15 @@ export const SOURCE_BY_ID = indexBy(ALL_SOURCES, 'Source ID');
 export const ANSWERS_BY_QUESTION_ID = groupBy(ALL_ANSWERS, 'Parent Question ID');
 export const EFFECTS_BY_ANSWER_ID = groupBy(ALL_EFFECTS, 'Answer ID');
 
+// Canonical runtime accepts permanent IDs only. Historical aliases remain solely at this explicit
+// ingress migration boundary for persisted/imported data created before permanent registry IDs.
 const aliasEntries = ID_MIGRATION_MAP.filter(row => row['Legacy ID'] && row['New Permanent ID'] && row.Status === 'MAPPED').map(row => [row['Legacy ID'], row['New Permanent ID']]);
-export const PERMANENT_ID_BY_ALIAS = Object.freeze(Object.fromEntries(aliasEntries));
-export function resolvePermanentId(id) { if (typeof id !== 'string' || !id) throw new Error('id required'); return PERMANENT_ID_BY_ALIAS[id] ?? id; }
-export function getQuestion(id) { return QUESTION_BY_ID[resolvePermanentId(id)] ?? null; }
-export function getAnswer(id) { return ANSWER_BY_ID[resolvePermanentId(id)] ?? null; }
-export function getAction(id) { return ACTION_BY_ID[resolvePermanentId(id)] ?? null; }
-export function getEffectsForAnswer(id) { return EFFECTS_BY_ANSWER_ID[resolvePermanentId(id)] ?? Object.freeze([]); }
-export function getAnswersForQuestion(id) { return ANSWERS_BY_QUESTION_ID[resolvePermanentId(id)] ?? Object.freeze([]); }
+export const PERMANENT_ID_BY_LEGACY_ALIAS = Object.freeze(Object.fromEntries(aliasEntries));
+export function migrateLegacyRegistryId(id) { if (typeof id !== 'string' || !id) throw new Error('id required'); return PERMANENT_ID_BY_LEGACY_ALIAS[id] ?? id; }
+export function getQuestion(id) { return QUESTION_BY_ID[id] ?? null; }
+export function getAnswer(id) { return ANSWER_BY_ID[id] ?? null; }
+export function getAction(id) { return ACTION_BY_ID[id] ?? null; }
+export function getEffectsForAnswer(id) { return EFFECTS_BY_ANSWER_ID[id] ?? Object.freeze([]); }
+export function getAnswersForQuestion(id) { return ANSWERS_BY_QUESTION_ID[id] ?? Object.freeze([]); }
 export function isRuntimeQuestion(row) { const status = String(row?.['Runtime Status'] ?? '').toLowerCase(); return status.includes('active') || status.includes('conditional') || status.includes('member-controlled'); }
 export function isExecutableEffect(row) { return String(row?.['Runtime Status'] ?? '').toLowerCase() === 'executable'; }
