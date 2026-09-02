@@ -8,6 +8,7 @@ export function createDiscoverySessionFromHandoff(handoff={},options={}){
 }
 export function nextDiscoveryStep(session){return Discovery.next(session)}
 export function answerDiscoveryQuestion(session,question,answerIds){return Discovery.answer(session,question,answerIds)}
+export function submitDiscoverySafetyConfirmation(session,confirmation){return Discovery.setSafetyContext(session,{},confirmation)}
 // Composite Orientation interactions remain one member-facing event while preserving permanent question/answer provenance underneath.
 export function answerDiscoveryInteraction(session,interaction,answersByQuestion={}){
  const questions=Array.isArray(interaction?.questions)?interaction.questions:[];
