@@ -4,7 +4,7 @@ import { safetyGate, assertSafetyAllowsOrdinaryFlow } from '../../intelligence/s
 
 const gate=(contextualSignals,confirmation=null)=>safetyGate({
  stage:'review', contextualSignals, confirmation,
- observationRefs:['OBS000001'], evidenceRefs:['EVD000001'], concernRefs:['CON000001']
+ observationRefs:['OBS000001'], evidenceRefs:['EVD000001'], constructRefs:['SLEEP_QUALITY']
 });
 
 test('S02 unknown or malformed contextual values cannot masquerade as positive Safety evidence',()=>{
@@ -57,10 +57,11 @@ test('S02 non-boolean confirmation values cannot clear a Safety interruption',()
  assert.equal(r.disposition,null);
 });
 
-test('S02 Safety signal preserves opaque evidence provenance for diagnosis',()=>{
+test('S02 Safety signal preserves opaque evidence and canonical construct provenance',()=>{
  const r=gate({functionalDeterioration:.9});
  assert.equal(r.status,'confirmation_required');
  assert.deepEqual(r.contextual.signals[0].observationRefs,['OBS000001']);
  assert.deepEqual(r.contextual.signals[0].evidenceRefs,['EVD000001']);
- assert.deepEqual(r.contextual.signals[0].concernRefs,['CON000001']);
+ assert.deepEqual(r.contextual.signals[0].constructRefs,['SLEEP_QUALITY']);
+ assert.equal('concernRefs' in r.contextual.signals[0],false);
 });
