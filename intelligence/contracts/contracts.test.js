@@ -38,13 +38,14 @@ assert.equal(observationRef.type, 'observation');
 const evidence = createEvidenceRef({
   evidenceId: 'evidence-1',
   observationId: observation.observationId,
-  targetType: 'concern',
-  targetId: 'money_pressure',
+  targetType: 'construct',
+  targetId: 'FINANCIAL_STRAIN',
   polarity: 'supports',
   temporality: 'current',
 });
 assert.equal(evidence.observationId, 'obs-1');
-assert.equal(evidence.targetId, 'money_pressure');
+assert.equal(evidence.targetId, 'FINANCIAL_STRAIN');
+assert.equal(evidence.targetType, 'construct');
 
 const provenance = createProvenance({ sourceType: 'assessment', sourceId: 'assessment-1', observationId: 'obs-1', evidenceId: evidence.evidenceId });
 assert.equal(provenance.evidenceId, 'evidence-1');
@@ -78,6 +79,8 @@ assert.equal(trace.component, 'safety');
 assert.equal(trace.inputRefs.length, 1);
 
 assert.throws(() => createObservationEnvelope({ observationId: 'bad', sourceType: 'unknown', sourceId: 'x' }));
+assert.throws(() => createEvidenceRef({ evidenceId: 'bad', observationId: 'obs-1', targetType: 'concern', targetId: 'money_pressure', polarity: 'supports' }));
+assert.throws(() => createEvidenceRef({ evidenceId: 'bad-construct', observationId: 'obs-1', targetType: 'construct', targetId: 'money_pressure', polarity: 'supports' }));
 assert.throws(() => createEvidenceRef({ evidenceId: 'bad', observationId: 'obs-1', targetType: 'score', targetId: 'x', polarity: 'supports' }));
 assert.throws(() => createSafetySignal({ signalId: 'bad', level: 0, code: 'bad', sourceComponent: 'discovery' }));
 assert.throws(() => createSafetyDisposition({ dispositionId: 'bad', signalRefs: [], disposition: 'continue' }));
