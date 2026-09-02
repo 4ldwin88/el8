@@ -1,0 +1,58 @@
+name: G-02 Intelligence Validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [reconcile/g02-intelligence]
+
+permissions:
+  contents: read
+
+jobs:
+  discovery:
+    name: Discovery v8
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies when declared
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          elif node -e "const p=require('./package.json'); process.exit((p.dependencies||p.devDependencies)?0:1)"; then
+            npm install --ignore-scripts --no-audit --no-fund
+          else
+            echo "No package dependencies declared; skipping npm install."
+          fi
+
+      - name: Run Discovery validation
+        run: npm run test:discovery
+
+      - name: Run E01 raw lifecycle validation
+        run: npm run test:e01
+
+      - name: Run adversarial G-02 lifecycle and hostile matrix
+        run: npm run test:g02-adversarial
+
+      - name: Run E02 E03 QA isolation and replay validation
+        run: npm run test:e02-e03
+
+      - name: Run T01 T02 decision trace validation
+        run: npm run test:t01-t02
+
+      - name: Run S01 deterministic Safety validation
+        run: npm run test:s01
+
+      - name: Run S02 adversarial Safety validation
+        run: npm run test:s02
+
+      - name: Run R01 registry governance validation
+        run: npm run test:r01

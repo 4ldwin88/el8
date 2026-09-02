@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import BANK,{normalizeAnswerIds,constructsForAnswer,observationsForAnswer,openingPathForAnswer} from './observationNormalizer.js';
+assert.ok(BANK.length>0);
+assert.equal(BANK[0].id,'Q000001');
+assert.equal(BANK[0].legacyId,'GEN001');
+assert.equal(BANK[0].options.length,14);
+assert.deepEqual(normalizeAnswerIds(BANK[0],['GEN001.01']),['A000001']);
+assert.equal(openingPathForAnswer(BANK[0],['A000013']),'positive');
+assert.equal(openingPathForAnswer(BANK[0],['A000014']),'uncertain');
+assert.equal(observationsForAnswer(BANK[0],['A000001'])[0].effects.length,0,'general routing prior must not fabricate direct Effects');
+const physical=BANK.find(q=>q.id==='Q000017');
+assert.ok(physical,'first Physical question must be runtime available');
+assert.ok(constructsForAnswer(physical,['A000109']).includes('BODY_WEIGHT_CONCERN'));
+console.log('discovery registry cutover: PASS');

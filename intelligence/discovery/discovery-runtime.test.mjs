@@ -3,9 +3,10 @@ import * as discovery from './discovery-engine.js';
 import {deriveConstructState} from './construct-projection.js';
 import {makeObservation} from './contracts.js';
 import {DISCOVERY_BANK,observationsForAnswer,constructsForAnswer,safetyContextForAnswer} from './observationNormalizer.js';
-import {createDiscoverySession,nextDiscoveryStep,discoveryOutput,discoveryPriorityCandidates} from '../../app/onboarding/discovery-runtime.js';
+import {migrateLegacyRegistryId} from '../registries/registry.js';
+import {createDiscoverySession,nextDiscoveryStep,answerDiscoveryInteraction,discoveryOutput,discoveryPriorityCandidates} from '../../app/onboarding/discovery-runtime.js';
 
-assert.equal(discovery.DISCOVERY_VERSION,'v5');
+assert.equal(discovery.DISCOVERY_VERSION,'v8');
 const runtime=discovery.session({constructIds:[]});
 assert.ok(runtime);
 assert.equal(typeof discovery.next(runtime),'object');
@@ -17,41 +18,78 @@ assert.equal(typeof discovery.prioritize,'undefined');
 
 const portSession=createDiscoverySession({constructIds:[]});
 assert.ok(portSession);
-assert.equal(typeof nextDiscoveryStep(portSession),'object');
+let portStep=nextDiscoveryStep(portSession);
+assert.equal(portStep.type,'question');
+assert.equal(portStep.question.id,'Q000001');
 assert.ok('trace' in discoveryOutput(portSession));
 
-const opening=DISCOVERY_BANK.find(q=>q.id==='GEN001');
+const opening=DISCOVERY_BANK.find(q=>q.id==='Q000001');
 assert.ok(opening);
-assert.deepEqual(constructsForAnswer(opening,'GEN001.01'),['FINANCIAL_STRAIN']);
-const openingObservations=observationsForAnswer(opening,'GEN001.01');
+// General opening answers intentionally have no executable Effects; they must not invent construct routing.
+assert.deepEqual(constructsForAnswer(opening,'A000001'),[]);
+const openingObservations=observationsForAnswer(opening,'A000001');
 assert.equal(openingObservations.length,1);
 assert.equal(openingObservations[0].effects.length,0);
-const routed=discovery.session({constructIds:[]});
-discovery.answer(routed,opening,'GEN001.01');
-assert.ok(routed.constructIds.includes('FINANCIAL_STRAIN'));
+const unrouted=discovery.session({constructIds:[]});
+discovery.answer(unrouted,opening,'A000001');
+assert.deepEqual(unrouted.constructIds,[]);
+
+// Composite Orientation baseline is one member-facing matrix while preserving eight governed question records.
+const baselineSession=createDiscoverySession({constructIds:[]});
+const baselineOpening=nextDiscoveryStep(baselineSession);
+discovery.answer(baselineSession,baselineOpening.question,'A000013');
+const matrix=nextDiscoveryStep(baselineSession);
+assert.equal(matrix.type,'matrix');
+assert.equal(matrix.interaction,'eight-dimension-baseline-matrix');
+assert.equal(matrix.questions.length,8);
+assert.equal(baselineSession.questionsAsked,2);
+const answersByQuestion={};
+for(const q of matrix.questions)answersByQuestion[q.id]=q.options.find(o=>o.text==='Going well')?.id;
+answerDiscoveryInteraction(baselineSession,matrix,answersByQuestion);
+assert.equal(Object.keys(baselineSession.baselineCoverage).length,8);
+
+// Mixed/Difficult baseline evidence routes to adaptive driver triage rather than eight separate deep dives.
+const driverSession=createDiscoverySession({constructIds:[]});
+const driverOpening=nextDiscoveryStep(driverSession);
+discovery.answer(driverSession,driverOpening.question,'A000013');
+const driverMatrix=nextDiscoveryStep(driverSession);
+const driverAnswers={};
+for(const q of driverMatrix.questions)driverAnswers[q.id]=q.options.find(o=>o.text==='Going well')?.id;
+const physicalBaseline=driverMatrix.questions.find(q=>String(q.dimension).toUpperCase()==='PHYSICAL');
+driverAnswers[physicalBaseline.id]=physicalBaseline.options.find(o=>o.text==='Difficult')?.id;
+answerDiscoveryInteraction(driverSession,driverMatrix,driverAnswers);
+const driverStep=nextDiscoveryStep(driverSession);
+assert.equal(driverStep.type,'driver-triage');
+assert.equal(driverStep.interaction,'adaptive-driver-triage');
+assert.ok(driverStep.questions.some(q=>String(q.dimension).toUpperCase()==='PHYSICAL'));
 
 // Governed Environmental Safety semantics interrupt ordinary Discovery without becoming construct severity evidence.
-const homeSafety=DISCOVERY_BANK.find(q=>q.id==='ENV003');
+// Historical aliases are translated only at the explicit migration boundary; runtime lookup remains permanent-ID-only.
+const homeSafety=DISCOVERY_BANK.find(q=>q.id===migrateLegacyRegistryId('ENV003'));
 assert.ok(homeSafety);
-const unsafeContext=safetyContextForAnswer(homeSafety,'ENV003.03');
+const unsafeAnswer=homeSafety.options.find(o=>o.id===migrateLegacyRegistryId('ENV003.03'));
+const uncertainAnswer=homeSafety.options.find(o=>o.id===migrateLegacyRegistryId('ENV003.04'));
+const safeAnswer=homeSafety.options.find(o=>o.id===migrateLegacyRegistryId('ENV003.01'));
+assert.ok(unsafeAnswer&&uncertainAnswer&&safeAnswer);
+const unsafeContext=safetyContextForAnswer(homeSafety,unsafeAnswer.id);
 assert.equal(unsafeContext.contextualSignals.explicitSafetyConcern,true);
 assert.equal(unsafeContext.requiresImmediacyClarification,true);
 const unsafeSession=discovery.session({constructIds:['ENVIRONMENTAL_INTERFERENCE']});
-discovery.answer(unsafeSession,homeSafety,'ENV003.03');
+discovery.answer(unsafeSession,homeSafety,unsafeAnswer.id);
 assert.equal(unsafeSession.safety.status,'confirmation_required');
 assert.equal(unsafeSession.safety.pauseOrdinaryFlow,true);
 assert.equal(unsafeSession.safetyRequiresImmediacyClarification,true);
 assert.equal(discovery.next(unsafeSession).type,'safety');
 assert.equal(discovery.trace(unsafeSession).safetySignals.length,1);
-assert.equal(observationsForAnswer(homeSafety,'ENV003.03')[0].effects.length,0);
+assert.equal(observationsForAnswer(homeSafety,unsafeAnswer.id)[0].effects.length,0);
 
 const uncertainSession=discovery.session({constructIds:['ENVIRONMENTAL_INTERFERENCE']});
-discovery.answer(uncertainSession,homeSafety,'ENV003.04');
+discovery.answer(uncertainSession,homeSafety,uncertainAnswer.id);
 assert.equal(uncertainSession.safety.status,'confirmation_required');
 assert.equal(discovery.next(uncertainSession).type,'safety');
 
 const safeSession=discovery.session({constructIds:['ENVIRONMENTAL_INTERFERENCE']});
-discovery.answer(safeSession,homeSafety,'ENV003.01');
+discovery.answer(safeSession,homeSafety,safeAnswer.id);
 assert.equal(safeSession.safety.status,'clear_for_ordinary_flow');
 assert.equal(safeSession.safety.pauseOrdinaryFlow,false);
 
@@ -68,12 +106,13 @@ const fitState=deriveConstructState([fitObservation],'ACTIVITY_LEVEL');
 assert.equal(fitState.feasibility.values.capacity,'low');
 assert.deepEqual(fitState.feasibility.constraints,['limited_transport']);
 
-const emphasizedOutput={trace:{states:[{constructId:'FINANCIAL_STRAIN',resolutionState:'triaged',memberImportance:3,evidenceConfidence:.8},{constructId:'PHYSICAL_CONDITION',resolutionState:'triaged',memberImportance:1,evidenceConfidence:.6},{constructId:'ENERGY_FUNCTION',resolutionState:'triaged',memberImportance:null,evidenceConfidence:0}]}};
+const emphasizedOutput={trace:{states:[{constructId:'FINANCIAL_STRAIN',resolutionState:'triaged',memberImportance:3,qualitativeConfidence:'WELL_SUPPORTED'},{constructId:'PHYSICAL_CONDITION',resolutionState:'triaged',memberImportance:1,qualitativeConfidence:'MODERATE'},{constructId:'ENERGY_FUNCTION',resolutionState:'triaged',memberImportance:null,qualitativeConfidence:'UNKNOWN'}]}};
 const emphasized=discoveryPriorityCandidates(emphasizedOutput);
 assert.equal(emphasized.some(x=>x.constructId==='ENERGY_FUNCTION'),false);
 assert.equal(emphasized[0].constructId,'FINANCIAL_STRAIN');
+assert.equal(emphasized.every(x=>typeof x.evidenceConfidence!=='number'),true);
 
 const output=discoveryOutput(createDiscoverySession({constructIds:['ENERGY_FUNCTION']}));
 assert.equal('candidateActions' in output,false);
 assert.equal('selectedActionIds' in output,false);
-console.log('Discovery v5 uses governed questions, canonical constructs, deterministic Safety interruption and evidence-only downstream output');
+console.log('Discovery v8 uses governed permanent IDs, composite eight-area Orientation, adaptive driver triage, deterministic Safety interruption and evidence-only downstream output');

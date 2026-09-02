@@ -73,12 +73,16 @@ export function applyMemberStateTransition(state,{type,payload={},source,at=new 
       const {constructId,decision}=payload;
       if(!isConstructId(constructId))throw new Error(`Unknown constructId: ${constructId}`);
       if(!next.constructs[constructId])throw new Error(`Focus decision requires known construct: ${constructId}`);
+      if(decision==='replaced'){
+        if(!isConstructId(payload.replacementConstructId)||!next.constructs[payload.replacementConstructId])throw new Error('Replacement Focus must reference a known construct');
+        if(payload.replacementConstructId===constructId)throw new Error('Replacement Focus must differ from replaced Focus');
+      }
       const prior=next.focusDecisions[constructId];
-      next.focusDecisions[constructId]=createFocusDecision({constructId,decision,decidedAt:payload.decidedAt??at,reasonCodes:payload.reasonCodes??[],constraintRefs:payload.constraintRefs??[]});
+      next.focusDecisions[constructId]=createFocusDecision({constructId,decision,decidedAt:payload.decidedAt??at,reasonCodes:payload.reasonCodes??[],constraintRefs:payload.constraintRefs??[],replacementConstructId:payload.replacementConstructId??null});
       if(decision==='accepted') next.activeFocusIds=unique([...next.activeFocusIds,constructId]);
       else next.activeFocusIds=next.activeFocusIds.filter(id=>id!==constructId);
-      if(prior?.decision==='accepted'&&['rejected','postponed','paused'].includes(decision)&&next.activePlanRef){
-        next.activePlanRef={...next.activePlanRef,reconciliationRequired:true,reconciliation:{reason:'MEMBER_FOCUS_WITHDRAWN',constructId,withdrawnDecision:decision,at}};
+      if(prior?.decision==='accepted'&&['rejected','deferred','replaced'].includes(decision)&&next.activePlanRef){
+        next.activePlanRef={...next.activePlanRef,reconciliationRequired:true,reconciliation:{reason:decision==='replaced'?'MEMBER_FOCUS_REPLACED':'MEMBER_FOCUS_WITHDRAWN',constructId,replacementConstructId:payload.replacementConstructId??null,withdrawnDecision:decision,at}};
       }
       break;
     }

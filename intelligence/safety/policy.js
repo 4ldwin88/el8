@@ -10,10 +10,10 @@ export function evaluateContextualSafety({ signalId = 'safety:context', sourceCo
   const explicitConcern = contextualSignals.explicitSafetyConcern === true;
   const strongContext = Object.entries(contextualSignals)
     .filter(([key]) => key !== 'explicitSafetyConcern')
-    .some(([, value]) => typeof value === 'number' && value >= 0.9);
+    .some(([, value]) => typeof value === 'number' && Number.isFinite(value) && value >= 0.9);
   const convergingContext = Object.entries(contextualSignals)
     .filter(([key]) => key !== 'explicitSafetyConcern')
-    .filter(([, value]) => typeof value === 'number' && value >= 0.65)
+    .filter(([, value]) => typeof value === 'number' && Number.isFinite(value) && value >= 0.65)
     .length >= 2;
   const needsDirectConfirmation = explicitConcern || strongContext || convergingContext;
 
@@ -33,8 +33,16 @@ export function evaluateContextualSafety({ signalId = 'safety:context', sourceCo
   return { needsDirectConfirmation: true, signals: [signal], rationaleCodes: [signal.code] };
 }
 
+export function isCompleteDirectConfirmation(confirmation) {
+  return confirmation !== null && typeof confirmation === 'object' && !Array.isArray(confirmation)
+    && typeof confirmation.immediateDanger === 'boolean'
+    && typeof confirmation.intent === 'boolean'
+    && typeof confirmation.canStaySafe === 'boolean';
+}
+
 export function evaluateDirectConfirmation({ signalRefs = [], confirmation = {}, decidedAt = null } = {}) {
   if (!Array.isArray(signalRefs) || signalRefs.length === 0) throw new Error('signalRefs must be non-empty');
+  if (!isCompleteDirectConfirmation(confirmation)) throw new Error('direct Safety confirmation must contain boolean immediateDanger, intent, and canStaySafe');
 
   const immediateDanger = confirmation.immediateDanger === true;
   const intent = confirmation.intent === true;
