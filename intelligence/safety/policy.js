@@ -4,9 +4,9 @@
 
 import { SAFETY_LEVEL, createSafetySignal, createSafetyDisposition } from '../contracts/safety.js';
 
-export const SAFETY_POLICY_VERSION = '0.1.0';
+export const SAFETY_POLICY_VERSION = '0.2.0';
 
-export function evaluateContextualSafety({ signalId = 'safety:context', sourceComponent = 'safety-policy', contextualSignals = {}, observationRefs = [], evidenceRefs = [], concernRefs = [], detectedAt = null } = {}) {
+export function evaluateContextualSafety({ signalId = 'safety:context', sourceComponent = 'safety-policy', contextualSignals = {}, observationRefs = [], evidenceRefs = [], constructRefs = [], detectedAt = null } = {}) {
   const explicitConcern = contextualSignals.explicitSafetyConcern === true;
   const strongContext = Object.entries(contextualSignals)
     .filter(([key]) => key !== 'explicitSafetyConcern')
@@ -26,7 +26,7 @@ export function evaluateContextualSafety({ signalId = 'safety:context', sourceCo
     sourceComponent,
     observationRefs,
     evidenceRefs,
-    concernRefs,
+    constructRefs,
     detectedAt,
   });
 
