@@ -23,4 +23,8 @@ assert.match(discovery,/@media\(max-width:640px\)/,'Discovery matrix must define
 assert.match(discovery,/grid-template-columns:repeat\(4,1fr\)/,'Narrow Discovery matrix must preserve the four-choice scale within each dimension row');
 assert.match(discovery,/if\(current\.type==='matrix'\)\{renderMatrix\(/,'Matrix steps must route to the dedicated matrix renderer');
 assert.doesNotMatch(discovery,/if\(current\.type==='matrix'\)\{renderComposite/,'Matrix steps must never fall back to the generic composite renderer');
+assert.match(discovery,/COMPACT_CHOICE_THRESHOLD=5/,'Discovery must define a governed high-choice density threshold');
+assert.match(discovery,/function applyChoiceDensity\(/,'Discovery must adapt answer density for high-choice non-matrix questions');
+assert.match(discovery,/choice-set\.compact/,'Discovery must provide a compact scannable treatment for high-choice questions');
+assert.match(discovery,/triage-answers\.compact/,'Composite items with many distinct choices must use compact grouped controls rather than repeated large buttons');
 console.log('Discovery-first production-representative browser architecture regression passed');
