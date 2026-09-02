@@ -1,10 +1,10 @@
-export const INTELLIGENCE_TEST_VERSION='0.3.4';
-export const INTELLIGENCE_TEST_HARNESS_VERSION='g02-human-qa.2026-09-02.7';
+export const INTELLIGENCE_TEST_VERSION='0.3.5';
+export const INTELLIGENCE_TEST_HARNESS_VERSION='g02-human-qa.2026-09-02.8';
 export const INTELLIGENCE_TEST_BUILD_VERSION=INTELLIGENCE_TEST_HARNESS_VERSION;
 export const INTELLIGENCE_TEST_CANDIDATE_REF='reconcile/g02-intelligence';
-export const INTELLIGENCE_TEST_ENGINE_CANDIDATE_SHA='2293def6ab74fb84593d112306286f6f2c59304f';
+export const INTELLIGENCE_TEST_ENGINE_CANDIDATE_SHA='bec42606715c88db6ed80f0e6ab58f25697171d4';
 export const INTELLIGENCE_TEST_CANDIDATE_SHA=INTELLIGENCE_TEST_ENGINE_CANDIDATE_SHA;
-export const INTELLIGENCE_TEST_DEPLOYMENT_ID='github-pages:reconcile-g02-intelligence';
+export const INTELLIGENCE_TEST_DEPLOYMENT_ID='netlify:deploy-preview-144';
 export const INTELLIGENCE_TEST_COMPONENT_VERSIONS=Object.freeze({memberState:'3.1.0',discovery:'v8',prioritization:'2.2.0',focusConfirmation:'1.3.0',planning:'4.0.0',capabilityBoundary:'0.3.0',evidenceReference:'1.1.0',safetyContract:'1.1.0',safetyPolicy:'0.2.0'});
 export const INTELLIGENCE_TEST_ENGINE_VERSION=INTELLIGENCE_TEST_COMPONENT_VERSIONS;
 export const INTELLIGENCE_TEST_STORAGE_KEY='el8.intelligence-test.session.v3';
