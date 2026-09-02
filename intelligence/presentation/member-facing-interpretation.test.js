@@ -1,0 +1,7 @@
+import test from'node:test';import assert from'node:assert/strict';import{assertNoMemberFacingIdentityLabels,createMemberFacingObservation,memberFacingLearningFromEngagementSignal}from'./member-facing-interpretation.js';
+
+test('supported unfavorable observation is allowed without forced positivity',()=>{const output=createMemberFacingObservation({observation:'Plan completion has declined over the last two weeks.',evidenceRefs:['review:r1','review:r2'],period:'last_2_weeks',decisionConsequence:'Plan may be simplified.'});assert.equal(output.kind,'observation');assert.equal(output.correctionAvailable,true)});
+
+test('member-facing identity labels and character judgments are rejected',()=>{assert.throws(()=>assertNoMemberFacingIdentityLabels({archetype:'go_getter'}),/identity label/);assert.throws(()=>createMemberFacingObservation({observation:'You are lazy.',evidenceRefs:['review:r1']}),/character judgment/)});
+
+test('engagement signal requires evidence-grounded observation instead of exposing internal trait value',()=>{const signal={key:'burdenTolerance',value:'low',status:'current',confidence:'moderate',evidenceRefs:['review:r1']};const output=memberFacingLearningFromEngagementSignal(signal,{observation:'Shorter commitments have been easier to complete recently.',decisionConsequence:'EL8 will favor a smaller active set.'});assert.equal(output.observation,'Shorter commitments have been easier to complete recently.');assert.equal('burdenTolerance'in output,false);assert.equal('value'in output,false)});
