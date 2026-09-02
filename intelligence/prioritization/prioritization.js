@@ -1,8 +1,7 @@
 // EL8 Prioritization.
 // Conscious authority: governed comparative reasoning over Discovery-supported candidates.
 // Subcon: quantitative ranking is retained as a non-authoritative shadow diagnostic.
-import { UNKNOWN, createPriorityCandidate } from '../contracts/intelligence-contracts.js';
-import { discoveryToPrioritization, prioritizationToFocusConfirmation } from '../contracts/capability-boundaries.js';
+import { UNKNOWN, discoveryToPrioritization, prioritizationToFocusConfirmation } from '../contracts/capability-boundaries.js';
 export const PRIORITIZATION_SCHEMA_VERSION='2.2.0';
 export const PRIORITY_FACTOR_KEYS=Object.freeze(['urgency','materiality','memberImportance','leverage','readiness']);
 const FACTOR_WEIGHT=Object.freeze({urgency:1,materiality:1,memberImportance:1,leverage:.75,readiness:.5});
@@ -17,7 +16,7 @@ function nearEquivalent(a,b){if(!a||!b)return false;const ae=governedEvidence(a.
 export function prioritizeCandidates(input,{safetyDisposition=null,decisionFactors={},now=new Date().toISOString()}={}){
  const governedInput=discoveryToPrioritization(input);const blocked=['pause_ordinary_flow','escalate'].includes(safetyDisposition?.disposition??governedInput.safetyDisposition);
  if(blocked)return{schemaVersion:PRIORITIZATION_SCHEMA_VERSION,memberStateRevision:governedInput.memberStateRevision,createdAt:now,blockedBySafety:true,recommended:[],alternatives:[],rationaleCodes:['safety_override'],shadow:null};
- const prepared=governedInput.candidates.map(candidate=>{const p=profile(candidate,decisionFactors);return{candidate:createPriorityCandidate({constructId:candidate.constructId,evidenceRefs:candidate.evidenceRefs??[],factors:p,eligibility:'eligible'}),profile:p,shadowScore:shadowScore(p)}});
+ const prepared=governedInput.candidates.map(candidate=>{const p=profile(candidate,decisionFactors);return{candidate:Object.freeze({constructId:candidate.constructId,evidenceRefs:[...(candidate.evidenceRefs??[])],factors:Object.freeze({...p}),eligibility:'eligible'}),profile:p,shadowScore:shadowScore(p)}});
  const governed=[...prepared].sort(compareGoverned);const shadow=[...prepared].sort((a,b)=>(b.shadowScore??-1)-(a.shadowScore??-1)||a.candidate.constructId.localeCompare(b.candidate.constructId));
  const memberChoiceUseful=nearEquivalent(governed[0],governed[1]);
  const rankedItems=governed.map(({candidate,profile:p},index)=>Object.freeze({constructId:candidate.constructId,rank:index+1,evidenceRefs:[...candidate.evidenceRefs],factors:p,rationaleCodes:[...rationaleCodes(p),...(memberChoiceUseful&&index<2?['near_equivalent_member_preference']:[])]}));
