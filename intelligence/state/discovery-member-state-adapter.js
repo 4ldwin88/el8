@@ -4,7 +4,13 @@ import {createMemberState} from './member-state-contract.js';
 import {applyMemberStateTransition,MEMBER_STATE_EVENT} from './member-state-transition.js';
 
 const SUPPORTED_DISCOVERY_STATUS=new Set(['established','supported']);
+const QUALITATIVE_CONFIDENCE=new Set(['LIMITED','MODERATE','WELL_SUPPORTED']);
 const tx=(state,type,payload,source,at)=>applyMemberStateTransition(state,{type,payload,source,at,expectedRevision:state.revision});
+function canonicalConfidence(item={}){
+ const raw=item.qualitativeConfidence??'UNKNOWN';
+ const normalized=String(raw).trim().toUpperCase().replace(/[ -]+/g,'_');
+ return QUALITATIVE_CONFIDENCE.has(normalized)?normalized:'UNKNOWN';
+}
 
 export function discoveryOutputToMemberState(output,{memberId=null,existingState=null,at=new Date().toISOString()}={}){
  const trace=output?.trace??output;
@@ -13,7 +19,7 @@ export function discoveryOutputToMemberState(output,{memberId=null,existingState
  for(const item of states){
   if(!item?.constructId||item.excluded||['deferred','nonIssue','escalated'].includes(item.resolutionState))continue;
   if(!SUPPORTED_DISCOVERY_STATUS.has(item.status))continue;
-  state=tx(state,MEMBER_STATE_EVENT.CONSTRUCT_UPDATED,{constructId:item.constructId,status:'supported',evidenceConfidence:item.evidenceConfidence??'unknown',sufficiency:item.resolutionState==='sufficient'?'sufficient':'insufficient',unresolvedReasons:[...(item.unresolvedReasons??[])],evidenceRefs:[...(item.evidenceRefs??[])],lastObservedAt:item.lastObservedAt??null},'discovery',at);
+  state=tx(state,MEMBER_STATE_EVENT.CONSTRUCT_UPDATED,{constructId:item.constructId,status:'supported',evidenceConfidence:canonicalConfidence(item),sufficiency:item.resolutionState==='sufficient'?'sufficient':'insufficient',unresolvedReasons:[...(item.unresolvedReasons??[])],evidenceRefs:[...(item.evidenceRefs??[])],lastObservedAt:item.lastObservedAt??null},'discovery',at);
  }
  return state;
 }
