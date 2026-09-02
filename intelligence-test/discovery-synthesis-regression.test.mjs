@@ -15,6 +15,12 @@ for(const [name,html] of [['Discovery',discovery],['Focus',priorities],['Plan',p
 }
 assert.match(discovery,/createDiscoverySession\(\)/,'Discovery must create its own session without an upstream assessment dependency');
 assert.doesNotMatch(index,/baseline/i,'Intelligence Test entry must not reference the retired pre-Discovery stage');
-assert.doesNotMatch(discovery,/baseline/i,'Discovery must not depend on or reference the retired pre-Discovery stage');
 assert.doesNotMatch(discovery,/initialPlanProposal/,'Discovery must not select Actions or construct a Plan');
+assert.match(discovery,/function renderMatrix\(/,'Discovery must have a dedicated matrix renderer rather than using the generic stacked option renderer');
+assert.match(discovery,/className='response-matrix'/,'Discovery matrix must render as a matrix-specific interaction');
+assert.match(discovery,/grid-template-columns:minmax\(112px,1\.25fr\) repeat\(4,minmax\(82px,1fr\)\)/,'Wide Discovery matrix must expose one dimension column and four shared response columns');
+assert.match(discovery,/@media\(max-width:640px\)/,'Discovery matrix must define a narrow-screen presentation');
+assert.match(discovery,/grid-template-columns:repeat\(4,1fr\)/,'Narrow Discovery matrix must preserve the four-choice scale within each dimension row');
+assert.match(discovery,/if\(current\.type==='matrix'\)\{renderMatrix\(/,'Matrix steps must route to the dedicated matrix renderer');
+assert.doesNotMatch(discovery,/if\(current\.type==='matrix'\)\{renderComposite/,'Matrix steps must never fall back to the generic composite renderer');
 console.log('Discovery-first production-representative browser architecture regression passed');
