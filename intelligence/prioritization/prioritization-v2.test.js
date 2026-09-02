@@ -11,7 +11,7 @@ const result=prioritizeCandidates(input,{decisionFactors:{
   SLEEP_QUALITY:{urgency:.6,memberImportance:.9},
   ACTIVITY_LEVEL:{},
 },now:'2026-08-30T15:00:00Z'});
-assert.equal(result.schemaVersion,'2.0.0');
+assert.equal(result.schemaVersion,'2.1.0');
 assert.deepEqual(result.recommended.map(x=>x.constructId),['FINANCIAL_STRAIN','SLEEP_QUALITY','ACTIVITY_LEVEL']);
 assert.equal(result.recommended[2].factors.urgency,'unknown');
 assert.equal(result.recommended[2].factors.readiness,'unknown');
