@@ -2,7 +2,7 @@
   "name":"el8-prototype","private":true,"type":"module","scripts":{
     "test:contracts":"node intelligence/contracts/contracts.test.js && node intelligence/contracts/regulatory-boundary.test.js",
     "test:intelligence-contracts":"node --test intelligence/contracts/intelligence-contracts.test.js intelligence/contracts/capability-boundaries.test.js",
-    "test:state":"node --test intelligence/state/canonical-taxonomy.test.js intelligence/state/member-state-contract-v3.test.js intelligence/state/member-state-normalizer.test.js intelligence/state/member-state-transition.test.js",
+    "test:state":"node --test intelligence/state/canonical-taxonomy.test.js intelligence/state/member-state-contract-v3.test.js intelligence/state/member-state-normalizer.test.js intelligence/state/member-state-transition.test.js intelligence/state/context-modifier-lifecycle.test.js intelligence/state/context-modifier-state.test.js",
     "test:safety":"node intelligence/safety/policy.test.js && node --test intelligence/safety/gate.test.mjs intelligence/safety/lifecycle-integration.test.mjs",
     "test:prioritization":"node --test intelligence/prioritization/prioritization.test.js intelligence/prioritization/prioritization-v2.test.js intelligence/prioritization/focus-confirmation.test.js",
     "test:planning":"node --test intelligence/planning/action-contract.test.js intelligence/planning/action-registry.test.js intelligence/planning/action-bank.test.js intelligence/planning/recommendation-scoring.test.js intelligence/planning/plan-deepening.test.js intelligence/planning/activation-readiness.test.js intelligence/planning/supabase-plan-persistence.test.js",
