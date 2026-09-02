@@ -19,7 +19,7 @@ const input=candidates=>({memberStateRevision:7,candidates});
  assert.equal(result.recommended[0].factors.urgency,'unknown');
 }
 {
- const result=prioritizeCandidates(input([{constructId:'A',status:'supported',evidenceRefs:['a']},{constructId:'B',status:'supported',evidenceRefs:['b']}]),{now,decisionFactors:{A:{urgency:.61,materiality:.61,memberImportance:.6},B:{urgency:.6,materiality:.6,memberImportance:.61}}});
+ const result=prioritizeCandidates(input([{constructId:'SLEEP_QUALITY',status:'supported',evidenceRefs:['a']},{constructId:'PRESSURE_PATTERN',status:'supported',evidenceRefs:['b']}]),{now,decisionFactors:{SLEEP_QUALITY:{urgency:.61,materiality:.61,memberImportance:.6},PRESSURE_PATTERN:{urgency:.6,materiality:.6,memberImportance:.61}}});
  assert.ok(result.rationaleCodes.includes('member_preference_discriminator'));assert.ok(result.recommended.slice(0,2).every(x=>x.rationaleCodes.includes('near_equivalent_member_preference')));
 }
 console.log('canonical Prioritization tests passed');
