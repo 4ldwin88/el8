@@ -33,11 +33,14 @@ jobs:
             echo "No package dependencies declared; skipping npm install."
           fi
 
+      - name: Run canonical Intelligence contracts, state, Planning, Review and personalization validation
+        run: npm run test:intelligence
+
+      - name: Run persistence and migration validation
+        run: npm run test:persistence
+
       - name: Run Discovery validation
         run: npm run test:discovery
-
-      - name: Run Discovery to Member State projection regression
-        run: node --test intelligence/state/discovery-member-state-adapter.test.mjs
 
       - name: Run E01 raw lifecycle validation
         run: npm run test:e01
