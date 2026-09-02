@@ -36,6 +36,9 @@ jobs:
       - name: Run Discovery validation
         run: npm run test:discovery
 
+      - name: Run Discovery to Member State projection regression
+        run: node --test intelligence/state/discovery-member-state-adapter.test.mjs
+
       - name: Run E01 raw lifecycle validation
         run: npm run test:e01
 
