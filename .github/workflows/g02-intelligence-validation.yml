@@ -39,6 +39,9 @@ jobs:
       - name: Run E01 raw lifecycle validation
         run: npm run test:e01
 
+      - name: Run adversarial G-02 lifecycle and hostile matrix
+        run: npm run test:g02-adversarial
+
       - name: Run E02 E03 QA isolation and replay validation
         run: npm run test:e02-e03
 
