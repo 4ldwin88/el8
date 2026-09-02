@@ -49,7 +49,7 @@ assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'FINANCIA
 assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'FINANCIAL_STRAIN',decision:'replaced'}],decidedAt:at}),/governed EL8 construct ID/);
 assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'FINANCIAL_STRAIN',decision:'replaced',replacementConstructId:'SLEEP_QUALITY'}],decidedAt:at}),/accepted in the same confirmation/);
 assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'money_pressure',decision:'accepted'}],decidedAt:at}),/governed EL8 construct ID/);
-assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'SOCIAL_SUPPORT',decision:'accepted'}],decidedAt:at}),/not a legitimate Prioritization candidate/);
+assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'SUPPORT_AVAILABILITY',decision:'accepted'}],decidedAt:at}),/not a legitimate Prioritization candidate/);
 assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'SLEEP_QUALITY',decision:'accepted'}],constraints:['severity'],decidedAt:at}),/unsupported Focus constraint/);
 
 console.log('Member Focus confirmation uses canonical lifecycle, legitimate alternatives and post-confirmation Planning revision');
