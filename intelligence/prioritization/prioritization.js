@@ -3,7 +3,7 @@
 // Subcon: quantitative ranking is retained as a non-authoritative shadow diagnostic.
 import { UNKNOWN, createPriorityCandidate } from '../contracts/intelligence-contracts.js';
 import { discoveryToPrioritization, prioritizationToFocusConfirmation } from '../contracts/capability-boundaries.js';
-export const PRIORITIZATION_SCHEMA_VERSION='2.1.0';
+export const PRIORITIZATION_SCHEMA_VERSION='2.2.0';
 export const PRIORITY_FACTOR_KEYS=Object.freeze(['urgency','materiality','memberImportance','leverage','readiness']);
 const FACTOR_WEIGHT=Object.freeze({urgency:1,materiality:1,memberImportance:1,leverage:.75,readiness:.5});
 function clamp01(value){const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(1,n)):UNKNOWN}
@@ -21,6 +21,11 @@ export function prioritizeCandidates(input,{safetyDisposition=null,decisionFacto
  const governed=[...prepared].sort(compareGoverned);const shadow=[...prepared].sort((a,b)=>(b.shadowScore??-1)-(a.shadowScore??-1)||a.candidate.constructId.localeCompare(b.candidate.constructId));
  const memberChoiceUseful=nearEquivalent(governed[0],governed[1]);
  const rankedItems=governed.map(({candidate,profile:p},index)=>Object.freeze({constructId:candidate.constructId,rank:index+1,evidenceRefs:[...candidate.evidenceRefs],factors:p,rationaleCodes:[...rationaleCodes(p),...(memberChoiceUseful&&index<2?['near_equivalent_member_preference']:[])]}));
- const boundary=prioritizationToFocusConfirmation({memberStateRevision:governedInput.memberStateRevision,recommended:rankedItems,alternatives:[],rationaleRefs:[]});
- return{schemaVersion:PRIORITIZATION_SCHEMA_VERSION,memberStateRevision:governedInput.memberStateRevision,createdAt:now,blockedBySafety:false,recommended:boundary.recommended,alternatives:boundary.alternatives,rationaleCodes:['governed_comparative_reasoning',...(memberChoiceUseful?['member_preference_discriminator']:[])],shadow:Object.freeze({role:'Subcon',authoritative:false,model:'weighted_priority_v1',ranking:shadow.map((x,index)=>Object.freeze({constructId:x.candidate.constructId,rank:index+1,score:x.shadowScore}))})};
+ // Default to the smallest useful recommendation: one Focus. Other governed candidates remain
+ // legitimate alternatives the member may select. A future multi-Focus recommendation must be
+ // justified explicitly by incremental value, synergy/dependency and member capacity rather than
+ // treating every eligible candidate as recommended.
+ const recommended=rankedItems.length?[rankedItems[0]]:[];const alternatives=rankedItems.slice(1);
+ const boundary=prioritizationToFocusConfirmation({memberStateRevision:governedInput.memberStateRevision,recommended,alternatives,rationaleRefs:[]});
+ return{schemaVersion:PRIORITIZATION_SCHEMA_VERSION,memberStateRevision:governedInput.memberStateRevision,createdAt:now,blockedBySafety:false,recommended:boundary.recommended,alternatives:boundary.alternatives,rationaleCodes:['governed_comparative_reasoning','smallest_useful_focus_set',...(memberChoiceUseful?['member_preference_discriminator']:[])],shadow:Object.freeze({role:'Subcon',authoritative:false,model:'weighted_priority_v1',ranking:shadow.map((x,index)=>Object.freeze({constructId:x.candidate.constructId,rank:index+1,score:x.shadowScore}))})};
 }
