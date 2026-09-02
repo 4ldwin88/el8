@@ -1,5 +1,7 @@
 // Canonical Discovery -> Member State v3 projection used by production-like QA and runtime boundaries.
-// Discovery owns evidence acquisition/sufficiency; this adapter only persists supported construct state.
+// Discovery owns evidence acquisition/sufficiency; this adapter persists supported construct state
+// without discarding a bounded decision-useful handoff simply because the bank did not mark every
+// construct resolutionState as sufficient.
 import {createMemberState} from './member-state-contract.js';
 import {applyMemberStateTransition,MEMBER_STATE_EVENT} from './member-state-transition.js';
 
@@ -11,15 +13,26 @@ function canonicalConfidence(item={}){
  const normalized=String(raw).trim().toUpperCase().replace(/[ -]+/g,'_');
  return QUALITATIVE_CONFIDENCE.has(normalized)?normalized:'UNKNOWN';
 }
+function decisionUsefulIds(trace={}){
+ const stop=trace?.stop??trace?.stoppingDecision??null;
+ const ids=trace?.handoff?.candidateIds??stop?.candidateIds??[];
+ return new Set(Array.isArray(ids)?ids:[]);
+}
 
 export function discoveryOutputToMemberState(output,{memberId=null,existingState=null,at=new Date().toISOString()}={}){
  const trace=output?.trace??output;
  const states=Array.isArray(trace?.states)?trace.states:[];
+ const handoffIds=decisionUsefulIds(output?.stop?output:trace);
+ // finishDiscovery currently carries stop metadata alongside trace in some runtime shapes.
+ const outputHandoffIds=decisionUsefulIds(output);
+ for(const id of outputHandoffIds)handoffIds.add(id);
  let state=existingState??createMemberState({memberId,now:at});
  for(const item of states){
   if(!item?.constructId||item.excluded||['deferred','nonIssue','escalated'].includes(item.resolutionState))continue;
   if(!SUPPORTED_DISCOVERY_STATUS.has(item.status))continue;
-  state=tx(state,MEMBER_STATE_EVENT.CONSTRUCT_UPDATED,{constructId:item.constructId,status:'supported',evidenceConfidence:canonicalConfidence(item),sufficiency:item.resolutionState==='sufficient'?'sufficient':'insufficient',unresolvedReasons:[...(item.unresolvedReasons??[])],evidenceRefs:[...(item.evidenceRefs??[])],lastObservedAt:item.lastObservedAt??null},'discovery',at);
+  const decisionUseful=handoffIds.has(item.constructId);
+  const sufficient=item.resolutionState==='sufficient'||decisionUseful;
+  state=tx(state,MEMBER_STATE_EVENT.CONSTRUCT_UPDATED,{constructId:item.constructId,status:'supported',evidenceConfidence:canonicalConfidence(item),sufficiency:sufficient?'sufficient':'insufficient',unresolvedReasons:sufficient?[]:[...(item.unresolvedReasons??[])],evidenceRefs:[...(item.evidenceRefs??[])],lastObservedAt:item.lastObservedAt??null},'discovery',at);
  }
  return state;
 }
