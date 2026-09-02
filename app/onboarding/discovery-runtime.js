@@ -16,14 +16,6 @@ export function answerDiscoveryInteraction(session,interaction,answersByQuestion
  return session;
 }
 export function submitDiscoveryTriage(session,importanceByConstruct){return Discovery.triage(session,importanceByConstruct)}
-export function submitDiscoveryPriority(session,constructIds=[]){
- if(!Array.isArray(constructIds)||!constructIds.length)throw new Error('constructIds must be a non-empty array');
- const selected=new Set(constructIds.filter(isConstructId));
- for(const constructId of session.constructIds||[]){
-  Discovery.resolve(session,constructId,selected.has(constructId)?'member_prioritized':'deferred',{memberPriority:selected.has(constructId)});
- }
- return session;
-}
 export function resolveDiscoveryConstruct(session,constructId,resolutionState,options={}){return Discovery.resolve(session,constructId,resolutionState,options)}
 export function finishDiscovery(session){Discovery.complete(session);return discoveryOutput(session)}
 export function discoveryOutput(session){return Object.freeze({trace:Discovery.trace(session)})}
@@ -34,5 +26,5 @@ function normalizedImportance(s={}){const raw=s.memberImportance;if(raw===null||
 const CONFIDENCE_ORDER=Object.freeze({UNKNOWN:0,LIMITED:1,MODERATE:2,WELL_SUPPORTED:3});
 function evidenceConfidence(s={}){const raw=s.evidenceConfidence??s.confidence??'UNKNOWN';const value=String(raw).trim().toUpperCase().replace(/[ -]+/g,'_');return Object.hasOwn(CONFIDENCE_ORDER,value)?value:'UNKNOWN'}
 function evidenceSupport(confidence){if(confidence==='WELL_SUPPORTED')return'strong';if(confidence==='MODERATE')return'sufficient';if(confidence==='LIMITED')return'limited';return'none'}
-// Discovery exposes construct-keyed qualitative evidence candidates only. Prioritization owns Focus selection.
+// Discovery exposes construct-keyed qualitative evidence candidates only. Prioritization owns ranking and Focus selection.
 export function discoveryPriorityCandidates(output={}){const states=output.trace?.states||[];return states.filter(s=>{if(['deferred','nonIssue','escalated'].includes(s.resolutionState)||s.excluded)return false;const importance=normalizedImportance(s),confidence=evidenceConfidence(s);return (importance!==null&&importance>0)||confidence!=='UNKNOWN'}).map(s=>{const importance=normalizedImportance(s),confidence=evidenceConfidence(s),constructId=s.constructId;return Object.freeze({constructId,label:s.label||constructId,evidenceConfidence:confidence,evidenceSupport:evidenceSupport(confidence),memberImportance:importance,resolutionState:s.resolutionState,memberEmphasized:importance!==null&&importance>=2,inferred:importance===null&&confidence!=='UNKNOWN',evidenceRefs:s.evidenceRefs||[],feasibility:s.feasibility||null})}).sort((a,b)=>Number(b.memberImportance??-1)-Number(a.memberImportance??-1)||CONFIDENCE_ORDER[b.evidenceConfidence]-CONFIDENCE_ORDER[a.evidenceConfidence]||a.constructId.localeCompare(b.constructId))}
