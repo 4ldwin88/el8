@@ -1,5 +1,5 @@
 import test from'node:test';import assert from'node:assert/strict';import{buildPlan}from'../planning/planningEngine.js';import{createMemberState}from'../state/member-state-contract.js';import{focusConfirmationPlanningInput}from'../prioritization/focus-confirmation.js';import{reviewPlan}from'./review-engine.js';import{routeReview,ADJUST_DISPOSITION}from'./adaptation-router.js';import{applyReviewLearning}from'./member-state-learning.js';
-const focus={constructId:'ACTIVITY_LEVEL',decision:'accepted',decidedAt:'2026-08-30T16:30:00Z'};const input={memberStateRevision:1,focuses:[focus],evidenceRefs:['e:activity'],constraintRefs:[],safetyDisposition:'ordinary_flow'};
+const focus={constructId:'ACTIVITY_LEVEL',decision:'accepted',decidedAt:'2026-08-30T16:30:00Z',constraintRefs:[]};const input={memberStateRevision:1,focuses:[focus],evidenceRefs:['e:activity'],constraintRefs:[],safetyDisposition:'ordinary_flow'};
 function proposed(extra={}){return buildPlan(input,{now:'2026-08-30T16:31:00Z',...extra})}
 function active(plan=proposed()){return{...plan,status:'active',activeActions:plan.proposedActions}}
 
