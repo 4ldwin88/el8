@@ -1,5 +1,6 @@
 import * as Discovery from '../../intelligence/discovery/discovery-engine.js';
 import {isConstructId} from '../../registries/taxonomy/index.js';
+import {handoffAudit} from '../../intelligence/discovery/sufficiency.js';
 const STORAGE_KEY='el8_onboarding_discovery_v6';
 export function createDiscoverySession(options={}){return Discovery.session(options)}
 export function createDiscoverySessionFromHandoff(handoff={},options={}){
@@ -18,7 +19,7 @@ export function answerDiscoveryInteraction(session,interaction,answersByQuestion
 export function submitDiscoveryTriage(session,importanceByConstruct){return Discovery.triage(session,importanceByConstruct)}
 export function resolveDiscoveryConstruct(session,constructId,resolutionState,options={}){return Discovery.resolve(session,constructId,resolutionState,options)}
 export function finishDiscovery(session){Discovery.complete(session);return discoveryOutput(session)}
-export function discoveryOutput(session){return Object.freeze({trace:Discovery.trace(session)})}
+export function discoveryOutput(session){const trace=Discovery.trace(session),handoff=handoffAudit(trace.states||[]);return Object.freeze({trace,handoff:Object.freeze({usable:handoff.usable,candidateIds:Object.freeze([...handoff.candidateIds]),unresolvedConstructIds:Object.freeze(handoff.unresolved.map(x=>x.constructId)),blockingConstructIds:Object.freeze(handoff.blocking.map(x=>x.constructId))})})}
 export function saveDiscoveryDraft(session){const serializable={...session,questionBank:undefined};sessionStorage.setItem(STORAGE_KEY,JSON.stringify(serializable));return session}
 export function loadDiscoveryDraft(){const raw=sessionStorage.getItem(STORAGE_KEY);if(!raw)return null;try{return{...JSON.parse(raw),questionBank:Discovery.BANK}}catch{return null}}
 export function clearDiscoveryDraft(){sessionStorage.removeItem(STORAGE_KEY)}
