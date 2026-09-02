@@ -1,9 +1,9 @@
-name: Deploy EL8 Prototype to GitHub Pages
+name: Deploy EL8 G-02 Human Test to GitHub Pages
 
 on:
   push:
     branches:
-      - main
+      - human-test/g02
   workflow_dispatch:
 
 permissions:
@@ -12,18 +12,23 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-human-test
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  validate-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout exact human-test candidate
         uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Validate G-02 candidate
+        run: |
+          npm run test:intelligence
+          npm run test:persistence
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload site
