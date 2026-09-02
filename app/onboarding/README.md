@@ -12,18 +12,24 @@ Returning authenticated members bypass authentication and resume the first incom
 
 - Authentication collects only required account identity/access fields.
 - Discovery begins with broad orientation and narrows adaptively. This preserves broad coverage without requiring members to understand the eight dimensions and without producing an aggregate wellness score.
-- Opening Discovery evidence can activate candidate concerns and context. It does not select priorities or interventions.
-- `discovery-runtime.js` adapts the canonical Discovery intelligence for onboarding rather than duplicating Discovery logic. Adaptive questioning, triage, resolution and concern-state projection stay in `intelligence/discovery/`.
-- Discovery establishes concern/context evidence and evidence confidence. It does not own intervention selection.
-- Prioritization identifies the smallest useful Focus set; the member confirms the starting Focus before Planning. Member agency is an explicit gate.
-- Completed Discovery plus confirmed Focus projects into canonical Member State. Subsequent observations update current state and longitudinal history without inventing precision.
-- Canonical Planning alone owns Action selection. Browser adapters translate Discovery/Member State into canonical Planning inputs; they must not create a second planning engine.
+- Opening Discovery evidence can activate candidate constructs and context. It does not select Focus or Actions.
+- `discovery-runtime.js` adapts the canonical Discovery intelligence for onboarding rather than duplicating Discovery logic. Adaptive questioning, triage, resolution and construct-state projection stay in `intelligence/discovery/`.
+- Discovery establishes construct/context evidence and qualitative confidence. It does not own Action selection.
+- Discovery projects supported, sufficiently established construct state into canonical Member State before Prioritization. Prioritization consumes that Member State projection and identifies the smallest useful Focus set; the member confirms the starting Focus before Planning. Member agency is an explicit gate.
+- Focus confirmation is then applied to canonical Member State. Planning may consume only the resulting post-confirmation Member State revision; it must not plan directly from Discovery candidates or an ad hoc browser selection.
+- Subsequent observations update current state and longitudinal history without inventing precision.
+- Canonical Planning alone owns Action selection. Browser adapters may format canonical Planning inputs/views and activate a confirmed Plan, but they must not create a second planning engine or a second Member State projection path.
+- `planning-pipeline.js` is orchestration only: Discovery → Member State → Prioritization → Focus confirmation → updated Member State → Planning. It must not define parallel intelligence semantics.
 - Selection evidence is requested only when it can change which eligible Action is selected. Activation/deepening evidence is separate and is requested only when the selected Action requires additional evidence before safe/appropriate activation.
 - Final confirmation rebuilds the Plan from canonical inputs. Persistence independently enforces activation readiness; unresolved selection/deepening requirements, non-active plans, missing Actions, or a Safety hold cannot be persisted as an active Plan.
 - The member accepts the Plan before preferences/introduction.
 - Account preferences are collected after Plan acceptance.
 - App introduction is brief and explains Home, Plan, Track, Insights and Explore.
 - Home is the terminal onboarding destination.
+
+## Compatibility boundaries
+
+Legacy concern-native names may be accepted only at explicit ingress/migration boundaries such as `discovery-snapshot-handoff.js` or the governed Member State normalizer. Canonical Discovery, Prioritization, Focus, Planning, browser runtime, persistence and telemetry outputs use construct-native semantics. Compatibility aliases must not leak back into canonical runtime state.
 
 ## Safety authority
 
@@ -37,4 +43,4 @@ After activation, execution/check-in evidence is interpreted by canonical Review
 
 Tracking is not a separate onboarding stage. Discovery and the accepted Plan determine what evidence is useful. After onboarding, the global Track surface remains available while plan-specific Quick Logs are derived from active-Plan evidence needs.
 
-Do not create parallel onboarding state machines or parallel intelligence semantics. `flow.js` is the canonical client routing contract; persisted profile, Discovery, Member State and Plan state remain authoritative.
+Do not create parallel onboarding state machines, Member State projections, or intelligence semantics. `flow.js` is the canonical client routing contract; persisted profile, Discovery, Member State and Plan state remain authoritative.
