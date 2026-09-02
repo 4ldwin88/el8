@@ -23,5 +23,35 @@ jobs:
           node-version: 22
       - name: Browser module import smoke
         run: node scripts/browser-import-smoke.mjs
-      - name: Canonical Repository QA
-        run: npm test
+      - name: Contracts
+        run: npm run test:contracts
+      - name: Intelligence
+        run: npm run test:intelligence
+      - name: Persistence
+        run: npm run test:persistence
+      - name: Safety
+        run: npm run test:safety
+      - name: Discovery
+        run: npm run test:discovery
+      - name: Intelligence test harness
+        run: npm run test:intelligence-test
+      - name: Onboarding
+        run: npm run test:onboarding
+      - name: Outcomes
+        run: npm run test:outcomes
+      - name: Insights
+        run: npm run test:insights
+      - name: Profile
+        run: npm run test:profile
+      - name: E01 raw lifecycle
+        run: npm run test:e01
+      - name: E02 E03 QA isolation
+        run: npm run test:e02-e03
+      - name: T01 T02 decision trace
+        run: npm run test:t01-t02
+      - name: S01 Safety validation
+        run: npm run test:s01
+      - name: S02 adversarial Safety
+        run: npm run test:s02
+      - name: R01 registry governance
+        run: npm run test:r01
