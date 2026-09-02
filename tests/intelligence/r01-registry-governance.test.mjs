@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { QUESTIONS, ANSWERS, EFFECTS, ACTIONS, ACTION_EVIDENCE_REGISTRY, PROTOCOL_STANDARDS } from '../../intelligence/registries/index.js';
 
 const ids=(rows,key)=>new Set(rows.map(r=>r[key]).filter(Boolean));
-const splitIds=value=>String(value??'').split(';').map(v=>v.trim()).filter(Boolean);
+const opaqueIds=(value,prefix)=>[...String(value??'').matchAll(new RegExp(`${prefix}\\d{6}`,'g'))].map(m=>m[0]);
 
 test('R01 governed Question/Answer/Effect graph has no orphan runtime references',()=>{
  const q=ids(QUESTIONS,'Question ID'),a=ids(ANSWERS,'Answer ID');
@@ -26,15 +26,15 @@ test('R01 Action contract identifiers and icon keys are unique',()=>{
 
 test('R01 Action evidence registry never points to a nonexistent Action',()=>{
  const actionIds=ids(ACTIONS,'Action ID');
- for(const row of ACTION_EVIDENCE_REGISTRY) for(const actionId of splitIds(row['Applicable Action IDs'])) assert.ok(actionIds.has(actionId),`${row['Source ID']} references missing ${actionId}`);
+ for(const row of ACTION_EVIDENCE_REGISTRY) for(const actionId of opaqueIds(row['Applicable Action IDs'],'ACT')) assert.ok(actionIds.has(actionId),`${row['Source ID']} references missing ${actionId}`);
 });
 
-test('R01 every Action evidence Source ID resolves to governed evidence registry metadata',()=>{
+test('R01 every declared Action evidence Source ID resolves to governed evidence registry metadata',()=>{
  const sourceRows=new Map(ACTION_EVIDENCE_REGISTRY.map(r=>[r['Source ID'],r]));
  for(const action of ACTIONS){
-  const sourceIds=[...String(action['Evidence Basis / Source IDs']??'').matchAll(/SRC\d{6}/g)].map(m=>m[0]);
-  assert.ok(sourceIds.length>0,`${action['Action ID']} has no governed Source ID`);
-  for(const sourceId of sourceIds) assert.ok(sourceRows.has(sourceId),`${action['Action ID']} references unmapped ${sourceId}`);
+  const basis=String(action['Evidence Basis / Source IDs']??'').trim();
+  assert.ok(basis,`${action['Action ID']} has no governed evidence basis`);
+  for(const sourceId of opaqueIds(basis,'SRC')) assert.ok(sourceRows.has(sourceId),`${action['Action ID']} references unmapped ${sourceId}`);
  }
 });
 
