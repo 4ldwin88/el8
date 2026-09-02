@@ -4,7 +4,8 @@ import {selectNextQuestion} from './question-scheduler.js';
 import {needsTriage,buildTriageQuestion} from './triage.js';
 import {stoppingDecision,handoffAudit} from './sufficiency.js';
 import {isConstructId} from '../../registries/taxonomy/index.js';
-export const DISCOVERY_VERSION='v9.01';
+import {ENGINE_VERSIONS} from '../version.js';
+export const DISCOVERY_VERSION=ENGINE_VERSIONS.discovery;
 const CONFIDENCE_ORDER=Object.freeze({LIMITED:1,MODERATE:2,WELL_SUPPORTED:3});
 function confidenceRank(state={}){return CONFIDENCE_ORDER[state.qualitativeConfidence]??0}
 function validConstructs(ids=[]){return [...new Set(ids.filter(isConstructId))]}
