@@ -20,7 +20,16 @@ test('T01 Planning records WHY THIS, WHY NOW, WHY NOT, and WHAT WOULD CHANGE EL8
  assert.ok(plan.decisionTrace.whyNot.length>0);
  assert.ok(plan.decisionTrace.whatWouldChangeMind.includes('new_material_evidence'));
  assert.deepEqual(plan.decisionTrace.evidenceRefs,['EVD000001']);
- assert.ok(plan.decisionTrace.diagnostics.candidateScores.length>0);
+ const shadow=plan.decisionTrace.diagnostics.shadow;
+ assert.equal(shadow.role,'Subcon');
+ assert.equal(shadow.authoritative,false);
+ assert.equal(typeof shadow.model,'string');
+ assert.ok(shadow.ranking.length>0);
+ assert.equal(shadow.ranking[0].rank,1);
+ assert.equal(typeof shadow.ranking[0].strength,'number');
+ assert.equal(typeof shadow.ranking[0].confidence,'number');
+ assert.deepEqual(shadow,plan.shadow);
+ assert.equal('candidateScores' in plan.decisionTrace.diagnostics,false);
 });
 
 test('T02 failed/no-plan path remains diagnosable instead of returning an opaque empty result',()=>{
