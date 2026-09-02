@@ -1,3 +1,3 @@
-import{createClient}from'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-const supabase=createClient('https://jprdsidxwjkgiqqakwpr.supabase.co','sb_publishable_CkcqWpD6nkzRzBfuJV08TQ_t38C9j34',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
-export async function complete(payload){try{const{error}=await supabase.rpc('el8_intelligence_test_complete',{p_result:payload});if(error)throw error;return true}catch(e){console.warn('Intelligence Test completion failed',e);return false}}
+import{telemetryEnvelope,recordTelemetryFailure}from'../app/research/intelligence-test-contract.js';
+const API_BASE='https://jprdsidxwjkgiqqakwpr.supabase.co/functions/v1/intelligence-test';
+export async function complete(payload,session=null){const owner=session||{id:payload?.session_id,environment:payload?.qa_environment||'internal_human_qa',simulation:true,...payload?.version_meta};if(!owner.id)throw new Error('Intelligence Test completion requires session_id');try{const r=await fetch(`${API_BASE}/complete`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(telemetryEnvelope(owner,payload))});if(!r.ok)throw new Error(`Intelligence Test completion failed (${r.status})`);return true}catch(error){recordTelemetryFailure(session,error);console.error('Intelligence Test completion failed',error);return false}}
