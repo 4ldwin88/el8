@@ -9,19 +9,18 @@ for(const id of ['FINANCIAL_STRAIN','SLEEP_QUALITY','ACTIVITY_LEVEL'])state=appl
 const prioritization={memberStateRevision:state.revision,recommended:[{constructId:'FINANCIAL_STRAIN',rank:1},{constructId:'SLEEP_QUALITY',rank:2},{constructId:'ACTIVITY_LEVEL',rank:3}]};
 const confirmation=confirmFocus({prioritization,decisions:[
   {constructId:'SLEEP_QUALITY',decision:'accepted',memberRank:1},
-  {constructId:'FINANCIAL_STRAIN',decision:'postponed',reasonCodes:['not_now']},
+  {constructId:'FINANCIAL_STRAIN',decision:'deferred',reasonCodes:['not_now']},
   {constructId:'ACTIVITY_LEVEL',decision:'accepted',memberRank:2},
 ],constraints:[{type:'energy',constructId:'ACTIVITY_LEVEL',note:'limited capacity'}],decidedAt:at});
 assert.equal(confirmation.memberChangedRecommendation,true);
 assert.deepEqual(confirmation.accepted.map(x=>x.constructId),['SLEEP_QUALITY','ACTIVITY_LEVEL']);
-assert.equal(confirmation.declined[0].decision,'postponed');
+assert.equal(confirmation.declined[0].decision,'deferred');
 assert.ok(confirmation.accepted[1].constraintRefs.includes('focus-constraint:1'));
 
 const updated=applyFocusConfirmation(state,confirmation);
 assert.deepEqual(updated.activeFocusIds,['SLEEP_QUALITY','ACTIVITY_LEVEL']);
-assert.equal(updated.focusDecisions.FINANCIAL_STRAIN.decision,'postponed');
+assert.equal(updated.focusDecisions.FINANCIAL_STRAIN.decision,'deferred');
 assert.equal(updated.constraints['focus-constraint:1'].type,'energy');
-// Constraint capture does not silently convert capacity into low or alter construct status.
 assert.equal(updated.memberContext.capacity,'unknown');
 assert.equal(updated.constructs.ACTIVITY_LEVEL.status,'supported');
 
@@ -29,8 +28,21 @@ const planningInput=focusConfirmationPlanningInput(confirmation,{evidenceRefs:['
 assert.deepEqual(planningInput.focuses.map(x=>x.constructId),['SLEEP_QUALITY','ACTIVITY_LEVEL']);
 assert.ok(planningInput.constraintRefs.includes('focus-constraint:1'));
 
+const replacement=confirmFocus({prioritization,decisions:[
+ {constructId:'FINANCIAL_STRAIN',decision:'replaced',replacementConstructId:'SLEEP_QUALITY'},
+ {constructId:'SLEEP_QUALITY',decision:'accepted',memberRank:1},
+ {constructId:'ACTIVITY_LEVEL',decision:'deferred'},
+],decidedAt:at});
+const replacedState=applyFocusConfirmation(state,replacement);
+assert.equal(replacedState.focusDecisions.FINANCIAL_STRAIN.decision,'replaced');
+assert.equal(replacedState.focusDecisions.FINANCIAL_STRAIN.replacementConstructId,'SLEEP_QUALITY');
+assert.deepEqual(replacedState.activeFocusIds,['SLEEP_QUALITY']);
+
+assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'FINANCIAL_STRAIN',decision:'postponed'}],decidedAt:at}),/unsupported Focus decision/);
+assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'FINANCIAL_STRAIN',decision:'paused'}],decidedAt:at}),/unsupported Focus decision/);
+assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'FINANCIAL_STRAIN',decision:'replaced'}],decidedAt:at}),/governed EL8 construct ID/);
 assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'money_pressure',decision:'accepted'}],decidedAt:at}),/governed EL8 construct ID/);
 assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'VALUES_CLARITY',decision:'accepted'}],decidedAt:at}),/not a Prioritization candidate/);
 assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'SLEEP_QUALITY',decision:'accepted'}],constraints:['severity'],decidedAt:at}),/unsupported Focus constraint/);
 
-console.log('Member Focus confirmation preserves member choice, ordering and constraints without becoming Planning or severity logic');
+console.log('Member Focus confirmation uses canonical accepted/rejected/deferred/replaced lifecycle and preserves member choice, ordering and constraints');
