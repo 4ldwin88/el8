@@ -6,7 +6,7 @@ import {DISCOVERY_BANK,observationsForAnswer,constructsForAnswer,safetyContextFo
 import {migrateLegacyRegistryId} from '../registries/registry.js';
 import {createDiscoverySession,nextDiscoveryStep,answerDiscoveryInteraction,discoveryOutput,discoveryPriorityCandidates} from '../../app/onboarding/discovery-runtime.js';
 
-assert.equal(discovery.DISCOVERY_VERSION,'v9.01');
+assert.equal(discovery.DISCOVERY_VERSION,'v0.01');
 const runtime=discovery.session({constructIds:[]});
 assert.ok(runtime);
 assert.equal(typeof discovery.next(runtime),'object');
@@ -26,7 +26,6 @@ assert.ok('trace' in discoveryOutput(portSession));
 
 const opening=DISCOVERY_BANK.find(q=>q.id==='Q000001');
 assert.ok(opening);
-// General concern answers intentionally have no executable Effects; they must not invent construct routing.
 assert.deepEqual(constructsForAnswer(opening,'A000001'),[]);
 const openingObservations=observationsForAnswer(opening,'A000001');
 assert.equal(openingObservations.length,1);
@@ -35,7 +34,6 @@ const unrouted=discovery.session({constructIds:[]});
 discovery.answer(unrouted,opening,'A000001');
 assert.deepEqual(unrouted.constructIds,[]);
 
-// Broad state is the first member-facing interaction. Concern follows after the eight-area snapshot.
 const baselineSession=createDiscoverySession({constructIds:[]});
 const matrix=nextDiscoveryStep(baselineSession);
 assert.equal(matrix.type,'matrix');
@@ -51,7 +49,6 @@ assert.equal(concernStep.type,'question');
 assert.equal(concernStep.question.id,'Q000001');
 assert.equal(concernStep.reason,'member-concern-after-baseline');
 
-// Mixed/Difficult broad-state evidence is retained, then concern is asked, then adaptive driver triage narrows relevant dimensions.
 const driverSession=createDiscoverySession({constructIds:[]});
 const driverMatrix=nextDiscoveryStep(driverSession);
 const driverAnswers={};
@@ -68,8 +65,6 @@ assert.equal(driverStep.type,'driver-triage');
 assert.equal(driverStep.interaction,'adaptive-driver-triage');
 assert.ok(driverStep.questions.some(q=>String(q.dimension).toUpperCase()==='PHYSICAL'));
 
-// Governed Environmental Safety semantics interrupt ordinary Discovery without becoming construct severity evidence.
-// Historical aliases are translated only at the explicit migration boundary; runtime lookup remains permanent-ID-only.
 const homeSafety=DISCOVERY_BANK.find(q=>q.id===migrateLegacyRegistryId('ENV003'));
 assert.ok(homeSafety);
 const unsafeAnswer=homeSafety.options.find(o=>o.id===migrateLegacyRegistryId('ENV003.03'));
@@ -87,12 +82,10 @@ assert.equal(unsafeSession.safetyRequiresImmediacyClarification,true);
 assert.equal(discovery.next(unsafeSession).type,'safety');
 assert.equal(discovery.trace(unsafeSession).safetySignals.length,1);
 assert.equal(observationsForAnswer(homeSafety,unsafeAnswer.id)[0].effects.length,0);
-
 const uncertainSession=discovery.session({constructIds:['ENVIRONMENTAL_INTERFERENCE']});
 discovery.answer(uncertainSession,homeSafety,uncertainAnswer.id);
 assert.equal(uncertainSession.safety.status,'confirmation_required');
 assert.equal(discovery.next(uncertainSession).type,'safety');
-
 const safeSession=discovery.session({constructIds:['ENVIRONMENTAL_INTERFERENCE']});
 discovery.answer(safeSession,homeSafety,safeAnswer.id);
 assert.equal(safeSession.safety.status,'clear_for_ordinary_flow');
@@ -110,14 +103,12 @@ const fitObservation=makeObservation({id:'fit:1',questionId:'FIT1',constructId:'
 const fitState=deriveConstructState([fitObservation],'ACTIVITY_LEVEL');
 assert.equal(fitState.feasibility.values.capacity,'low');
 assert.deepEqual(fitState.feasibility.constraints,['limited_transport']);
-
 const emphasizedOutput={trace:{states:[{constructId:'FINANCIAL_STRAIN',resolutionState:'triaged',memberImportance:3,qualitativeConfidence:'WELL_SUPPORTED'},{constructId:'PHYSICAL_CONDITION',resolutionState:'triaged',memberImportance:1,qualitativeConfidence:'MODERATE'},{constructId:'ENERGY_FUNCTION',resolutionState:'triaged',memberImportance:null,qualitativeConfidence:'UNKNOWN'}]}};
 const emphasized=discoveryPriorityCandidates(emphasizedOutput);
 assert.equal(emphasized.some(x=>x.constructId==='ENERGY_FUNCTION'),false);
 assert.equal(emphasized[0].constructId,'FINANCIAL_STRAIN');
 assert.equal(emphasized.every(x=>typeof x.evidenceConfidence!=='number'),true);
-
 const output=discoveryOutput(createDiscoverySession({constructIds:['ENERGY_FUNCTION']}));
 assert.equal('candidateActions' in output,false);
 assert.equal('selectedActionIds' in output,false);
-console.log('Discovery v9.01 uses broad-state-first Orientation, member concern second, adaptive driver triage, governed permanent IDs, deterministic Safety interruption and evidence-only downstream output');
+console.log('Discovery v0.01 uses broad-state-first Orientation, member concern second, adaptive driver triage, governed permanent IDs, deterministic Safety interruption and evidence-only downstream output');
