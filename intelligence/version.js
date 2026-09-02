@@ -1,9 +1,13 @@
 // Canonical pre-stable Intelligence version registry.
-// Increment a component by 0.01 for substantive compatible changes.
+// Version increments are human-QA driven: increment only when a human-test finding
+// requires a substantive Intelligence/engine fix. Ordinary repository work does not
+// advance semantic Intelligence versions.
+// Increment the affected engine/component by 0.01 for that human-QA fix candidate.
+// Increment Intelligence when the human-QA fix materially changes the integrated system.
 // v1.00 is reserved for a stable contract/maturity milestone.
-export const INTELLIGENCE_VERSION='v0.01';
+export const INTELLIGENCE_VERSION='v0.02';
 export const ENGINE_VERSIONS=Object.freeze({
-  discovery:'v0.01',
+  discovery:'v0.02',
   prioritization:'v0.01',
   planning:'v0.01',
   review:'v0.01',
