@@ -1,0 +1,3 @@
+import test from'node:test';import assert from'node:assert/strict';import{createEngagementSignal,validateEngagementSignals}from'./engagement-signal.js';
+test('engagement signals require decision-useful provenance',()=>{const s=createEngagementSignal({key:'pacing',value:'small_steps',evidenceRefs:['review:r1'],sourceType:'review_learning',sourceRef:'r1',confidence:'moderate'});assert.equal(s.key,'pacing');assert.deepEqual(validateEngagementSignals({pacing:s}),[])});
+test('unsupported personality-style labels cannot enter the canonical signal map',()=>assert.throws(()=>createEngagementSignal({key:'archetype',value:'optimizer',sourceType:'qa',sourceRef:'x'}),/unsupported engagement signal/));
