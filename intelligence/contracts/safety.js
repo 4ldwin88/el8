@@ -1,7 +1,7 @@
 // Cross-cutting EL8 Safety/Escalation interface.
 // This contract defines transport/override semantics, not clinical diagnosis or policy content.
 
-export const SAFETY_CONTRACT_VERSION = '1.0.0';
+export const SAFETY_CONTRACT_VERSION = '1.1.0';
 
 export const SAFETY_LEVEL = Object.freeze({
   NONE: 0,
@@ -24,7 +24,7 @@ export function createSafetySignal({
   sourceComponent,
   observationRefs = [],
   evidenceRefs = [],
-  concernRefs = [],
+  constructRefs = [],
   detectedAt = null,
 } = {}) {
   if (!signalId) throw new Error('signalId is required');
@@ -40,7 +40,7 @@ export function createSafetySignal({
     sourceComponent,
     observationRefs: [...observationRefs],
     evidenceRefs: [...evidenceRefs],
-    concernRefs: [...concernRefs],
+    constructRefs: [...constructRefs],
     detectedAt,
   };
 }
