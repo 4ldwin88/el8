@@ -1,0 +1,3 @@
+import test from'node:test';import assert from'node:assert/strict';import{deriveMemberStatePlanningPolicy}from'./member-state-fit-policy.js';
+test('low capacity bounds portfolio burden',()=>{const p=deriveMemberStatePlanningPolicy({planningContext:{global:{memberStateFit:{capacity:'low',manageability:'unknown',engagementSignals:{}}}}});assert.equal(p.burdenBudget,1);assert.equal(p.actionCeiling,1)});
+test('explicit caller budget remains authoritative over derived fit policy',()=>{const p=deriveMemberStatePlanningPolicy({planningContext:{global:{memberStateFit:{capacity:'low'}}}},{burdenBudget:2,actionCeiling:2});assert.equal(p.burdenBudget,2);assert.equal(p.actionCeiling,2)});
