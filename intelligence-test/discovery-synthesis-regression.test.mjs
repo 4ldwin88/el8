@@ -10,7 +10,7 @@ assert.match(discovery,/class="progress"/,'Discovery must retain unobtrusive pro
 assert.match(priorities,/class="progress"/,'Focus confirmation must retain unobtrusive progress feedback');
 for(const [name,html] of [['Discovery',discovery],['Focus',priorities],['Plan',plan]]){
   assert.doesNotMatch(html,/<span>Discovery<\/span><span>Prioritize<\/span><span>Focus<\/span><span>Plan<\/span>/,`${name} must not expose internal Intelligence stage labels as member UI`);
-  assert.match(html,/aria-label="Internal QA note"/,`${name} must keep internal QA notes visible during human validation`);
+  assert.match(html,/id="testerNote"/,`${name} must keep the internal QA note field visible during human validation`);
   assert.doesNotMatch(html,/<details class="qa">/,`${name} QA notes must not be collapsible`);
 }
 assert.match(discovery,/createDiscoverySession\(\)/,'Discovery must create its own session without an upstream assessment dependency');
