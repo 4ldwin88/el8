@@ -1,7 +1,9 @@
-// Canonical implementation projection of Drive 02.06 Discovery → Planning Contract Matrix.
-// Drive remains authority. This file prevents Planning support from being inferred merely
-// from whether an Action is directly mapped to a construct.
-export const PLANNING_DISPOSITION=Object.freeze({DIRECT:'direct_action',CONDITIONAL:'conditional_action',BOUNDARY:'boundary_or_no_action',HELD:'held'});
+// Canonical implementation projection of Drive Discovery → Planning authority.
+// Drive remains authority. Planning support is not inferred merely from whether an Action
+// is directly mapped to a Focus construct: outcome-oriented Focuses may resolve through
+// independently supported driver constructs, while boundary Focuses may require deepening
+// or a professional/no-autonomous-intervention disposition.
+export const PLANNING_DISPOSITION=Object.freeze({DIRECT:'direct_action',CONDITIONAL:'conditional_action',OUTCOME:'outcome_driver_resolution',BOUNDARY:'boundary_or_no_action',HELD:'held'});
 export const DISCOVERY_PLANNING_CONTRACT=Object.freeze({
 EMOTIONAL_STATE:{disposition:PLANNING_DISPOSITION.CONDITIONAL,actionIds:['EMT-A01'],noActionAllowed:true},
 PRESSURE_PATTERN:{disposition:PLANNING_DISPOSITION.DIRECT,actionIds:['EMT-A02','EMT-A03','EMT-A04'],noActionAllowed:true},
@@ -21,10 +23,11 @@ ACTIVITY_LEVEL:{disposition:PLANNING_DISPOSITION.DIRECT,actionIds:['PHY-A02','PH
 FOCUS_FUNCTION:{disposition:PLANNING_DISPOSITION.DIRECT,actionIds:['INT-A01','INT-A02','INT-A03'],noActionAllowed:true},
 ACTIVATION:{disposition:PLANNING_DISPOSITION.CONDITIONAL,actionIds:['XDM-A01','XDM-A03','XDM-A04','XDM-A05'],memberDefinedActionAllowed:true,noActionAllowed:true},
 SCHEDULE_DISRUPTION:{disposition:PLANNING_DISPOSITION.CONDITIONAL,actionIds:['OCC-A03','PHY-A01','PHY-A04'],noActionAllowed:true},
-BODY_WEIGHT_CONCERN:{disposition:PLANNING_DISPOSITION.BOUNDARY,actionIds:[],noActionAllowed:true,professionalRouteAllowed:true},
+BODY_WEIGHT_CONCERN:{disposition:PLANNING_DISPOSITION.OUTCOME,actionIds:[],driverConstructIds:['ACTIVITY_LEVEL','SLEEP_QUALITY'],goalClarificationRequired:true,goalKey:'weight_management',deepeningPrompt:'What would you like help with around your body or weight?',deepeningOptions:['Manage my weight','Improve habits that may affect it','Understand what may be contributing','I do not want a plan for this right now'],noActionAllowed:true,professionalRouteAllowed:true},
 VALUES_CLARITY:{disposition:PLANNING_DISPOSITION.CONDITIONAL,actionIds:['SPT-A02','SPT-A01'],noActionAllowed:true},
 NEXT_STEP_CLARITY:{disposition:PLANNING_DISPOSITION.CONDITIONAL,actionIds:['SPT-A03','OCC-A01','OCC-A02','OCC-A04','XDM-A04'],noActionAllowed:true},
 DIRECTION_CLARITY:{disposition:PLANNING_DISPOSITION.CONDITIONAL,actionIds:['SPT-A03','OCC-A02','OCC-A04','XDM-A04'],noActionAllowed:true}
 });
 export function planningContractForConstruct(constructId){return DISCOVERY_PLANNING_CONTRACT[constructId]??null}
 export function ordinaryPlanningCandidateAllowed(constructId){const c=planningContractForConstruct(constructId);return Boolean(c&&c.disposition!==PLANNING_DISPOSITION.HELD)}
+export function planningResolutionForFocus(constructId,{supportedConstructIds=[],goalIntents={}}={}){const contract=planningContractForConstruct(constructId);if(!contract)return Object.freeze({focusId:constructId,status:'coverage_gap',reason:'missing_planning_contract',driverConstructIds:[]});if(contract.disposition===PLANNING_DISPOSITION.HELD)return Object.freeze({focusId:constructId,status:'no_autonomous_intervention',reason:'held_by_governance',driverConstructIds:[]});if(contract.disposition===PLANNING_DISPOSITION.OUTCOME){const intent=goalIntents?.[constructId]??goalIntents?.[contract.goalKey]??null;if(contract.goalClarificationRequired&&!intent)return Object.freeze({focusId:constructId,status:'deepen',reason:'goal_clarification_required',driverConstructIds:[],requirement:{requirementId:`goal:${constructId}`,purpose:'outcome_goal',prompt:contract.deepeningPrompt,options:[...(contract.deepeningOptions??[])]}});if(String(intent).toLowerCase().includes('do not want'))return Object.freeze({focusId:constructId,status:'deferred',reason:'member_preference',driverConstructIds:[]});const supported=new Set(supportedConstructIds);const drivers=(contract.driverConstructIds??[]).filter(id=>supported.has(id));if(!drivers.length)return Object.freeze({focusId:constructId,status:'deepen',reason:'supported_driver_required',driverConstructIds:[],requirement:{requirementId:`drivers:${constructId}`,purpose:'driver_resolution',candidateConstructIds:[...(contract.driverConstructIds??[])],prompt:'A little more information is needed to identify which change would be most useful.'}});return Object.freeze({focusId:constructId,status:'driver_resolved',reason:'supported_driver_evidence',driverConstructIds:drivers});}if(contract.disposition===PLANNING_DISPOSITION.BOUNDARY)return Object.freeze({focusId:constructId,status:contract.professionalRouteAllowed?'professional_route':'no_autonomous_intervention',reason:'governed_boundary',driverConstructIds:[]});return Object.freeze({focusId:constructId,status:'direct',reason:'direct_or_conditional_action_contract',driverConstructIds:[constructId]})}
