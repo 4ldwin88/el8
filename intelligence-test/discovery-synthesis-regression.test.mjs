@@ -6,6 +6,12 @@ const plan=fs.readFileSync(new URL('./plan.html',import.meta.url),'utf8');
 const index=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 const chrome=fs.readFileSync(new URL('./chrome.js',import.meta.url),'utf8');
 assert.match(index,/location\.href='discovery\.html'/,'Intelligence Test must enter Discovery directly');
+assert.match(index,/>Begin assessment</,'Entry action must use member-facing assessment language');
+assert.doesNotMatch(index,/Begin Discovery/,'Entry action must not expose internal Discovery terminology');
+assert.match(index,/document\.getElementById\('modes'\)/,'Entry bootstrap must explicitly resolve the mode controls');
+assert.match(index,/document\.getElementById\('begin'\)/,'Entry bootstrap must explicitly resolve the begin control');
+assert.match(index,/addEventListener\('click'/,'Entry controls must use explicit event listeners');
+assert.doesNotMatch(chrome,/INTELLIGENCE_TEST_COMPONENT_VERSIONS/,'QA chrome must not depend on retired component semantic versions');
 assert.match(discovery,/class="progress"/,'Discovery must retain unobtrusive progress feedback');
 assert.match(priorities,/class="progress"/,'Focus confirmation must retain unobtrusive progress feedback');
 for(const [name,html] of [['Discovery',discovery],['Focus',priorities],['Plan',plan]]){
@@ -34,4 +40,4 @@ assert.match(priorities,/installQaChrome\(\{stage:'focus',screenId:'focus-confir
 assert.match(priorities,/import\('\.\.\/intelligence\/planning\/planningEngine\.js'\)/,'Focus must import the existing canonical Planning engine');
 assert.doesNotMatch(priorities,/canonical-plan-engine\.js/,'Focus must not import the removed canonical-plan-engine module');
 assert.match(priorities,/const\[\{prioritizeCandidates\}/,'Focus engine dependencies must load after QA chrome is operational');
-console.log('Discovery interaction-density, Focus boot, matrix presentation, and QA architecture regression passed');
+console.log('Human-QA entry, Discovery interaction-density, Focus boot, matrix presentation, and QA architecture regression passed');
