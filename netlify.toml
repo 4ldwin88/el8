@@ -1,0 +1,3 @@
+[build]
+  command = "node scripts/write-intelligence-test-build-meta.mjs"
+  publish = "."
