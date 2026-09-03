@@ -13,19 +13,19 @@ function canonicalConfidence(item={}){
  const normalized=String(raw).trim().toUpperCase().replace(/[ -]+/g,'_');
  return QUALITATIVE_CONFIDENCE.has(normalized)?normalized:'UNKNOWN';
 }
-function decisionUsefulIds(trace={}){
- const stop=trace?.stop??trace?.stoppingDecision??null;
- const ids=trace?.handoff?.candidateIds??stop?.candidateIds??[];
+function decisionUsefulIds(source={}){
+ // Canonical runtime output carries the governed handoff beside trace: {trace,handoff}.
+ // Historical trace shapes may carry it under trace.handoff or stopping metadata.
+ const handoff=source?.handoff??source?.trace?.handoff??null;
+ const stop=source?.stop??source?.stoppingDecision??source?.trace?.stop??source?.trace?.stoppingDecision??null;
+ const ids=handoff?.candidateIds??stop?.candidateIds??[];
  return new Set(Array.isArray(ids)?ids:[]);
 }
 
 export function discoveryOutputToMemberState(output,{memberId=null,existingState=null,at=new Date().toISOString()}={}){
  const trace=output?.trace??output;
  const states=Array.isArray(trace?.states)?trace.states:[];
- const handoffIds=decisionUsefulIds(output?.stop?output:trace);
- // finishDiscovery currently carries stop metadata alongside trace in some runtime shapes.
- const outputHandoffIds=decisionUsefulIds(output);
- for(const id of outputHandoffIds)handoffIds.add(id);
+ const handoffIds=decisionUsefulIds(output);
  let state=existingState??createMemberState({memberId,now:at});
  for(const item of states){
   if(!item?.constructId||item.excluded||['deferred','nonIssue','escalated'].includes(item.resolutionState))continue;
