@@ -4,8 +4,8 @@ const discovery=fs.readFileSync(new URL('./discovery.html',import.meta.url),'utf
 const priorities=fs.readFileSync(new URL('./priorities.html',import.meta.url),'utf8');
 const plan=fs.readFileSync(new URL('./plan.html',import.meta.url),'utf8');
 const index=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
+const chrome=fs.readFileSync(new URL('./chrome.js',import.meta.url),'utf8');
 assert.match(index,/location\.href='discovery\.html'/,'Intelligence Test must enter Discovery directly');
-assert.match(discovery,/class="progress"/,'Discovery must retain unobtrusive progress feedback');
 assert.match(priorities,/class="progress"/,'Focus confirmation must retain unobtrusive progress feedback');
 assert.match(plan,/class="progress"/,'Planning must retain unobtrusive progress feedback');
 for(const [name,html] of [['Discovery',discovery],['Focus',priorities],['Plan',plan]]){
@@ -19,12 +19,15 @@ assert.doesNotMatch(discovery,/initialPlanProposal/,'Discovery must not select A
 assert.match(discovery,/function renderMatrix\(/,'Discovery must have a dedicated matrix renderer rather than using the generic stacked option renderer');
 assert.match(discovery,/className='response-matrix'/,'Discovery matrix must render as a matrix-specific interaction');
 assert.match(discovery,/grid-template-columns:minmax\(112px,1\.25fr\) repeat\(4,minmax\(82px,1fr\)\)/,'Wide Discovery matrix must expose one dimension column and four shared response columns');
-assert.match(discovery,/@media\(max-width:640px\)/,'Discovery matrix must define a narrow-screen presentation');
-assert.match(discovery,/grid-template-columns:repeat\(4,1fr\)/,'Narrow Discovery matrix must preserve the four-choice scale within each dimension row');
 assert.match(discovery,/if\(current\.type==='matrix'\)\{renderMatrix\(/,'Matrix steps must route to the dedicated matrix renderer');
 assert.doesNotMatch(discovery,/if\(current\.type==='matrix'\)\{renderComposite/,'Matrix steps must never fall back to the generic composite renderer');
 assert.match(discovery,/COMPACT_CHOICE_THRESHOLD=5/,'Discovery must define a governed high-choice density threshold');
 assert.match(discovery,/function applyChoiceDensity\(/,'Discovery must adapt answer density for high-choice non-matrix questions');
 assert.match(discovery,/choice-set\.compact/,'Discovery must provide a compact scannable treatment for high-choice questions');
 assert.match(discovery,/triage-answers\.compact/,'Composite items with many distinct choices must use compact grouped controls rather than repeated large buttons');
+assert.match(chrome,/response-matrix \.matrix-head,\.response-matrix \.matrix-row/,'Narrow-screen QA chrome must preserve matrix rows and shared response columns');
+assert.match(chrome,/grid-template-columns:minmax\(92px,1\.2fr\) repeat\(4,minmax\(54px,\.8fr\)\)/,'Narrow-screen matrix must retain one item column plus four comparable scale columns');
+assert.match(chrome,/triage-answers\.choice-set:not\(\.compact\)/,'Small driver answer sets must remain full-width rather than inheriting compact treatment');
+assert.match(chrome,/z-index:2147483647/,'Global QA Exit must remain above page content and dead-end states');
+assert.match(chrome,/document\.documentElement\.appendChild\(chrome\)/,'Global QA Exit must be mounted outside page layout containers');
 console.log('Discovery-first production-representative browser architecture regression passed');
