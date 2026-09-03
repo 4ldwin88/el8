@@ -20,11 +20,20 @@ test('qualitative confidence is normalized without changing its category',()=>{
  assert.equal(state.constructs.SLEEP_QUALITY.evidenceConfidence,'MODERATE');
 });
 
-test('decision-useful handoff candidate remains eligible for Prioritization even when resolution is triaged',()=>{
+test('canonical runtime {trace,handoff} keeps a decision-useful candidate eligible for Prioritization',()=>{
  const output={trace:{states:[{constructId:'SLEEP_QUALITY',status:'established',resolutionState:'triaged',qualitativeConfidence:'WELL_SUPPORTED',evidenceRefs:['e:test']}]},handoff:{usable:true,candidateIds:['SLEEP_QUALITY']}};
  const state=discoveryOutputToMemberState(output,{memberId:'member:test',at});
  assert.equal(state.constructs.SLEEP_QUALITY.sufficiency,'sufficient');
  assert.deepEqual(memberStateToPrioritizationInput(state).candidates.map(x=>x.constructId),['SLEEP_QUALITY']);
+});
+
+test('canonical runtime handoff preserves multiple candidates exactly',()=>{
+ const output={trace:{states:[
+  {constructId:'SLEEP_QUALITY',status:'established',resolutionState:'triaged',qualitativeConfidence:'WELL_SUPPORTED',evidenceRefs:['e:sleep']},
+  {constructId:'FINANCIAL_STRAIN',status:'supported',resolutionState:'triaged',qualitativeConfidence:'MODERATE',evidenceRefs:['e:finance']}
+ ]},handoff:{usable:true,candidateIds:['SLEEP_QUALITY','FINANCIAL_STRAIN']}};
+ const state=discoveryOutputToMemberState(output,{memberId:'member:test',at});
+ assert.deepEqual(new Set(memberStateToPrioritizationInput(state).candidates.map(x=>x.constructId)),new Set(['SLEEP_QUALITY','FINANCIAL_STRAIN']));
 });
 
 test('unresolved construct without a decision-useful handoff remains ineligible for Prioritization',()=>{
