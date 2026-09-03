@@ -12,13 +12,18 @@ assert.equal(d.candidates[0].constructId,'SLEEP_QUALITY');
 assert.throws(()=>discoveryToPrioritization({memberStateRevision:3,candidates:[{constructId:'poor_sleep',status:'supported'}]}),/governed EL8 construct ID/);
 assert.throws(()=>discoveryToPrioritization({memberStateRevision:3,candidates:[{constructId:'SLEEP_QUALITY',status:'hypothesis'}]}),/established or supported/);
 
-const p=prioritizationToFocusConfirmation({memberStateRevision:3,recommended:[{constructId:'SLEEP_QUALITY',factors:{importance:null,urgency:.7}}]});
+const p=prioritizationToFocusConfirmation({memberStateRevision:3,decisionOutcome:'CLEAR_DOMINANCE',recommended:[{constructId:'SLEEP_QUALITY',factors:{importance:null,urgency:.7}}]});
+assert.equal(p.decisionOutcome,'CLEAR_DOMINANCE');
 assert.equal(p.recommended[0].factors.importance,'unknown');
 assert.notEqual(p.recommended[0].factors.importance,.5);
+assert.throws(()=>prioritizationToFocusConfirmation({memberStateRevision:3,decisionOutcome:'INVENTED',recommended:[]}),/invalid Prioritization decision outcome/);
 
 const accepted={constructId:'SLEEP_QUALITY',decision:'accepted',decidedAt:'2026-08-30T14:00:00Z'};
-const planInput=focusConfirmationToPlanning({memberStateRevision:3,focuses:[accepted],evidenceRefs:['q1']});
+const planInput=focusConfirmationToPlanning({memberStateRevision:3,focuses:[accepted],prioritizationOutcome:'CLEAR_DOMINANCE',coreFocusId:'SLEEP_QUALITY',evidenceRefs:['q1']});
 assert.equal(planInput.focuses.length,1);
+assert.equal(planInput.prioritizationOutcome,'CLEAR_DOMINANCE');
+assert.equal(planInput.coreFocusId,'SLEEP_QUALITY');
+assert.throws(()=>focusConfirmationToPlanning({memberStateRevision:3,focuses:[accepted],prioritizationOutcome:'NEAR_EQUIVALENT',coreFocusId:'SLEEP_QUALITY'}),/core Focus requires CLEAR_DOMINANCE/);
 assert.throws(()=>focusConfirmationToPlanning({memberStateRevision:3,focuses:[{...accepted,decision:'rejected'}]}),/member-accepted Focus/);
 
 const reviewInput=executionToReview({memberStateRevision:4,planId:'p1',actionEvidenceRefs:['a1:checkin'],outcomeRefs:['o1']});
@@ -27,4 +32,4 @@ const next=reviewToNextDecision({memberStateRevision:4,planId:'p1',reviewCycleId
 assert.equal(next.disposition,'reassess');
 assert.throws(()=>reviewToNextDecision({memberStateRevision:4,planId:'p1',reviewCycleId:'r1',disposition:'invented',focusRefs:[]}),/invalid Review disposition/);
 
-console.log('Capability boundaries preserve authority, governed constructs, explicit unknowns and member Focus');
+console.log('Capability boundaries preserve authority, governed constructs, explicit unknowns, Prioritization disposition and member Focus');
