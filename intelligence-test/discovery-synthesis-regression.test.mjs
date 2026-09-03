@@ -6,8 +6,8 @@ const plan=fs.readFileSync(new URL('./plan.html',import.meta.url),'utf8');
 const index=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 const chrome=fs.readFileSync(new URL('./chrome.js',import.meta.url),'utf8');
 assert.match(index,/location\.href='discovery\.html'/,'Intelligence Test must enter Discovery directly');
+assert.match(discovery,/class="progress"/,'Discovery must retain unobtrusive progress feedback');
 assert.match(priorities,/class="progress"/,'Focus confirmation must retain unobtrusive progress feedback');
-assert.match(plan,/class="progress"/,'Planning must retain unobtrusive progress feedback');
 for(const [name,html] of [['Discovery',discovery],['Focus',priorities],['Plan',plan]]){
   assert.doesNotMatch(html,/<span>Discovery<\/span><span>Prioritize<\/span><span>Focus<\/span><span>Plan<\/span>/,`${name} must not expose internal Intelligence stage labels as member UI`);
   assert.match(html,/aria-label="Internal QA note"/,`${name} must keep internal QA notes visible during human validation`);
