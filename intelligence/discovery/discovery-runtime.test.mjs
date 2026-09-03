@@ -6,7 +6,7 @@ import {DISCOVERY_BANK,observationsForAnswer,constructsForAnswer,safetyContextFo
 import {migrateLegacyRegistryId} from '../registries/registry.js';
 import {createDiscoverySession,nextDiscoveryStep,answerDiscoveryInteraction,discoveryOutput,discoveryPriorityCandidates} from '../../app/onboarding/discovery-runtime.js';
 
-assert.equal(discovery.DISCOVERY_VERSION,'v0.01');
+assert.equal(discovery.DISCOVERY_VERSION,'v0.02');
 const runtime=discovery.session({constructIds:[]});
 assert.ok(runtime);
 assert.equal(typeof discovery.next(runtime),'object');
@@ -111,4 +111,4 @@ assert.equal(emphasized.every(x=>typeof x.evidenceConfidence!=='number'),true);
 const output=discoveryOutput(createDiscoverySession({constructIds:['ENERGY_FUNCTION']}));
 assert.equal('candidateActions' in output,false);
 assert.equal('selectedActionIds' in output,false);
-console.log('Discovery v0.01 uses broad-state-first Orientation, member concern second, adaptive driver triage, governed permanent IDs, deterministic Safety interruption and evidence-only downstream output');
+console.log('Discovery v0.02 uses broad-state-first Orientation, member concern second, adaptive driver triage, governed permanent IDs, deterministic Safety interruption and evidence-only downstream output');
