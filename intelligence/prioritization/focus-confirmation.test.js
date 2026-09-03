@@ -6,7 +6,8 @@ import { confirmFocus, applyFocusConfirmation, focusConfirmationPlanningInput } 
 const at='2026-08-30T16:00:00Z';
 let state=createMemberState({memberId:'T0001',now:at});
 for(const id of ['FINANCIAL_STRAIN','SLEEP_QUALITY','ACTIVITY_LEVEL','VALUES_CLARITY'])state=applyMemberStateTransition(state,{type:E.CONSTRUCT_UPDATED,payload:{constructId:id,status:'supported'},source:'discovery',at,expectedRevision:state.revision});
-const prioritization={memberStateRevision:state.revision,recommended:[{constructId:'FINANCIAL_STRAIN',rank:1},{constructId:'SLEEP_QUALITY',rank:2},{constructId:'ACTIVITY_LEVEL',rank:3}],alternatives:[{constructId:'VALUES_CLARITY',rank:4}]};
+const relationshipTrace=[{relationshipId:'REL000013',memberEdgeId:'member-rel:1',fromConstructId:'FINANCIAL_STRAIN',toConstructId:'PRESSURE_PATTERN',confidence:'moderate'}];
+const prioritization={memberStateRevision:state.revision,recommended:[{constructId:'FINANCIAL_STRAIN',rank:1},{constructId:'SLEEP_QUALITY',rank:2},{constructId:'ACTIVITY_LEVEL',rank:3}],alternatives:[{constructId:'VALUES_CLARITY',rank:4}],relationshipTrace};
 const confirmation=confirmFocus({prioritization,decisions:[
   {constructId:'SLEEP_QUALITY',decision:'accepted',memberRank:1},
   {constructId:'FINANCIAL_STRAIN',decision:'deferred',reasonCodes:['not_now']},
@@ -16,6 +17,7 @@ assert.equal(confirmation.memberChangedRecommendation,true);
 assert.deepEqual(confirmation.accepted.map(x=>x.constructId),['SLEEP_QUALITY','ACTIVITY_LEVEL']);
 assert.equal(confirmation.declined[0].decision,'deferred');
 assert.ok(confirmation.accepted[1].constraintRefs.includes('focus-constraint:1'));
+assert.deepEqual(confirmation.relationshipTrace,relationshipTrace);
 
 const updated=applyFocusConfirmation(state,confirmation);
 assert.deepEqual(updated.activeFocusIds,['SLEEP_QUALITY','ACTIVITY_LEVEL']);
@@ -28,6 +30,7 @@ const planningInput=focusConfirmationPlanningInput(confirmation,{memberState:upd
 assert.equal(planningInput.memberStateRevision,updated.revision);
 assert.deepEqual(planningInput.focuses.map(x=>x.constructId),['SLEEP_QUALITY','ACTIVITY_LEVEL']);
 assert.ok(planningInput.constraintRefs.includes('focus-constraint:1'));
+assert.deepEqual(planningInput.planningContext.relationshipTrace,relationshipTrace);
 assert.throws(()=>focusConfirmationPlanningInput(confirmation,{memberState:state}),/post-confirmation Member State revision/);
 
 const alternative=confirmFocus({prioritization,decisions:[{constructId:'VALUES_CLARITY',decision:'accepted',memberRank:1}],decidedAt:at});
@@ -52,4 +55,4 @@ assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'money_pr
 assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'SUPPORT_AVAILABILITY',decision:'accepted'}],decidedAt:at}),/not a legitimate Prioritization candidate/);
 assert.throws(()=>confirmFocus({prioritization,decisions:[{constructId:'SLEEP_QUALITY',decision:'accepted'}],constraints:['severity'],decidedAt:at}),/unsupported Focus constraint/);
 
-console.log('Member Focus confirmation uses canonical lifecycle, legitimate alternatives and post-confirmation Planning revision');
+console.log('Member Focus confirmation uses canonical lifecycle, legitimate alternatives, relationship provenance and post-confirmation Planning revision');
