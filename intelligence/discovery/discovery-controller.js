@@ -4,12 +4,10 @@ import {selectNextQuestion} from './question-scheduler.js';
 import {needsTriage,buildTriageQuestion} from './triage.js';
 import {stoppingDecision,handoffAudit} from './sufficiency.js';
 import {isConstructId} from '../../registries/taxonomy/index.js';
-import {ENGINE_VERSIONS} from '../version.js';
-export const DISCOVERY_VERSION=ENGINE_VERSIONS.discovery;
 const CONFIDENCE_ORDER=Object.freeze({LIMITED:1,MODERATE:2,WELL_SUPPORTED:3});
 function confidenceRank(state={}){return CONFIDENCE_ORDER[state.qualitativeConfidence]??0}
 function validConstructs(ids=[]){return [...new Set(ids.filter(isConstructId))]}
-export function createDiscoverySession({constructIds=[],questionBank=[],labels={},outerGuardrail=null,facts={}}={}){return{version:DISCOVERY_VERSION,observationLog:[],facts:{...facts},constructIds:validConstructs(constructIds),questionBank,labels,asked:[],questionsAsked:0,outerGuardrail,phase:'orient',triaged:false,incomplete:false,resolutionStates:{},driverKnown:{},recoveryAttempts:{},baselineCoverage:{},baselineDriverTriaged:false}}
+export function createDiscoverySession({constructIds=[],questionBank=[],labels={},outerGuardrail=null,facts={}}={}){return{observationLog:[],facts:{...facts},constructIds:validConstructs(constructIds),questionBank,labels,asked:[],questionsAsked:0,outerGuardrail,phase:'orient',triaged:false,incomplete:false,resolutionStates:{},driverKnown:{},recoveryAttempts:{},baselineCoverage:{},baselineDriverTriaged:false}}
 export function activateConstructs(session,constructIds=[]){session.constructIds=validConstructs([...session.constructIds,...constructIds]);for(const id of constructIds)if(isConstructId(id)&&!session.resolutionStates[id])session.resolutionStates[id]='triaged';return session}
 export function appendObservation(session,observation){if(observation.constructId&&!isConstructId(observation.constructId))throw new Error(`non-canonical Discovery construct: ${observation.constructId}`);session.observationLog=Object.freeze([...session.observationLog,observation]);if(observation.constructId&&!session.constructIds.includes(observation.constructId))activateConstructs(session,[observation.constructId]);return session}
 export function mergeFacts(session,facts={}){session.facts={...(session.facts||{}),...facts};return session}
