@@ -46,10 +46,9 @@ const answersByQuestion={};
 for(const q of matrix.questions)answersByQuestion[q.id]=q.options.find(o=>o.text==='Going well')?.id;
 answerDiscoveryInteraction(baselineSession,matrix,answersByQuestion);
 assert.equal(Object.keys(baselineSession.baselineCoverage).length,8);
-const concernStep=nextDiscoveryStep(baselineSession);
-assert.equal(concernStep.type,'question');
-assert.equal(concernStep.question.id,'Q000001');
-assert.equal(concernStep.reason,'member-concern-after-baseline');
+const positiveStep=nextDiscoveryStep(baselineSession);
+assert.equal(positiveStep.type,'finish');
+assert.equal(positiveStep.stop.reason,'baseline-complete-no-active-concern');
 
 const driverSession=createDiscoverySession({constructIds:[]});
 const driverMatrix=nextDiscoveryStep(driverSession);
@@ -58,14 +57,11 @@ for(const q of driverMatrix.questions)driverAnswers[q.id]=q.options.find(o=>o.te
 const physicalBaseline=driverMatrix.questions.find(q=>String(q.dimension).toUpperCase()==='PHYSICAL');
 driverAnswers[physicalBaseline.id]=physicalBaseline.options.find(o=>o.text==='Difficult')?.id;
 answerDiscoveryInteraction(driverSession,driverMatrix,driverAnswers);
-const driverConcern=nextDiscoveryStep(driverSession);
-assert.equal(driverConcern.type,'question');
-assert.equal(driverConcern.question.id,'Q000001');
-discovery.answer(driverSession,driverConcern.question,'A000013');
 const driverStep=nextDiscoveryStep(driverSession);
 assert.equal(driverStep.type,'driver-triage');
 assert.equal(driverStep.interaction,'adaptive-driver-triage');
 assert.ok(driverStep.questions.some(q=>String(q.dimension).toUpperCase()==='PHYSICAL'));
+assert.equal(driverSession.asked.includes('Q000001'),false);
 
 const homeSafety=DISCOVERY_BANK.find(q=>q.id===migrateLegacyRegistryId('ENV003'));
 assert.ok(homeSafety);
@@ -105,12 +101,13 @@ const fitObservation=makeObservation({id:'fit:1',questionId:'FIT1',constructId:'
 const fitState=deriveConstructState([fitObservation],'ACTIVITY_LEVEL');
 assert.equal(fitState.feasibility.values.capacity,'low');
 assert.deepEqual(fitState.feasibility.constraints,['limited_transport']);
-const emphasizedOutput={trace:{states:[{constructId:'FINANCIAL_STRAIN',resolutionState:'triaged',memberImportance:3,qualitativeConfidence:'WELL_SUPPORTED'},{constructId:'PHYSICAL_CONDITION',resolutionState:'triaged',memberImportance:1,qualitativeConfidence:'MODERATE'},{constructId:'ENERGY_FUNCTION',resolutionState:'triaged',memberImportance:null,qualitativeConfidence:'UNKNOWN'}]}};
+const emphasizedOutput={trace:{states:[{constructId:'FINANCIAL_STRAIN',resolutionState:'triaged',memberImportance:3,qualitativeConfidence:'WELL_SUPPORTED'},{constructId:'PHYSICAL_CONDITION',resolutionState:'triaged',memberImportance:1,qualitativeConfidence:'MODERATE'},{constructId:'ENERGY_FUNCTION',resolutionState:'triaged',memberImportance:3,qualitativeConfidence:'LIMITED'},{constructId:'FOCUS_FUNCTION',resolutionState:'triaged',memberImportance:null,qualitativeConfidence:'UNKNOWN'}]}};
 const emphasized=discoveryPriorityCandidates(emphasizedOutput);
 assert.equal(emphasized.some(x=>x.constructId==='ENERGY_FUNCTION'),false);
+assert.equal(emphasized.some(x=>x.constructId==='FOCUS_FUNCTION'),false);
 assert.equal(emphasized[0].constructId,'FINANCIAL_STRAIN');
 assert.equal(emphasized.every(x=>typeof x.evidenceConfidence!=='number'),true);
 const output=discoveryOutput(createDiscoverySession({constructIds:['ENERGY_FUNCTION']}));
 assert.equal('candidateActions' in output,false);
 assert.equal('selectedActionIds' in output,false);
-console.log('Discovery uses broad-state-first Orientation, member concern second, adaptive driver triage, governed permanent IDs, deterministic Safety interruption and evidence-only downstream output; component semantic versioning is absent');
+console.log('Discovery uses broad-state Orientation, immediate adaptive driver triage for difficult areas, governed confidence filtering, deterministic Safety interruption and evidence-only downstream output; component semantic versioning is absent');
