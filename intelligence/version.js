@@ -6,7 +6,7 @@
 // versions. Component/engine versions are intentionally not part of the canonical model.
 // Build, commit, harness, schema, and deployment identifiers are separate provenance.
 // v1.00 is reserved for a deliberate stable-contract/maturity milestone.
-export const INTELLIGENCE_VERSION='v0.06';
+export const INTELLIGENCE_VERSION='v0.07';
 
 export function intelligenceVersionManifest(){
   return Object.freeze({intelligence:INTELLIGENCE_VERSION});
