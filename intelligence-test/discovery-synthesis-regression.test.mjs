@@ -24,6 +24,14 @@ assert.match(discovery,/COMPACT_CHOICE_THRESHOLD=8/,'Distinct answer sets must r
 assert.match(discovery,/if\(\(q\.options\|\|\[\]\)\.length>=COMPACT_CHOICE_THRESHOLD\)host\.classList\.add\('compact'\)/,'Choice density must apply the governed eight-choice threshold');
 assert.match(discovery,/if\(states\.length>=COMPACT_CHOICE_THRESHOLD\)options\.classList\.add\('choice-set','compact'\)/,'Focus triage choices must use the same governed density threshold');
 assert.match(chrome,/triage-answers\.choice-set:not\(\.compact\)/,'Non-compact grouped choices must remain stacked full-width');
+assert.match(chrome,/matrix-head\{background:transparent!important\}/,'Matrix heading must not have a background fill');
+assert.match(chrome,/matrix-head>div:first-child\{font-size:0!important\}/,'Matrix must not show an Area label in its top-left cell');
+assert.match(chrome,/matrix-row>div\{border-right:0!important/,'Matrix must not show vertical divider lines');
+assert.match(chrome,/matrix-choice button\.selected\{background:#111!important;color:#fff!important/,'Selected matrix answers must be visibly black');
 assert.match(chrome,/z-index:2147483647/,'Global QA Exit must remain above page content and dead-end states');
 assert.match(chrome,/document\.documentElement\.appendChild\(chrome\)/,'Global QA Exit must be mounted outside page layout containers');
-console.log('Discovery interaction-density and QA architecture regression passed');
+assert.match(priorities,/installQaChrome\(\{stage:'focus',screenId:'focus-confirmation'\}\);const/,'Focus must install QA chrome before loading optional engine modules');
+assert.match(priorities,/import\('\.\.\/intelligence\/planning\/planningEngine\.js'\)/,'Focus must import the existing canonical Planning engine');
+assert.doesNotMatch(priorities,/canonical-plan-engine\.js/,'Focus must not import the removed canonical-plan-engine module');
+assert.match(priorities,/const\[\{prioritizeCandidates\}/,'Focus engine dependencies must load after QA chrome is operational');
+console.log('Discovery interaction-density, Focus boot, matrix presentation, and QA architecture regression passed');
