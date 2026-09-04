@@ -34,7 +34,7 @@ Intelligence tested: `v0.05`
    - Planning must expose relevant downstream/monitoring drivers separately from upstream selection drivers.
    - `Why this?` must derive recommendation confidence from evidence actually authorizing selection rather than manufacturing confidence from missing context.
    - An activated intervention must expose its associated Toolkit when one exists. Toolkit absence must be explicit only when the selected intervention legitimately has no Toolkit association.
-   - **Disposition for v0.06:** the original observation that two Focuses produced one Action is not itself a defect. Canonical Planning already permits shared-leverage Actions with explicit coverage. The remaining evidence/Toolkit behavior stays subject to the fresh human retest rather than forcing a one-Action-per-Focus patch.
+   - **Disposition for v0.06:** the original observation that two Focuses produced one Action is not itself a defect. Canonical Planning already permits shared-leverage Actions with explicit coverage. The remaining evidence/Toolkit behavior stayed subject to fresh human retest rather than forcing a one-Action-per-Focus patch.
 
 ## v0.06 retest candidate
 
@@ -45,10 +45,49 @@ Validation provenance:
 - G-02 Intelligence Validation: run `33808187151` — success on the exact candidate.
 - GitHub Pages human-QA deployment: run `33808187226` — success on the exact candidate.
 
-The candidate is ready for fresh internal human QA. G-02 remains open until that human validation is completed and any new substantive behavioral findings are resolved.
+## v0.06 human-QA Planning dead end
+
+Affected session: `8fca90b1-08df-4597-9dfd-d2313e77e3eb`
+Tested candidate: `52802d910c610f3448468be3a50ddf557257db9f`
+Intelligence tested: `v0.06`
+Deployment: `github-actions-33808401476-1`
+
+The member confirmed `ACTIVITY_LEVEL` and `BODY_WEIGHT_CONCERN`. Canonical Planning correctly returned `status: deepen` because the outcome-oriented body/weight Focus required goal clarification before it could be resolved through independently supported drivers. The human-QA Plan page displayed the requirement but did not render its governed options or provide a way to apply an answer. Finish remained blocked with `decision_critical_evidence_required`, creating a dead end.
+
+This was a human-QA behavioral defect at the Planning interaction boundary, not a reason to bypass the Planning architecture. The canonical resolution path remains: capture the governed clarification in `planningContext.goalIntents`, rerun canonical `buildPlan`, and then continue with the rebuilt Plan. For requirements without governed answer options, the harness must remain blocked rather than fabricate an assessment interaction.
+
+## v0.07 correction cycle
+
+The substantive v0.06 human-QA dead end advanced the single Intelligence version to `v0.07`.
+
+The v0.07 human-QA Plan interaction now:
+- renders governed option-backed decision-critical Planning deepening requirements;
+- records the selected clarification into canonical Planning input;
+- reruns canonical `buildPlan` rather than selecting an Action in the harness;
+- persists the rebuilt Planning input, canonical Plan, and deepening answer;
+- keeps unsupported/no-option requirements blocked instead of inventing answer content;
+- preserves Action member agency and the `Why this?` evidence explanation with expandable internal QA provenance;
+- surfaces Toolkit information when the canonical Action contains Toolkit data;
+- persists tester notes locally while testing rather than depending on final submission;
+- uses the reconciled Focus/Plan member-facing presentation without manufacturing recommendation ordering.
+
+An initial v0.07 harness edit temporarily removed the `QA provenance` disclosure. CI caught that regression. Provenance was restored within the same v0.07 correction cycle, so no additional Intelligence version increment was warranted.
+
+Subsequent presentation reconciliation changed incidental Plan copy. The behavioral regression test was updated to protect the governed behavior and reconciled copy rather than obsolete text. This also did not warrant an Intelligence version increment.
+
+### v0.07 validated candidate before documentation reconciliation
+
+Exact candidate: `9d389c84f61f2e9ebb940fcdb1a7a78c97126432`
+Intelligence: `v0.07`
+
+Validation provenance:
+- G-02 Intelligence Validation: run `33828369131` — success on the exact candidate.
+- GitHub Pages human-QA deployment: run `33828369167` — success on the exact candidate.
+
+This documentation update is non-behavioral. Its resulting HEAD must also pass G-02 validation and GitHub Pages deployment before it is treated as the final exact human-QA candidate.
 
 ## Version rule
 
-The v0.05 findings contained substantive human-QA behavioral defects, so the corrected human-test candidate advanced the single EL8 Intelligence version to `v0.06`. Subsequent CI, deployment, documentation, refactoring, or validation corrections within the same human-QA correction cycle do not independently increment Intelligence.
+Intelligence increments only when human testing identifies a substantive behavioral defect and a corrected human-test candidate is prepared. CI, deployment, documentation, regression-test maintenance, refactoring, or presentation reconciliation within the same correction cycle do not independently increment Intelligence.
 
 PR #144 remains draft/open/unmerged until fresh human validation passes.
