@@ -6,6 +6,11 @@
 .el8-shell-nav-inner{width:100%;max-width:none;margin:0;min-height:64px;padding-bottom:env(safe-area-inset-bottom);display:grid;grid-template-columns:repeat(4,1fr);align-items:center;background:var(--card,#fff);border:1px solid var(--line,#ddd);border-left:0;border-right:0;border-bottom:0;border-radius:0;box-shadow:0 -6px 24px rgba(0,0,0,.08);pointer-events:auto}
 .el8-shell-nav-item{border:0;background:transparent;color:var(--muted,#777);display:grid;justify-items:center;gap:3px;padding:8px 4px;font-size:10px;font-weight:600;cursor:pointer}
 .el8-shell-nav-item svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+[data-static-shell] .el8-shell-nav-item:not(:has(svg))::before{font-size:20px;line-height:20px;font-weight:400;height:20px}
+[data-static-shell] .el8-shell-nav-item:nth-child(1):not(:has(svg))::before{content:'⌂'}
+[data-static-shell] .el8-shell-nav-item:nth-child(2):not(:has(svg))::before{content:'▣'}
+[data-static-shell] .el8-shell-nav-item:nth-child(3):not(:has(svg))::before{content:'▥'}
+[data-static-shell] .el8-shell-nav-item:nth-child(4):not(:has(svg))::before{content:'◇'}
 .el8-shell-nav-item[aria-current=page]{color:var(--ink,#171717)}
 .el8-shell-track{position:fixed;right:18px;bottom:78px;z-index:54;width:58px;height:58px;border:0;border-radius:50%;background:var(--ink,#171717);color:var(--bg,#fff);box-shadow:0 10px 28px rgba(0,0,0,.22);display:grid;place-items:center;cursor:pointer;transition:bottom .2s ease}
 .el8-shell-track.nav-hidden{bottom:18px}
