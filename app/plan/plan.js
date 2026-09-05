@@ -1,13 +1,22 @@
 import { mountAppShell } from '../shell/app-shell.js';
-import { mountTrackSheet } from '../track/track-sheet.js';
 
-export function mountPlanShell({ member, quickLogs = [], routes = {} } = {}) {
-  const trackSheet = mountTrackSheet({ quickLogs });
+// Primary navigation is structural. Mount it as soon as the Plan module evaluates
+// so Track or plan-data failures cannot remove access to the rest of EL8.
+mountAppShell({ active: 'plan' });
+
+export async function mountPlanShell({ member, quickLogs = [], routes = {} } = {}) {
+  let trackSheet = null;
+  try {
+    const { mountTrackSheet } = await import('../track/track-sheet.js');
+    trackSheet = mountTrackSheet({ quickLogs });
+  } catch (error) {
+    console.error('EL8 Track failed to initialize on Plan; primary navigation remains available.', error);
+  }
   const shell = mountAppShell({
     active: 'plan',
     routes,
     profileInitial: member?.display_name || member?.full_name || 'M',
-    onTrack: trackSheet.show
+    onTrack: trackSheet?.show || null
   });
   document.documentElement.dataset.el8Surface = 'plan';
   return { shell, trackSheet };
