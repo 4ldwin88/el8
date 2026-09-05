@@ -45,6 +45,9 @@ jobs:
       - name: Run human-QA harness regression validation
         run: npm run test:intelligence-test
 
+      - name: Guard Home navigation against secondary module failures
+        run: node app/home/home-shell-resilience.test.mjs
+
       - name: Run E01 raw lifecycle validation
         run: npm run test:e01
 
