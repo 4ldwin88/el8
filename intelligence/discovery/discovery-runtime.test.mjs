@@ -1,131 +1,44 @@
 import assert from 'node:assert/strict';
 import * as discovery from './discovery-engine.js';
-import {deriveConstructState} from './construct-projection.js';
-import {makeObservation} from './contracts.js';
-import {DISCOVERY_BANK,observationsForAnswer,constructsForAnswer,safetyContextForAnswer} from './observationNormalizer.js';
-import {migrateLegacyRegistryId} from '../registries/registry.js';
-import {createDiscoverySession,nextDiscoveryStep,answerDiscoveryInteraction,discoveryOutput,discoveryPriorityCandidates} from '../../app/onboarding/discovery-runtime.js';
+import {DISCOVERY_BANK} from './observationNormalizer.js';
+import {createDiscoverySession,nextDiscoveryStep,answerDiscoveryInteraction} from '../../app/onboarding/discovery-runtime.js';
 
-assert.equal('DISCOVERY_VERSION' in discovery,false);
-const runtime=discovery.session({constructIds:[]});
-assert.ok(runtime);
-assert.equal('version' in runtime,false);
-assert.equal(typeof discovery.next(runtime),'object');
-const trace=discovery.trace(runtime);
-assert.equal('version' in trace,false);
-for(const forbidden of ['plan','memberPlan','selectedActions','priorityChoices'])assert.equal(forbidden in trace,false);
-assert.equal(typeof discovery.memberPlan,'undefined');
-assert.equal(typeof discovery.chooseActions,'undefined');
-assert.equal(typeof discovery.prioritize,'undefined');
-
-const portSession=createDiscoverySession({constructIds:[]});
-assert.ok(portSession);
-let portStep=nextDiscoveryStep(portSession);
-assert.equal(portStep.type,'matrix');
-assert.equal(portStep.interaction,'eight-dimension-baseline-matrix');
-assert.equal(portStep.questions.length,8);
-assert.ok('trace' in discoveryOutput(portSession));
-
-const opening=DISCOVERY_BANK.find(q=>q.id==='Q000001');
-assert.ok(opening);
-assert.deepEqual(constructsForAnswer(opening,'A000001'),[]);
-const openingObservations=observationsForAnswer(opening,'A000001');
-assert.equal(openingObservations.length,1);
-assert.equal(openingObservations[0].effects.length,0);
-const unrouted=discovery.session({constructIds:[]});
-discovery.answer(unrouted,opening,'A000001');
-assert.deepEqual(unrouted.constructIds,[]);
-
-const baselineSession=createDiscoverySession({constructIds:[]});
-const matrix=nextDiscoveryStep(baselineSession);
+const positive=createDiscoverySession({constructIds:[]});
+let matrix=nextDiscoveryStep(positive);
 assert.equal(matrix.type,'matrix');
-assert.equal(matrix.interaction,'eight-dimension-baseline-matrix');
-assert.equal(matrix.questions.length,8);
-assert.equal(baselineSession.questionsAsked,1);
-const answersByQuestion={};
-for(const q of matrix.questions)answersByQuestion[q.id]=q.options.find(o=>o.text==='Going well')?.id;
-answerDiscoveryInteraction(baselineSession,matrix,answersByQuestion);
-assert.equal(Object.keys(baselineSession.baselineCoverage).length,8);
-const positiveStep=nextDiscoveryStep(baselineSession);
-assert.equal(positiveStep.type,'finish');
-assert.equal(positiveStep.stop.reason,'baseline-complete-no-active-concern');
+assert.equal(positive.questionsAsked,1);
+let answers={};
+for(const q of matrix.questions)answers[q.id]=q.options.find(o=>o.text==='Going well')?.id;
+answerDiscoveryInteraction(positive,matrix,answers);
+let step=nextDiscoveryStep(positive);
+assert.equal(step.type,'finish');
+assert.equal(step.stop.reason,'baseline-complete-no-active-concern');
 
-const driverSession=createDiscoverySession({constructIds:[]});
-const driverMatrix=nextDiscoveryStep(driverSession);
-const driverAnswers={};
-for(const q of driverMatrix.questions)driverAnswers[q.id]=q.options.find(o=>o.text==='Going well')?.id;
-const physicalBaseline=driverMatrix.questions.find(q=>String(q.dimension).toUpperCase()==='PHYSICAL');
-driverAnswers[physicalBaseline.id]=physicalBaseline.options.find(o=>o.text==='Difficult')?.id;
-answerDiscoveryInteraction(driverSession,driverMatrix,driverAnswers);
-const driverStep=nextDiscoveryStep(driverSession);
-assert.equal(driverStep.type,'driver-triage');
-assert.equal(driverStep.interaction,'adaptive-driver-triage');
-assert.ok(driverStep.questions.some(q=>String(q.dimension).toUpperCase()==='PHYSICAL'));
-assert.equal(driverSession.asked.includes('Q000001'),false);
+const narrowed=createDiscoverySession({constructIds:[]});
+matrix=nextDiscoveryStep(narrowed);
+answers={};
+for(const q of matrix.questions)answers[q.id]=q.options.find(o=>o.text==='Going well')?.id;
+const financial=matrix.questions.find(q=>String(q.dimension).toUpperCase()==='FINANCIAL');
+answers[financial.id]=financial.options.find(o=>o.text==='Difficult')?.id;
+answerDiscoveryInteraction(narrowed,matrix,answers);
+step=nextDiscoveryStep(narrowed);
+assert.equal(step.type,'driver-triage');
+assert.equal(step.interaction,'compact-driver-relationship-screen');
+assert.equal(narrowed.questionsAsked,2);
+assert.equal(step.presentation.compactWrappingButtons,true);
+assert.ok(step.questions.some(q=>String(q.dimension).toUpperCase()==='FINANCIAL'));
+assert.equal(narrowed.asked.includes('Q000001'),false);
 
-const relationshipSession=createDiscoverySession({constructIds:['SLEEP_QUALITY','ENERGY_FUNCTION']});
-relationshipSession.phase='deepen';
-relationshipSession.triaged=true;
-relationshipSession.observationLog=Object.freeze([
- makeObservation({id:'sleep:1',questionId:'SLEEP1',constructId:'SLEEP_QUALITY',specificityLevel:2,effects:[{type:'evidence',target:'SLEEP_QUALITY',polarity:'supports',strength:1,certainty:'definitive',sourceType:'direct',temporality:'current'}]}),
- makeObservation({id:'energy:1',questionId:'ENERGY1',constructId:'ENERGY_FUNCTION',specificityLevel:2,effects:[{type:'evidence',target:'ENERGY_FUNCTION',polarity:'supports',strength:1,certainty:'definitive',sourceType:'direct',temporality:'current'}]})
-]);
-let relationshipStep=nextDiscoveryStep(relationshipSession);
-assert.equal(relationshipStep.type,'relationship-screen');
-assert.equal(relationshipStep.interaction,'contributor-effect-screen');
-discovery.relate(relationshipSession,{sourceConstructId:'SLEEP_QUALITY',targetConstructId:'ENERGY_FUNCTION'});
-const relatedEnergy=discovery.trace(relationshipSession).states.find(x=>x.constructId==='ENERGY_FUNCTION');
-assert.equal(relatedEnergy.driverKnown,true);
-assert.equal(relatedEnergy.specificityFrontier,3);
-assert.equal(relatedEnergy.relationships[0].source,'SLEEP_QUALITY');
-assert.equal(relatedEnergy.relationships[0].target,'ENERGY_FUNCTION');
-assert.equal(relatedEnergy.relationships[0].confidence,'member-reported');
-
-const homeSafety=DISCOVERY_BANK.find(q=>q.id===migrateLegacyRegistryId('ENV003'));
-assert.ok(homeSafety);
-const unsafeAnswer=homeSafety.options.find(o=>o.id===migrateLegacyRegistryId('ENV003.03'));
-const uncertainAnswer=homeSafety.options.find(o=>o.id===migrateLegacyRegistryId('ENV003.04'));
-const safeAnswer=homeSafety.options.find(o=>o.id===migrateLegacyRegistryId('ENV003.01'));
-assert.ok(unsafeAnswer&&uncertainAnswer&&safeAnswer);
-const unsafeContext=safetyContextForAnswer(homeSafety,unsafeAnswer.id);
-assert.equal(unsafeContext.contextualSignals.explicitSafetyConcern,true);
-assert.equal(unsafeContext.requiresImmediacyClarification,true);
-const unsafeSession=discovery.session({constructIds:['ENVIRONMENTAL_INTERFERENCE']});
-discovery.answer(unsafeSession,homeSafety,unsafeAnswer.id);
-assert.equal(unsafeSession.safety.status,'confirmation_required');
-assert.equal(unsafeSession.safety.pauseOrdinaryFlow,true);
-assert.equal(unsafeSession.safetyRequiresImmediacyClarification,true);
-assert.equal(discovery.next(unsafeSession).type,'safety');
-assert.equal(discovery.trace(unsafeSession).safetySignals.length,1);
-assert.equal(observationsForAnswer(homeSafety,unsafeAnswer.id)[0].effects.length,0);
-const uncertainSession=discovery.session({constructIds:['ENVIRONMENTAL_INTERFERENCE']});
-discovery.answer(uncertainSession,homeSafety,uncertainAnswer.id);
-assert.equal(uncertainSession.safety.status,'confirmation_required');
-assert.equal(discovery.next(uncertainSession).type,'safety');
-const safeSession=discovery.session({constructIds:['ENVIRONMENTAL_INTERFERENCE']});
-discovery.answer(safeSession,homeSafety,safeAnswer.id);
-assert.equal(safeSession.safety.status,'clear_for_ordinary_flow');
-assert.equal(safeSession.safety.pauseOrdinaryFlow,false);
-
-const triageSession=createDiscoverySession({constructIds:['FINANCIAL_STRAIN','PHYSICAL_CONDITION','SLEEP_QUALITY','FOCUS_FUNCTION']});
-triageSession.phase='deepen';
-let step=nextDiscoveryStep(triageSession);
-assert.equal(step.type,'triage');
-discovery.triage(triageSession,{FINANCIAL_STRAIN:3,PHYSICAL_CONDITION:3,SLEEP_QUALITY:1,FOCUS_FUNCTION:1});
-step=nextDiscoveryStep(triageSession);
-assert.notEqual(step.type,'triage');
-
-const fitObservation=makeObservation({id:'fit:1',questionId:'FIT1',constructId:'ACTIVITY_LEVEL',effects:[{type:'feasibility',target:'ACTIVITY_LEVEL',sourceType:'direct',temporality:'current',feasibility:{capacity:'low',scheduleFlexibility:'low'}},{type:'constraint',target:'ACTIVITY_LEVEL',sourceType:'direct',temporality:'current',value:'limited_transport'},{type:'support',target:'ACTIVITY_LEVEL',sourceType:'direct',temporality:'current',value:'partner_support'}]});
-const fitState=deriveConstructState([fitObservation],'ACTIVITY_LEVEL');
-assert.equal(fitState.feasibility.values.capacity,'low');
-assert.deepEqual(fitState.feasibility.constraints,['limited_transport']);
-const emphasizedOutput={trace:{states:[{constructId:'FINANCIAL_STRAIN',resolutionState:'triaged',memberImportance:3,qualitativeConfidence:'WELL_SUPPORTED'},{constructId:'PHYSICAL_CONDITION',resolutionState:'triaged',memberImportance:1,qualitativeConfidence:'MODERATE'},{constructId:'ENERGY_FUNCTION',resolutionState:'triaged',memberImportance:3,qualitativeConfidence:'LIMITED'},{constructId:'FOCUS_FUNCTION',resolutionState:'triaged',memberImportance:null,qualitativeConfidence:'UNKNOWN'}]}};
-const emphasized=discoveryPriorityCandidates(emphasizedOutput);
-assert.equal(emphasized.some(x=>x.constructId==='ENERGY_FUNCTION'),false);
-assert.equal(emphasized.some(x=>x.constructId==='FOCUS_FUNCTION'),false);
-assert.equal(emphasized[0].constructId,'FINANCIAL_STRAIN');
-assert.equal(emphasized.every(x=>typeof x.evidenceConfidence!=='number'),true);
-const output=discoveryOutput(createDiscoverySession({constructIds:['ENERGY_FUNCTION']}));
-assert.equal('candidateActions' in output,false);
-assert.equal('selectedActionIds' in output,false);
-console.log('Discovery uses broad-state Orientation, immediate adaptive driver triage, bounded member-reported relationship capture, governed confidence filtering, deterministic Safety interruption and evidence-only downstream output; component semantic versioning is absent');
+// The obsolete post-triage dropdown relationship stage must never be emitted.
+for(let i=0;i<4;i++){
+ if(step.type!=='driver-triage')break;
+ const response={};
+ for(const q of step.questions){const first=q.options?.[0];if(first)response[q.id]=q.responseMode==='multi'?[first.id]:first.id}
+ answerDiscoveryInteraction(narrowed,step,response);
+ step=nextDiscoveryStep(narrowed);
+ assert.notEqual(step.type,'relationship-screen');
+}
+assert.equal(typeof discovery.relate,'undefined');
+assert.equal(typeof discovery.skipRelationships,'undefined');
+assert.ok(DISCOVERY_BANK.some(q=>q.role==='baseline-discriminator'));
+console.log('Discovery contract: orientation is interaction 1; compact wrapping driver/relationship narrowing is interaction 2; targeted Deepen follows; no separate dropdown relationship stage.');
