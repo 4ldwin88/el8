@@ -2,12 +2,20 @@ import assert from 'node:assert/strict';
 import {handoffAudit} from './sufficiency.js';
 import {selectNextQuestion} from './question-scheduler.js';
 
-const supported={constructId:'FINANCIAL_STRAIN',resolutionState:'triaged',qualitativeConfidence:'MODERATE',evidenceRefs:['obs:1'],safetyEscalationLevel:0,memberImportanceRank:3,driverKnown:false};
+const supported={constructId:'FINANCIAL_STRAIN',resolutionState:'triaged',qualitativeConfidence:'MODERATE',evidenceRefs:['obs:1'],safetyEscalationLevel:0,memberImportanceRank:3,driverKnown:false,specificityFrontier:3};
 const strong={...supported,constructId:'SLEEP_QUALITY',qualitativeConfidence:'WELL_SUPPORTED',evidenceRefs:['obs:2'],memberImportanceRank:3};
 let audit=handoffAudit([supported,strong]);
 assert.equal(audit.usable,true);
 assert.deepEqual(audit.blocking,[]);
 assert.deepEqual(audit.candidateIds,['FINANCIAL_STRAIN','SLEEP_QUALITY']);
+
+// Human QA regression: a well-supported surface concern must not become Planning-ready
+// before Discovery has obtained driver/context evidence or an explicit governed driver.
+audit=handoffAudit([{...supported,qualitativeConfidence:'WELL_SUPPORTED',specificityFrontier:2,driverKnown:false}]);
+assert.equal(audit.usable,false);
+assert.deepEqual(audit.blocking.map(x=>x.constructId),['FINANCIAL_STRAIN']);
+audit=handoffAudit([{...supported,qualitativeConfidence:'WELL_SUPPORTED',specificityFrontier:2,driverKnown:true}]);
+assert.equal(audit.usable,true);
 
 audit=handoffAudit([{...supported,qualitativeConfidence:'LIMITED'}]);
 assert.equal(audit.usable,false);
@@ -27,4 +35,4 @@ const decision=selectNextQuestion({candidates:[repeated,alternative],states:[sta
 assert.equal(decision.type,'question');
 assert.equal(decision.question.id,'Q-alt');
 
-console.log('G-02 human handoff regression: evidence-backed exhaustion is bounded; weak/safety states block; repetitive recall loses to equivalent lower-burden sequencing.');
+console.log('G-02 human handoff regression: Planning handoff requires driver/context depth; weak/safety states block; repetitive recall loses to equivalent lower-burden sequencing.');
