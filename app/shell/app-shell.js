@@ -54,7 +54,13 @@ export function createAppShell({active='home',routes={},profileInitial='',onTrac
   shell.append(profileButton,nav,trackButton);return shell;
 }
 export function mountAppShell(options={}){
-  const root=options.root||document.body;const existing=root.querySelector(':scope > .el8-app-shell');if(existing)return enhanceShell(existing,options);const shell=createAppShell(options);root.appendChild(shell);return enhanceShell(shell,options);
+  const root=options.root||document.body;
+  // Avoid :scope-dependent lookup here. Some mobile WebViews can render the
+  // structural shell while failing that selector, leaving Profile/Track unenhanced.
+  const active=options.active||pageFromLocation();
+  const existing=(active&&root.querySelector(`[data-static-shell="${active}"]`))||root.querySelector('.el8-app-shell');
+  if(existing)return enhanceShell(existing,options);
+  const shell=createAppShell(options);root.appendChild(shell);return enhanceShell(shell,options);
 }
 function pageFromLocation(){const file=(location.pathname.split('/').pop()||'home.html').toLowerCase();if(file==='plan.html')return'plan';if(file==='insights.html')return'insights';if(file==='explore.html')return'explore';if(file==='home.html'||file===''||file==='index.html')return'home';return null}
 const structuralPage=pageFromLocation();if(structuralPage&&document.body)mountAppShell({active:structuralPage});
