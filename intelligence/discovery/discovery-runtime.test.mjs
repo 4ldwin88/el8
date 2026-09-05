@@ -63,6 +63,24 @@ assert.equal(driverStep.interaction,'adaptive-driver-triage');
 assert.ok(driverStep.questions.some(q=>String(q.dimension).toUpperCase()==='PHYSICAL'));
 assert.equal(driverSession.asked.includes('Q000001'),false);
 
+const relationshipSession=createDiscoverySession({constructIds:['SLEEP_QUALITY','ENERGY_FUNCTION']});
+relationshipSession.phase='deepen';
+relationshipSession.triaged=true;
+relationshipSession.observationLog=Object.freeze([
+ makeObservation({id:'sleep:1',questionId:'SLEEP1',constructId:'SLEEP_QUALITY',specificityLevel:2,effects:[{type:'evidence',target:'SLEEP_QUALITY',polarity:'supports',strength:1,certainty:'definitive',sourceType:'direct',temporality:'current'}]}),
+ makeObservation({id:'energy:1',questionId:'ENERGY1',constructId:'ENERGY_FUNCTION',specificityLevel:2,effects:[{type:'evidence',target:'ENERGY_FUNCTION',polarity:'supports',strength:1,certainty:'definitive',sourceType:'direct',temporality:'current'}]})
+]);
+let relationshipStep=nextDiscoveryStep(relationshipSession);
+assert.equal(relationshipStep.type,'relationship-screen');
+assert.equal(relationshipStep.interaction,'contributor-effect-screen');
+discovery.relate(relationshipSession,{sourceConstructId:'SLEEP_QUALITY',targetConstructId:'ENERGY_FUNCTION'});
+const relatedEnergy=discovery.trace(relationshipSession).states.find(x=>x.constructId==='ENERGY_FUNCTION');
+assert.equal(relatedEnergy.driverKnown,true);
+assert.equal(relatedEnergy.specificityFrontier,3);
+assert.equal(relatedEnergy.relationships[0].source,'SLEEP_QUALITY');
+assert.equal(relatedEnergy.relationships[0].target,'ENERGY_FUNCTION');
+assert.equal(relatedEnergy.relationships[0].confidence,'member-reported');
+
 const homeSafety=DISCOVERY_BANK.find(q=>q.id===migrateLegacyRegistryId('ENV003'));
 assert.ok(homeSafety);
 const unsafeAnswer=homeSafety.options.find(o=>o.id===migrateLegacyRegistryId('ENV003.03'));
@@ -110,4 +128,4 @@ assert.equal(emphasized.every(x=>typeof x.evidenceConfidence!=='number'),true);
 const output=discoveryOutput(createDiscoverySession({constructIds:['ENERGY_FUNCTION']}));
 assert.equal('candidateActions' in output,false);
 assert.equal('selectedActionIds' in output,false);
-console.log('Discovery uses broad-state Orientation, immediate adaptive driver triage for difficult areas, governed confidence filtering, deterministic Safety interruption and evidence-only downstream output; component semantic versioning is absent');
+console.log('Discovery uses broad-state Orientation, immediate adaptive driver triage, bounded member-reported relationship capture, governed confidence filtering, deterministic Safety interruption and evidence-only downstream output; component semantic versioning is absent');
