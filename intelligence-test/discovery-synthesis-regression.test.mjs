@@ -27,7 +27,8 @@ assert.match(discovery,/className='response-matrix'/,'Repeated-scale Discovery i
 assert.match(discovery,/if\(current\.type==='matrix'\)\{renderMatrix\(/,'Matrix steps must route to the matrix renderer');
 assert.doesNotMatch(discovery,/if\(current\.type==='matrix'\)\{renderComposite/,'Matrix steps must not fall back to generic grouped choices');
 assert.match(discovery,/COMPACT_CHOICE_THRESHOLD=8/,'Distinct answer sets must remain stacked through seven choices and become compact at eight or more');
-assert.match(discovery,/if\(\(q\.options\|\|\[\]\)\.length>=COMPACT_CHOICE_THRESHOLD\)host\.classList\.add\('compact'\)/,'Choice density must apply the governed eight-choice threshold');
+assert.match(discovery,/if\(forceCompact\|\|\(q\.options\|\|\[\]\)\.length>=COMPACT_CHOICE_THRESHOLD\)host\.classList\.add\('compact'\)/,'Ordinary choice density must use the governed eight-choice threshold while explicitly compact relationship screens may opt in');
+assert.match(discovery,/selectionWidget\(q,choices,v=>answers\[q\.id\]=v,\{forceCompact:true\}\)/,'Driver relationship screen must explicitly use compact wrapping choices');
 assert.match(discovery,/if\(states\.length>=COMPACT_CHOICE_THRESHOLD\)options\.classList\.add\('choice-set','compact'\)/,'Focus triage choices must use the same governed density threshold');
 assert.match(chrome,/triage-answers\.choice-set:not\(\.compact\)/,'Non-compact grouped choices must remain stacked full-width');
 assert.match(chrome,/matrix-head\{background:transparent!important\}/,'Matrix heading must not have a background fill');
