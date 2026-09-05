@@ -1,22 +1,15 @@
 import { mountAppShell } from '../shell/app-shell.js';
+import { mountTrackSheet } from '../track/track-sheet.js';
 
-// Primary navigation is structural. Mount it as soon as the Plan module evaluates
-// so Track or plan-data failures cannot remove access to the rest of EL8.
-mountAppShell({ active: 'plan' });
-
-export async function mountPlanShell({ member, quickLogs = [], routes = {} } = {}) {
-  let trackSheet = null;
-  try {
-    const { mountTrackSheet } = await import('../track/track-sheet.js');
-    trackSheet = mountTrackSheet({ quickLogs });
-  } catch (error) {
-    console.error('EL8 Track failed to initialize on Plan; primary navigation remains available.', error);
-  }
+// Plan follows the same member-aware shell lifecycle as Insights and Explore:
+// structural HTML supplies first paint; the shell is enhanced once member data is ready.
+export function mountPlanShell({ member, quickLogs = [], routes = {} } = {}) {
+  const trackSheet = mountTrackSheet({ quickLogs });
   const shell = mountAppShell({
     active: 'plan',
     routes,
     profileInitial: member?.display_name || member?.full_name || 'M',
-    onTrack: trackSheet?.show || null
+    onTrack: trackSheet.show
   });
   document.documentElement.dataset.el8Surface = 'plan';
   return { shell, trackSheet };
