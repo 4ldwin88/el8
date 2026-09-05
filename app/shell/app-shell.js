@@ -1,7 +1,6 @@
 // EL8 canonical MVP member shell.
-// Route defaults are repository-root relative because the shell is mounted by
-// deployed member pages at the repository root. Feature modules may override
-// them explicitly when embedded elsewhere.
+// Primary navigation is structural: it mounts when this shared shell module
+// evaluates, before page-specific auth, profile, plan, or Track work can delay it.
 
 const DEFAULT_ROUTES = Object.freeze({
   home: 'home.html',
@@ -19,21 +18,10 @@ const ICONS = Object.freeze({
   track: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
 });
 
-function routeMap(overrides = {}) {
-  return { ...DEFAULT_ROUTES, ...overrides };
-}
+function routeMap(overrides = {}) { return { ...DEFAULT_ROUTES, ...overrides }; }
+function go(url) { if (url) window.location.href = url; }
 
-function go(url) {
-  if (url) window.location.href = url;
-}
-
-export function createAppShell({
-  active = 'home',
-  routes = {},
-  profileInitial = 'M',
-  onTrack = null,
-  onProfile = null
-} = {}) {
+export function createAppShell({ active = 'home', routes = {}, profileInitial = 'M', onTrack = null, onProfile = null } = {}) {
   const resolved = routeMap(routes);
   const shell = document.createElement('div');
   shell.className = 'el8-app-shell';
@@ -50,7 +38,6 @@ export function createAppShell({
   nav.setAttribute('aria-label', 'Primary');
   const navInner = document.createElement('div');
   navInner.className = 'el8-shell-nav-inner';
-
   for (const key of ['home', 'plan', 'insights', 'explore']) {
     const button = document.createElement('button');
     button.type = 'button';
@@ -67,10 +54,7 @@ export function createAppShell({
   trackButton.className = 'el8-shell-track';
   trackButton.setAttribute('aria-label', 'Track or quick log');
   trackButton.innerHTML = `${ICONS.track}<span>Track</span>`;
-  trackButton.addEventListener('click', () => {
-    if (onTrack) onTrack();
-    else document.dispatchEvent(new CustomEvent('el8:track-requested'));
-  });
+  trackButton.addEventListener('click', () => onTrack ? onTrack() : document.dispatchEvent(new CustomEvent('el8:track-requested')));
 
   shell.append(profileButton, nav, trackButton);
   return shell;
@@ -84,5 +68,17 @@ export function mountAppShell(options = {}) {
   root.appendChild(shell);
   return shell;
 }
+
+function pageFromLocation() {
+  const file = (location.pathname.split('/').pop() || 'home.html').toLowerCase();
+  if (file === 'plan.html') return 'plan';
+  if (file === 'insights.html') return 'insights';
+  if (file === 'explore.html') return 'explore';
+  if (file === 'home.html' || file === '' || file === 'index.html') return 'home';
+  return null;
+}
+
+const structuralPage = pageFromLocation();
+if (structuralPage && document.body) mountAppShell({ active: structuralPage });
 
 export const EL8_MVP_DESTINATIONS = Object.freeze(['home', 'plan', 'insights', 'explore']);
