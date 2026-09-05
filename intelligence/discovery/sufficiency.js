@@ -10,23 +10,30 @@ export function coverageAudit(states) {
   return {complete: unresolved.length === 0, unresolved};
 }
 
+function decisionUsefulState(state={}) {
+  if ((state.safetyEscalationLevel ?? 0) > 0) return false;
+  if (!usableConfidence.has(state.qualitativeConfidence)) return false;
+  if (!(state.evidenceRefs?.length > 0)) return false;
+  // A surface-state answer is not enough to hand a concern to Planning. Discovery
+  // must either reach driver/context depth (specificity 3), explicitly establish a
+  // governed driver, or terminate the construct through a governed resolution.
+  // This preserves uncertainty without allowing premature Planning-ready handoff.
+  return state.driverKnown === true || (state.specificityFrontier ?? 0) >= 3;
+}
+
 // Discovery may legitimately stop with unresolved constructs when the available
-// governed bank has nothing else useful to ask. That is different from having no
-// decision-useful evidence. A bounded handoff is allowed only when every unresolved
-// state has direct evidence and at least moderate qualitative confidence; unresolved
-// safety never qualifies.
+// governed bank has nothing else useful to ask. A bounded handoff is allowed only
+// when every unresolved state has decision-useful evidence; unresolved safety never
+// qualifies. Driver/context depth is required so a supported surface concern cannot
+// silently become Planning-ready before Narrow/Deepen has done its job.
 export function handoffAudit(states) {
   const unresolved = states.filter(s => !terminal.has(s.resolutionState));
-  const blocking = unresolved.filter(s =>
-    (s.safetyEscalationLevel ?? 0) > 0 ||
-    !usableConfidence.has(s.qualitativeConfidence) ||
-    !(s.evidenceRefs?.length > 0)
-  );
+  const blocking = unresolved.filter(s => !decisionUsefulState(s));
   return {
     usable: states.length > 0 && blocking.length === 0,
     unresolved,
     blocking,
-    candidateIds: unresolved.filter(s => usableConfidence.has(s.qualitativeConfidence) && (s.evidenceRefs?.length > 0)).map(s => s.constructId)
+    candidateIds: unresolved.filter(decisionUsefulState).map(s => s.constructId)
   };
 }
 
