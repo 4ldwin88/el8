@@ -4,6 +4,12 @@
 import { mountAppShell } from '../shell/app-shell.js';
 import { mountTrackSheet } from '../track/track-sheet.js';
 
+// The primary member shell is structural navigation and must not depend on
+// Quick Log, Plan, or other secondary data succeeding. Mount a safe shell as
+// soon as the Home module loads; mountHome() below refreshes it with member
+// context and Track behavior once those dependencies are available.
+mountAppShell({ active: 'home' });
+
 export async function mountHome({ member, plan, quickLogs = [], routes = {} } = {}) {
   const trackSheet = mountTrackSheet({ quickLogs });
   const shell = mountAppShell({
