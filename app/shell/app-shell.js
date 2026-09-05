@@ -9,11 +9,12 @@ const ICONS = Object.freeze({
   plan: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M8 11h8M8 15h5"/></svg>',
   insights: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/></svg>',
   explore: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="m15 9-2 4-4 2 2-4z"/></svg>',
-  track: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
+  track: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  profile: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c.7-4.2 2.9-6.2 6.5-6.2s5.8 2 6.5 6.2"/></svg>'
 });
 function routeMap(overrides={}){return{...DEFAULT_ROUTES,...overrides}}
 function go(url){if(url)window.location.href=url}
-function initialMarkup(initial){return String(initial||'').trim().slice(0,1).toUpperCase()}
+function initialMarkup(initial){const value=String(initial||'').trim();return value?value.slice(0,1).toUpperCase():ICONS.profile}
 function drawerMarkup(resolved, initial){return `<div class="el8-profile-backdrop" data-profile-close></div><aside class="el8-profile-drawer" role="dialog" aria-modal="true" aria-label="Profile menu" tabindex="-1"><div class="el8-profile-drawer-head"><span class="el8-shell-avatar">${initialMarkup(initial)}</span><div><strong>Profile</strong><small>Your EL8 account</small></div><button type="button" class="el8-profile-close" data-profile-close aria-label="Close Profile menu">×</button></div><nav class="el8-profile-menu" aria-label="Profile"><a href="${resolved.profile}">Profile & history <span>›</span></a><a href="personal-info.html?return=profile">Personal information <span>›</span></a><a href="privacy-data.html">Privacy & data <span>›</span></a></nav></aside>`}
 function installDrawer(shell,resolved,initial,trigger){
   const host=document.createElement('div');host.className='el8-profile-drawer-host';host.hidden=true;host.innerHTML=drawerMarkup(resolved,initial);document.body.appendChild(host);
@@ -29,9 +30,14 @@ function installDrawer(shell,resolved,initial,trigger){
 }
 function installScrollBehavior(shell){
   const nav=shell.querySelector('.el8-shell-nav'),track=shell.querySelector('.el8-shell-track');if(!nav)return;
-  let last=Math.max(0,window.scrollY),travel=0,dir=0,ticking=false;
-  const paint=()=>{const y=Math.max(0,window.scrollY),delta=y-last,nextDir=delta>0?1:delta<0?-1:0;if(nextDir&&nextDir!==dir){travel=0;dir=nextDir}travel+=Math.abs(delta);if(y<36||dir<0&&travel>=18){nav.classList.remove('is-hidden');track?.classList.remove('nav-hidden');travel=0}else if(dir>0&&y>90&&travel>=56){nav.classList.add('is-hidden');track?.classList.add('nav-hidden');travel=0}last=y;ticking=false};
-  window.addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(paint)}},{passive:true});
+  if(shell._el8ScrollHandler)window.removeEventListener('scroll',shell._el8ScrollHandler);
+  let last=Math.max(0,window.scrollY),down=0,up=0,ticking=false;
+  const paint=()=>{const y=Math.max(0,window.scrollY),delta=y-last;
+    if(y<28){nav.classList.remove('is-hidden');track?.classList.remove('nav-hidden');down=0;up=0}
+    else if(delta>0){down+=delta;up=0;if(y>72&&down>=28){nav.classList.add('is-hidden');track?.classList.add('nav-hidden');down=0}}
+    else if(delta<0){up+=-delta;down=0;if(up>=12){nav.classList.remove('is-hidden');track?.classList.remove('nav-hidden');up=0}}
+    last=y;ticking=false};
+  const handler=()=>{if(!ticking){ticking=true;requestAnimationFrame(paint)}};shell._el8ScrollHandler=handler;window.addEventListener('scroll',handler,{passive:true});
 }
 function wireNavigation(shell,active,resolved){
   const items=[...shell.querySelectorAll('.el8-shell-nav-item')];
@@ -55,8 +61,6 @@ export function createAppShell({active='home',routes={},profileInitial='',onTrac
 }
 export function mountAppShell(options={}){
   const root=options.root||document.body;
-  // Avoid :scope-dependent lookup here. Some mobile WebViews can render the
-  // structural shell while failing that selector, leaving Profile/Track unenhanced.
   const active=options.active||pageFromLocation();
   const existing=(active&&root.querySelector(`[data-static-shell="${active}"]`))||root.querySelector('.el8-app-shell');
   if(existing)return enhanceShell(existing,options);
