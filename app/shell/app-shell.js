@@ -13,7 +13,7 @@ const ICONS = Object.freeze({
 });
 function routeMap(overrides={}){return{...DEFAULT_ROUTES,...overrides}}
 function go(url){if(url)window.location.href=url}
-function initialMarkup(initial){const value=String(initial||'').trim().slice(0,1).toUpperCase();return value||'<span aria-hidden="true">•</span>'}
+function initialMarkup(initial){return String(initial||'').trim().slice(0,1).toUpperCase()}
 function drawerMarkup(resolved, initial){return `<div class="el8-profile-backdrop" data-profile-close></div><aside class="el8-profile-drawer" role="dialog" aria-modal="true" aria-label="Profile menu" tabindex="-1"><div class="el8-profile-drawer-head"><span class="el8-shell-avatar">${initialMarkup(initial)}</span><div><strong>Profile</strong><small>Your EL8 account</small></div><button type="button" class="el8-profile-close" data-profile-close aria-label="Close Profile menu">×</button></div><nav class="el8-profile-menu" aria-label="Profile"><a href="${resolved.profile}">Profile & history <span>›</span></a><a href="personal-info.html?return=profile">Personal information <span>›</span></a><a href="privacy-data.html">Privacy & data <span>›</span></a></nav></aside>`}
 function installDrawer(shell,resolved,initial,trigger){
   const host=document.createElement('div');host.className='el8-profile-drawer-host';host.hidden=true;host.innerHTML=drawerMarkup(resolved,initial);document.body.appendChild(host);
