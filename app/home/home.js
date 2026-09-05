@@ -2,21 +2,26 @@
 // Reads the accepted Active Plan contract without introducing a second plan store.
 
 import { mountAppShell } from '../shell/app-shell.js';
-import { mountTrackSheet } from '../track/track-sheet.js';
 
-// The primary member shell is structural navigation and must not depend on
-// Quick Log, Plan, or other secondary data succeeding. Mount a safe shell as
-// soon as the Home module loads; mountHome() below refreshes it with member
-// context and Track behavior once those dependencies are available.
+// Primary navigation is structural and must survive failures in secondary Home
+// dependencies. Keep this module's static dependency graph limited to the shell,
+// mount it immediately, and load Track only when the richer Home surface mounts.
 mountAppShell({ active: 'home' });
 
 export async function mountHome({ member, plan, quickLogs = [], routes = {} } = {}) {
-  const trackSheet = mountTrackSheet({ quickLogs });
+  let trackSheet = null;
+  try {
+    const { mountTrackSheet } = await import('../track/track-sheet.js');
+    trackSheet = mountTrackSheet({ quickLogs });
+  } catch (error) {
+    console.error('EL8 Track failed to initialize; primary navigation remains available.', error);
+  }
+
   const shell = mountAppShell({
     active: 'home',
     routes,
     profileInitial: member?.display_name || member?.full_name || 'M',
-    onTrack: trackSheet.show
+    onTrack: trackSheet?.show || null
   });
 
   document.documentElement.dataset.el8Surface = 'home';
