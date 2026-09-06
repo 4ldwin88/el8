@@ -52,17 +52,24 @@ const financialDriver=step.questions.find(q=>String(q.dimension).toUpperCase()==
 assert.ok(financialDriver.options.length>=6&&financialDriver.options.length<=12);
 assert.ok(financialDriver.options.every(o=>o.text.length<=24));
 for(const label of ['Not sure','None','Something else'])assert.ok(financialDriver.options.some(o=>o.text===label),`Financial Q2 must include ${label}`);
-const notSure=financialDriver.options.find(o=>o.text==='Not sure');
-assert.deepEqual(constructsForAnswer(financialDriver,notSure.id),[]);
-assert.equal(observationsForAnswer(financialDriver,notSure.id,{timestamp:2})[0]?.effects.length,0);
+for(const label of ['Not sure','None','Something else']){
+ const option=financialDriver.options.find(o=>o.text===label);
+ assert.deepEqual(constructsForAnswer(financialDriver,option.id),[],`${label} must not fabricate a construct`);
+ assert.equal(observationsForAnswer(financialDriver,option.id,{timestamp:2})[0]?.effects.length,0,`${label} must not fabricate evidence`);
+}
 const income=financialDriver.options.find(o=>o.text==='Income / work');
 assert.ok(income);
+assert.deepEqual(constructsForAnswer(financialDriver,income.id),['JOB_SECURITY']);
+assert.equal(observationsForAnswer(financialDriver,income.id,{timestamp:2})[0]?.effects.length,0,'Q2 relationship selection must remain a routing hypothesis, not evidence');
 answerDiscoveryInteraction(narrowed,step,{[financialDriver.id]:[income.id]});
 assert.ok(narrowed.constructIds.includes('JOB_SECURITY'));
-assert.equal(narrowed.driverKnown.JOB_SECURITY??false,false);
+assert.equal(narrowed.driverKnown.JOB_SECURITY??false,false,'Q2 hypothesis must not establish a known driver');
 step=nextDiscoveryStep(narrowed);
 assert.notEqual(step.type,'relationship-screen');
 assert.notEqual(step.type,'driver-triage');
+assert.equal(step.type,'question','A selected Q2 hypothesis must route directly into targeted Deepen when governed evidence questions exist');
+const deepenTargets=step.question.constructIds?.length?step.question.constructIds:[step.question.constructId].filter(Boolean);
+assert.ok(deepenTargets.includes('JOB_SECURITY'),'Targeted Deepen must investigate the selected Q2 hypothesis');
 
 const safetyQuestion=DISCOVERY_BANK.find(q=>q.id==='Q000001');
 const unsafe=safetyContextForAnswer(safetyQuestion,'A000002');
