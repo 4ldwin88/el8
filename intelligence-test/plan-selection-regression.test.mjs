@@ -4,7 +4,8 @@ import fs from 'node:fs';
 const html=fs.readFileSync(new URL('./plan.html',import.meta.url),'utf8');
 
 // Protect governed Planning behavior and member agency, not incidental prototype copy/CSS.
-assert.match(html,/These Actions are supported by your confirmed Focus and the evidence EL8 has so far\./,'Plan must explain the evidence/Focus basis for recommendations');
+assert.match(html,/Each recommendation shows what to do, how long to try it, what to track, and any tools EL8 will use with you\./,'Plan must explain the member-facing recommendation package');
+assert.match(html,/supportingFocusIds/,'Plan recommendation evidence must retain the confirmed Focus basis');
 assert.match(html,/data-id="\$\{esc\(id\)\}"/,'Plan must expose selectable Action cards by canonical Action identity');
 assert.match(html,/selected\.has\(id\)\?'remove':'add'/,'Plan must let the member add or remove proposed Actions');
 assert.match(html,/Choose an Action, or change your Focus\./,'Plan must not finish an Action-bearing proposal with no member-selected Action');
