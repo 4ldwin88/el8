@@ -30,8 +30,13 @@ assert.match(discovery,/label==='something else'/,'Something-else answers must b
 assert.match(discovery,/className='other-input'/,'Something else must expose a text field');
 assert.match(discovery,/Tell EL8 what fits instead/,'Something else must require useful member text');
 assert.match(discovery,/padding:9px 11px/,'Ordinary Discovery answers must use tightened human-QA density');
-assert.match(discovery,/className='triage-question'/,'Driver and severity triage must display the predicate for each response row');
-assert.match(discovery,/q\.text\|\|q\.label/,'Driver and severity triage must show the actual member-facing question');
+assert.match(discovery,/function sharedScaleMatrix\(/,'Discovery must provide one shared-scale matrix renderer');
+assert.match(discovery,/function renderDriverScreen\(\).*sharedScaleMatrix\(qs,answers,\{labelsOnly:true\}\)/,'Driver and severity triage must combine repeated answers into one shared scale');
+assert.doesNotMatch(discovery,/function renderDriverScreen\(\).*selectionWidget\(q,choices/s,'Driver triage must not repeat a full answer set beneath every row');
+assert.match(discovery,/--scale-count/,'Shared-scale matrix must size itself to the actual answer scale');
+assert.match(discovery,/min-height:38px/,'Graph triage rows must remain compact');
+assert.match(runtime,/combineOptions:true/,'Graph triage runtime must explicitly require combined answer presentation');
+assert.match(runtime,/compactMatrix:true/,'Graph triage runtime must explicitly require compact matrix presentation');
 assert.match(runtime,/showDimensionLabels:true/,'Graph triage must preserve member-facing labels');
 assert.match(runtime,/value==='no'\?'reject':value==='yes'\?'accept':'unknown'/,'Not sure must remain unknown rather than being treated as accepted driver evidence');
 assert.match(chrome,/matrix-head\{background:transparent!important\}/,'Matrix heading must not have a background fill');
