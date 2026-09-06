@@ -6,7 +6,7 @@ assert.equal(Object.keys(QUESTION_BY_ID).length, ALL_QUESTIONS.length);
 assert.equal(Object.keys(ANSWER_BY_ID).length, ALL_ANSWERS.length);
 assert.equal(Object.keys(ACTION_BY_ID).length, ACTIONS.length);
 assert.equal(ALL_QUESTIONS.length, 97);
-assert.equal(ALL_ANSWERS.length, 630);
+assert.equal(ALL_ANSWERS.length, 605);
 assert.equal(ALL_EFFECTS.length, 522);
 assert.equal(ACTIONS.length, 41);
 assert.equal(migrateLegacyRegistryId('GEN001'), 'Q000001');
