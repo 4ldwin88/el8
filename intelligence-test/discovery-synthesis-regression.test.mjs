@@ -35,6 +35,9 @@ assert.match(discovery,/function renderDriverScreen\(\).*sharedScaleMatrix\(qs,a
 assert.doesNotMatch(discovery,/function renderDriverScreen\(\).*selectionWidget\(q,choices/s,'Driver triage must not repeat a full answer set beneath every row');
 assert.match(discovery,/--scale-count/,'Shared-scale matrix must size itself to the actual answer scale');
 assert.match(discovery,/min-height:38px/,'Graph triage rows must remain compact');
+assert.match(discovery,/Could each of these be connected to what you’re experiencing\?/,'Graph driver triage must state the proposition that Yes, No and Not sure answer');
+assert.match(discovery,/choose Yes if it seems connected, No if it does not, or Not sure/,'Graph driver triage must explain the shared response scale in member language');
+assert.match(discovery,/How much is each of these affecting your day-to-day life\?/,'Severity triage must state the proposition its shared scale answers');
 assert.match(runtime,/combineOptions:true/,'Graph triage runtime must explicitly require combined answer presentation');
 assert.match(runtime,/compactMatrix:true/,'Graph triage runtime must explicitly require compact matrix presentation');
 assert.match(runtime,/showDimensionLabels:true/,'Graph triage must preserve member-facing labels');
@@ -47,6 +50,10 @@ assert.match(chrome,/z-index:2147483647/,'Global QA Exit must remain above page 
 assert.match(priorities,/installQaChrome\(\{stage:'focus',screenId:'focus-confirmation'\}\);const/,'Focus must install QA chrome before loading optional engine modules');
 assert.match(priorities,/Best current starting point/,'Focus must expose the best current starting point instead of flattening every candidate to the same label');
 assert.match(priorities,/causal leverage/,'Focus must explain causal leverage when Discovery provides it');
+assert.match(priorities,/none\.onclick=\(\)=>\{rejectAllSelected=!rejectAllSelected/,'None-of-these must select a reconsiderable choice instead of navigating immediately');
+assert.doesNotMatch(priorities,/\$\('none'\)\.onclick=\(\)=>persistFocus\(true\)/,'Focus must never advance immediately when None of these is selected');
+assert.match(priorities,/await persistFocus\(rejectAllSelected\)/,'Only the explicit Continue action may commit the current Focus choice');
+assert.match(priorities,/Press Continue to confirm that none of these fit/,'Focus must tell the member that selection is not yet committed');
 assert.doesNotMatch(priorities,/<h1>Choose where you want to start\.<\/h1>/,'Focus must not retain the oversized redundant heading flagged in human QA');
 assert.doesNotMatch(plan,/<h1>Your starting plan<\/h1>/,'Plan must not retain the oversized redundant heading flagged in human QA');
 assert.doesNotMatch(plan,/id="focusStatus"/,'Plan must not repeat the confirmed Focus as a separate member-facing block');
