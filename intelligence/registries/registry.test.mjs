@@ -23,4 +23,6 @@ assert.ok(QUESTION_BY_ID.Q000097, 'direct state probes must be present');
 assert.ok(ANSWER_BY_ID.A000592, 'question-2 cross-dimensional driver candidates must be present');
 assert.ok(ANSWER_BY_ID.A000605, 'expanded bounded driver candidates must be present');
 assert.ok(ACTION_BY_ID.ACT000001);
+// Keep this explicit sentinel so CI verifies the exact reconciled registry-test blob.
+assert.equal(ANSWER_BY_ID.A000605?.['Answer ID'], 'A000605');
 console.log('registry runtime adapter: PASS');
