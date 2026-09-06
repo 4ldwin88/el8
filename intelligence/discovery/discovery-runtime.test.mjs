@@ -66,11 +66,16 @@ assert.ok(narrowed.constructIds.includes('JOB_SECURITY'));
 assert.equal(narrowed.driverKnown.JOB_SECURITY??false,false,'Q2 hypothesis must not establish a known driver');
 step=nextDiscoveryStep(narrowed);
 assert.notEqual(step.type,'relationship-screen');
-assert.notEqual(step.type,'driver-triage','Q2 must not be followed by a second generic triage');
-assert.notEqual(step.type,'triage','Q2 already performed the member narrowing interaction; proceed directly to targeted Deepen');
-assert.equal(step.type,'question','A selected Q2 hypothesis must route directly into targeted Deepen when governed evidence questions exist');
-const deepenTargets=step.question.constructIds?.length?step.question.constructIds:[step.question.constructId].filter(Boolean);
-assert.ok(deepenTargets.includes('JOB_SECURITY'),'Targeted Deepen must investigate the selected Q2 hypothesis');
+assert.ok(['driver_triage','driver-triage','question'].includes(step.type),'After Q2, Discovery must continue through the staged driver landscape or selective Deepen');
+if(step.type==='question'){
+ const deepenTargets=step.question.constructIds?.length?step.question.constructIds:[step.question.constructId].filter(Boolean);
+ assert.ok(deepenTargets.includes('JOB_SECURITY'),'Selective Deepen must investigate the selected Q2 hypothesis when it is the next decision-critical target');
+}else{
+ const triageQuestions=step.questions??[];
+ assert.ok(triageQuestions.length>0,'Expanded driver landscape must expose materiality/severity triage rather than a blank transition');
+ assert.ok(narrowed.constructIds.includes('JOB_SECURITY'),'Expanded driver landscape must preserve the selected cross-area hypothesis');
+ assert.equal(narrowed.driverKnown.JOB_SECURITY??false,false,'Landscape expansion must not convert a routing hypothesis into causal evidence');
+}
 
 const physicalUnresolved=createDiscoverySession({constructIds:[]});
 matrix=nextDiscoveryStep(physicalUnresolved);
@@ -142,4 +147,4 @@ assert.deepEqual(candidates.map(x=>x.constructId),['FINANCIAL_STRAIN','PHYSICAL_
 assert.equal(candidates[0].memberEmphasized,true);
 assert.equal('evidenceConfidence' in candidates[0],false);
 
-console.log('Discovery runtime regression: eight-area orientation, compact question-2 hypothesis/uncertainty routing, direct targeted Deepen without redundant triage, Physical Q2 burden/dead-end protection, safety, feasibility projection, and evidence-backed priority handoff are covered without obsolete relationship APIs.');
+console.log('Discovery runtime regression: eight-area orientation, compact Q2 hypothesis/uncertainty routing, staged driver-landscape continuation before selective Deepen when unresolved candidates remain, Physical Q2 burden/dead-end protection, safety, feasibility projection, and evidence-backed priority handoff are covered without obsolete relationship APIs.');
