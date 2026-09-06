@@ -51,6 +51,10 @@ assert.equal(narrowed.asked.includes('Q000001'),false);
 const financialDriver=step.questions.find(q=>String(q.dimension).toUpperCase()==='FINANCIAL');
 assert.ok(financialDriver.options.length>=6&&financialDriver.options.length<=12);
 assert.ok(financialDriver.options.every(o=>o.text.length<=24));
+for(const label of ['Not sure','None','Something else'])assert.ok(financialDriver.options.some(o=>o.text===label),`Financial Q2 must include ${label}`);
+const notSure=financialDriver.options.find(o=>o.text==='Not sure');
+assert.deepEqual(constructsForAnswer(financialDriver,notSure.id),[]);
+assert.equal(observationsForAnswer(financialDriver,notSure.id,{timestamp:2})[0]?.effects.length,0);
 const income=financialDriver.options.find(o=>o.text==='Income / work');
 assert.ok(income);
 answerDiscoveryInteraction(narrowed,step,{[financialDriver.id]:[income.id]});
@@ -95,4 +99,4 @@ assert.deepEqual(candidates.map(x=>x.constructId),['FINANCIAL_STRAIN','PHYSICAL_
 assert.equal(candidates[0].memberEmphasized,true);
 assert.equal('evidenceConfidence' in candidates[0],false);
 
-console.log('Discovery runtime regression: eight-area orientation, compact question-2 hypothesis routing, targeted Deepen transition, safety, feasibility projection, and evidence-backed priority handoff are covered without obsolete relationship APIs.');
+console.log('Discovery runtime regression: eight-area orientation, compact question-2 hypothesis/uncertainty routing, targeted Deepen transition, safety, feasibility projection, and evidence-backed priority handoff are covered without obsolete relationship APIs.');
