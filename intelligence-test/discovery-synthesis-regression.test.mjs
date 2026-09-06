@@ -27,7 +27,13 @@ assert.match(discovery,/className='response-matrix'/,'Repeated-scale Discovery i
 assert.match(discovery,/if\(current\.type==='matrix'\)\{renderMatrix\(/,'Matrix steps must route to the matrix renderer');
 assert.doesNotMatch(discovery,/if\(current\.type==='matrix'\)\{renderComposite/,'Matrix steps must not fall back to generic grouped choices');
 assert.match(discovery,/COMPACT_CHOICE_THRESHOLD=8/,'Distinct answer sets must remain stacked through seven choices and become compact at eight or more');
-assert.match(discovery,/if\(forceCompact\|\|\(q\.options\|\|\[\]\)\.length>=COMPACT_CHOICE_THRESHOLD\)host\.classList\.add\('compact'\)/,'Ordinary choice density must use the governed eight-choice threshold while explicitly compact relationship screens may opt in');
+assert.match(discovery,/function presentedOptions\(raw=\[\]\)/,'Discovery choices must pass through one presentation-normalization boundary');
+assert.match(discovery,/seen\.has\(key\)/,'Presentation normalization must collapse repeated semantic answer labels');
+assert.match(discovery,/function optionTailRank\(o=\{\}\)/,'Presentation normalization must define governed tail ordering');
+assert.match(discovery,/label==='none of these'/,'None-style answers must be recognized for tail ordering');
+assert.match(discovery,/label==='something else'/,'Something-else answers must be recognized for tail ordering');
+assert.match(discovery,/const shown=presentedOptions\(q\.options\|\|\[\]\)/,'Ordinary choices must render the normalized presentation set');
+assert.match(discovery,/if\(forceCompact\|\|shown\.length>=COMPACT_CHOICE_THRESHOLD\)host\.classList\.add\('compact'\)/,'Ordinary choice density must use the normalized eight-choice threshold while explicitly compact relationship screens may opt in');
 assert.match(discovery,/selectionWidget\(q,choices,v=>answers\[q\.id\]=v,\{forceCompact:true\}\)/,'Driver relationship screen must explicitly use compact wrapping choices');
 assert.match(discovery,/if\(states\.length>=COMPACT_CHOICE_THRESHOLD\)options\.classList\.add\('choice-set','compact'\)/,'Focus triage choices must use the same governed density threshold');
 assert.match(chrome,/triage-answers\.choice-set:not\(\.compact\)/,'Non-compact grouped choices must remain stacked full-width');
@@ -41,4 +47,4 @@ assert.match(priorities,/installQaChrome\(\{stage:'focus',screenId:'focus-confir
 assert.match(priorities,/import\('\.\.\/intelligence\/planning\/planningEngine\.js'\)/,'Focus must import the existing canonical Planning engine');
 assert.doesNotMatch(priorities,/canonical-plan-engine\.js/,'Focus must not import the removed canonical-plan-engine module');
 assert.match(priorities,/const\[\{prioritizeCandidates\}/,'Focus engine dependencies must load after QA chrome is operational');
-console.log('Human-QA entry, Discovery interaction-density, Focus boot, matrix presentation, and QA architecture regression passed');
+console.log('Human-QA entry, Discovery answer normalization, interaction-density, Focus boot, matrix presentation, and QA architecture regression passed');
