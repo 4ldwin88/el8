@@ -41,6 +41,16 @@ for(const candidate of landscape.candidates){
  assert.ok(candidate.sourcePaths.length>=1,'expanded driver must retain provenance path');
  assert.equal(new Set(candidate.sourcePaths).size,candidate.sourcePaths.length,'duplicate evidence paths must collapse without losing provenance');
 }
+const relatedCandidate=landscape.candidates[0];
+assert.ok(relatedCandidate,'activity seed must expose at least one governed relationship candidate');
+const acceptedOrchestration=createDiscoveryOrchestration({areas:[area('physical')],constructStates:[node('ACTIVITY_LEVEL')],questionBank:[],driverSelections:{[relatedCandidate.constructId]:'accept'},severityResponses:{ACTIVITY_LEVEL:{severity:.8,frequency:.8,functionalImpact:.8,memberImportance:.8}}});
+const acceptedNode=acceptedOrchestration.driverGraph.nodes.find(x=>x.constructId===relatedCandidate.constructId);
+assert.ok(acceptedNode,'accepted relationship-derived candidate must materialize as one canonical graph node');
+assert.ok(acceptedNode.provenanceRefs.some(ref=>ref.startsWith('relationship:')),'accepted candidate must retain relationship provenance');
+assert.ok(acceptedNode.provenanceRefs.some(ref=>ref.startsWith('relationship_path:')),'accepted candidate must retain relationship path provenance');
+const rejectedOrchestration=createDiscoveryOrchestration({areas:[area('physical')],constructStates:[node('ACTIVITY_LEVEL')],questionBank:[],driverSelections:{[relatedCandidate.constructId]:'reject'},severityResponses:{ACTIVITY_LEVEL:{severity:.8,frequency:.8,functionalImpact:.8,memberImportance:.8}}});
+assert.equal(rejectedOrchestration.driverDispositions[relatedCandidate.constructId],'rejected','rejected landscape candidate must retain explicit no-silent-loss disposition');
+assert.ok(!rejectedOrchestration.driverGraph.nodes.some(x=>x.constructId===relatedCandidate.constructId),'rejected candidate must not become an active graph node');
 
 const triaged=deriveSeverityMateriality([node('ACTIVITY_LEVEL')],{ACTIVITY_LEVEL:{severity:.9,frequency:.8,functionalImpact:.7,memberImportance:.9}});
 assert.equal(triaged[0].triageDisposition,'major');
@@ -69,4 +79,4 @@ assert.equal(allAreas.areaPriority.length,8,'all-eight orientation must survive 
 assert.deepEqual(new Set(allAreas.driverGraph.nodes.map(x=>x.constructId)),new Set(['ACTIVITY_LEVEL','SLEEP_QUALITY','FINANCIAL_STRAIN']),'broad cases must not silently drop supported canonical drivers');
 assert.ok(allAreas.investigationBudget<8,'broad cases should compress investigation burden instead of forcing one deepening stream per area');
 
-console.log('Final Discovery architecture cardinality invariants: 1/2/4/8-area preservation, canonical driver dedupe with provenance, no-silent-loss dispositions, bounded landscape expansion, severity/materiality, uncertain leverage hypotheses, selective deepening, low-concern collapse, and broad-case compression are covered.');
+console.log('Final Discovery architecture cardinality invariants: 1/2/4/8-area preservation, canonical driver dedupe with provenance, accepted relationship-candidate materialization, explicit rejection dispositions, no-silent-loss, bounded landscape expansion, severity/materiality, uncertain leverage hypotheses, selective deepening, low-concern collapse, and broad-case compression are covered.');
