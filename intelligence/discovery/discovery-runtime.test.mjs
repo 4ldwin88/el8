@@ -66,14 +66,12 @@ assert.ok(narrowed.constructIds.includes('JOB_SECURITY'));
 assert.equal(narrowed.driverKnown.JOB_SECURITY??false,false,'Q2 hypothesis must not establish a known driver');
 step=nextDiscoveryStep(narrowed);
 assert.notEqual(step.type,'relationship-screen');
-assert.notEqual(step.type,'driver-triage');
+assert.notEqual(step.type,'driver-triage','Q2 must not be followed by a second generic triage');
+assert.notEqual(step.type,'triage','Q2 already performed the member narrowing interaction; proceed directly to targeted Deepen');
 assert.equal(step.type,'question','A selected Q2 hypothesis must route directly into targeted Deepen when governed evidence questions exist');
 const deepenTargets=step.question.constructIds?.length?step.question.constructIds:[step.question.constructId].filter(Boolean);
 assert.ok(deepenTargets.includes('JOB_SECURITY'),'Targeted Deepen must investigate the selected Q2 hypothesis');
 
-// Regression for the .11 Physical burden/dead-end finding: a broad Physical
-// difficulty must not silently turn into a body/weight concern. Q000018 is only a
-// valid Deepen probe after the member explicitly selects Weight / body in Q2.
 const physicalUnresolved=createDiscoverySession({constructIds:[]});
 matrix=nextDiscoveryStep(physicalUnresolved);
 answers={};
@@ -144,4 +142,4 @@ assert.deepEqual(candidates.map(x=>x.constructId),['FINANCIAL_STRAIN','PHYSICAL_
 assert.equal(candidates[0].memberEmphasized,true);
 assert.equal('evidenceConfidence' in candidates[0],false);
 
-console.log('Discovery runtime regression: eight-area orientation, compact question-2 hypothesis/uncertainty routing, targeted Deepen transition, Physical Q2 burden/dead-end protection, safety, feasibility projection, and evidence-backed priority handoff are covered without obsolete relationship APIs.');
+console.log('Discovery runtime regression: eight-area orientation, compact question-2 hypothesis/uncertainty routing, direct targeted Deepen without redundant triage, Physical Q2 burden/dead-end protection, safety, feasibility projection, and evidence-backed priority handoff are covered without obsolete relationship APIs.');
