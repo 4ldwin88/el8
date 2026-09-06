@@ -10,30 +10,35 @@ export function coverageAudit(states) {
   return {complete: unresolved.length === 0, unresolved};
 }
 
-function decisionUsefulState(state={}) {
+function evidenceUsable(state={}) {
   if ((state.safetyEscalationLevel ?? 0) > 0) return false;
   if (!usableConfidence.has(state.qualitativeConfidence)) return false;
-  if (!(state.evidenceRefs?.length > 0)) return false;
-  // A surface-state answer is not enough to hand a concern to Planning. Discovery
-  // must either reach driver/context depth (specificity 3), explicitly establish a
-  // governed driver, or terminate the construct through a governed resolution.
-  // This preserves uncertainty without allowing premature Planning-ready handoff.
-  return state.driverKnown === true || (state.specificityFrontier ?? 0) >= 3;
+  return (state.evidenceRefs?.length ?? 0) > 0;
+}
+
+function decisionUsefulState(state={}, {allowBoundedUncertainty=false}={}) {
+  if (!evidenceUsable(state)) return false;
+  // Normal handoff still expects governed driver/context depth. When Discovery has
+  // exhausted the governed questions that could add decision value, however, a
+  // supported concern may cross the boundary with its uncertainty preserved rather
+  // than forcing an artificial specificity question solely to satisfy a threshold.
+  if (state.driverKnown === true || (state.specificityFrontier ?? 0) >= 3) return true;
+  return allowBoundedUncertainty && (state.specificityFrontier ?? 0) >= 2;
 }
 
 // Discovery may legitimately stop with unresolved constructs when the available
-// governed bank has nothing else useful to ask. A bounded handoff is allowed only
-// when every unresolved state has decision-useful evidence; unresolved safety never
-// qualifies. Driver/context depth is required so a supported surface concern cannot
-// silently become Planning-ready before Narrow/Deepen has done its job.
-export function handoffAudit(states) {
+// governed bank has nothing else useful to ask. Bounded uncertainty is opt-in and
+// is used only by the controller after eligible/recovery questions are exhausted.
+// Safety and weak/unsupported evidence remain blocking in every mode.
+export function handoffAudit(states,{allowBoundedUncertainty=false}={}) {
   const unresolved = states.filter(s => !terminal.has(s.resolutionState));
-  const blocking = unresolved.filter(s => !decisionUsefulState(s));
+  const blocking = unresolved.filter(s => !decisionUsefulState(s,{allowBoundedUncertainty}));
   return {
     usable: states.length > 0 && blocking.length === 0,
     unresolved,
     blocking,
-    candidateIds: unresolved.filter(decisionUsefulState).map(s => s.constructId)
+    candidateIds: unresolved.filter(s=>decisionUsefulState(s,{allowBoundedUncertainty})).map(s => s.constructId),
+    boundedUncertainty: allowBoundedUncertainty && unresolved.some(s=>evidenceUsable(s)&&s.driverKnown!==true&&(s.specificityFrontier??0)<3)
   };
 }
 
