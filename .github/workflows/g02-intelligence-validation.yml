@@ -23,6 +23,21 @@ jobs:
         with:
           node-version: 22
 
+      - name: Prove exact checked-out registry source
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "event_sha=${GITHUB_SHA}"
+          echo "checked_out_sha=$(git rev-parse HEAD)"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          git status --short
+          echo "registry_test_blob=$(git hash-object intelligence/registries/registry.test.mjs)"
+          echo "registry_test_tree_blob=$(git rev-parse HEAD:intelligence/registries/registry.test.mjs)"
+          test "$(git hash-object intelligence/registries/registry.test.mjs)" = "$(git rev-parse HEAD:intelligence/registries/registry.test.mjs)"
+          echo '--- registry cardinality assertions from checked-out bytes ---'
+          grep -nE 'ALL_(QUESTIONS|ANSWERS|EFFECTS)\.length|ACTIONS\.length' intelligence/registries/registry.test.mjs
+          grep -q "ALL_ANSWERS.length, 629" intelligence/registries/registry.test.mjs
+
       - name: Install dependencies when declared
         run: |
           if [ -f package-lock.json ]; then
@@ -32,6 +47,15 @@ jobs:
           else
             echo "No package dependencies declared; skipping npm install."
           fi
+
+      - name: Verify registry source unchanged after dependency install
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "registry_test_blob_after_install=$(git hash-object intelligence/registries/registry.test.mjs)"
+          echo "registry_test_tree_blob=$(git rev-parse HEAD:intelligence/registries/registry.test.mjs)"
+          test "$(git hash-object intelligence/registries/registry.test.mjs)" = "$(git rev-parse HEAD:intelligence/registries/registry.test.mjs)"
+          grep -n "ALL_ANSWERS.length" intelligence/registries/registry.test.mjs
 
       - name: Run canonical Intelligence contracts, state, Planning, Review and personalization validation
         run: npm run test:intelligence
