@@ -36,7 +36,7 @@ jobs:
           test "$(git hash-object intelligence/registries/registry.test.mjs)" = "$(git rev-parse HEAD:intelligence/registries/registry.test.mjs)"
           echo '--- registry cardinality assertions from checked-out bytes ---'
           grep -nE 'ALL_(QUESTIONS|ANSWERS|EFFECTS)\.length|ACTIONS\.length' intelligence/registries/registry.test.mjs
-          grep -q "ALL_ANSWERS.length, 629" intelligence/registries/registry.test.mjs
+          grep -q "ALL_ANSWERS.length, 654" intelligence/registries/registry.test.mjs
 
       - name: Install dependencies when declared
         run: |
