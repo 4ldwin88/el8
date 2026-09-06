@@ -1,10 +1,50 @@
 // Projection of Drive 02.01.08.01 Tool Registry / Intervention-Tool Links.
 // Toolkit composition is downstream of Intervention selection and cannot make an Action eligible.
-// Initial port is intentionally limited to the Tool required by the human-QA Action that exposed the gap.
+// Only governed Drive Tools/links are projected here; no Toolkit content is invented in the repository.
 const TOOLS=Object.freeze({
+ TOL000001:Object.freeze({toolId:'TOL000001',name:'Spending Snapshot Worksheet',role:'primary_execution',purpose:'Capture a bounded snapshot of recurring spending and obligations to improve decision visibility.',memberDescription:'A simple place to map the spending information needed for the next financial decision.',lifecycle:'candidate',safety:'No investment, tax, debt-settlement or regulated financial advice; collect only decision-useful information.'}),
+ TOL000002:Object.freeze({toolId:'TOL000002',name:'Essential Obligations List',role:'primary_execution',purpose:'Make near-term essential obligations and urgency visible without turning EL8 into a financial adviser.',memberDescription:'A focused list for seeing what needs attention first.',lifecycle:'candidate',safety:'No regulated debt, legal or tax advice; acute food or shelter insecurity routes to appropriate resources.'}),
+ TOL000003:Object.freeze({toolId:'TOL000003',name:'Recurring Cost Review',role:'primary_execution_tracking',purpose:'Evaluate one member-selected recurring discretionary cost and its trade-offs before and after a change.',memberDescription:'A small review for deciding whether one recurring cost is worth changing.',lifecycle:'candidate',safety:'Must not target essential care, medication, food, insurance or other safety-critical needs.'}),
+ TOL000004:Object.freeze({toolId:'TOL000004',name:'Spending Boundary Planner',role:'primary_execution_tracking',purpose:'Define and review one voluntary boundary for a discretionary spending category.',memberDescription:'A simple way to set and test one spending boundary without restricting essential needs.',lifecycle:'candidate',safety:'No restrictive food or health rules, deprivation, punitive framing or regulated advice.'}),
+ TOL000005:Object.freeze({toolId:'TOL000005',name:'Financial Decision Check-In',role:'review',purpose:'Capture whether a Financial intervention improved decision clarity or control, what burden or trade-offs occurred, and what should happen next.',memberDescription:'A short review that checks whether the financial experiment helped and what to change next.',lifecycle:'candidate',safety:'No advice generation; route material insecurity or regulated needs independently.'}),
+ TOL000006:Object.freeze({toolId:'TOL000006',name:'Financial Next-Step Prompt',role:'decision_handoff',purpose:'Turn Financial Toolkit output into one explicit member-chosen next decision without expanding into financial advice.',memberDescription:'A small prompt for choosing the next useful financial step from what you just learned.',lifecycle:'candidate',safety:'Must not generate regulated recommendations; preserve member agency and escalation or resource routes.'}),
+ TOL000007:Object.freeze({toolId:'TOL000007',name:'Low-Data Capture',role:'accessibility_substitute',purpose:'Capture the minimum governed fields when the default structured worksheet is unsuitable.',memberDescription:'A simpler way to enter only the information needed for this step.',lifecycle:'candidate',safety:'Must preserve all decision-critical, safety, eligibility and provenance fields.'}),
+ TOL000008:Object.freeze({toolId:'TOL000008',name:'Evidence-Aware Reminder',role:'execution_support',purpose:'Provide an optional reminder for an already-selected Tool action without becoming the Intervention.',memberDescription:'An optional reminder for the step you already chose to do.',lifecycle:'candidate',safety:'Opt-in only; avoid coercive or excessive prompting and respect quiet or vacation states.'}),
+ TOL000009:Object.freeze({toolId:'TOL000009',name:'Sleep Pattern Log',role:'downstream_outcome_monitoring',purpose:'Track decision-useful sleep signals when sleep is a supported downstream outcome of another Intervention.',memberDescription:'A lightweight sleep log for seeing whether your sleep changes while you work on the main issue.',lifecycle:'candidate',safety:'Not diagnostic; safety or clinical sleep concerns route separately and monitoring should remain low burden.'}),
+ TOL000010:Object.freeze({toolId:'TOL000010',name:'Mood & Stress Check-In',role:'downstream_outcome_monitoring',purpose:'Track decision-useful mood, stress or rumination signals when they are a supported downstream outcome.',memberDescription:'A short check-in for seeing whether stress or mood changes while you work on the main issue.',lifecycle:'candidate',safety:'Not diagnostic; severe distress routes through Safety and monitoring should stop if it increases rumination.'}),
  TOL000013:Object.freeze({toolId:'TOL000013',name:'Pressure Pattern Log',role:'learning_measurement_execution',purpose:'Capture brief context-linked pressure observations only when identifying a recurring pattern can change the next decision.',memberDescription:'A short log for noticing when pressure shows up and what was happening around it.',lifecycle:'candidate',safety:'Stop or adapt if tracking increases rumination, distress, fixation or avoidance; concerning disclosure routes separately.'})
 });
 const LINKS=Object.freeze({
- ACT000009:Object.freeze([{linkId:'ITL000025',toolId:'TOL000013',requirement:'required',role:'learning_measurement_execution'}])
+ ACT000009:Object.freeze([{linkId:'ITL000025',toolId:'TOL000013',requirement:'required',role:'learning_measurement_execution'}]),
+ ACT000020:Object.freeze([
+  {linkId:'ITL000001',toolId:'TOL000001',requirement:'required',role:'primary_execution'},
+  {linkId:'ITL000005',toolId:'TOL000005',requirement:'required',role:'review'},
+  {linkId:'ITL000009',toolId:'TOL000006',requirement:'conditional',role:'decision_handoff'},
+  {linkId:'ITL000013',toolId:'TOL000009',requirement:'conditional',role:'downstream_outcome_monitoring'},
+  {linkId:'ITL000014',toolId:'TOL000010',requirement:'conditional',role:'downstream_outcome_monitoring'},
+  {linkId:'ITL000023',toolId:'TOL000007',requirement:'conditional_substitution',role:'accessibility_substitute'}
+ ]),
+ ACT000021:Object.freeze([
+  {linkId:'ITL000002',toolId:'TOL000002',requirement:'required',role:'primary_execution'},
+  {linkId:'ITL000006',toolId:'TOL000005',requirement:'required',role:'review'},
+  {linkId:'ITL000010',toolId:'TOL000006',requirement:'conditional',role:'decision_handoff'},
+  {linkId:'ITL000017',toolId:'TOL000009',requirement:'conditional',role:'downstream_outcome_monitoring'},
+  {linkId:'ITL000018',toolId:'TOL000010',requirement:'conditional',role:'downstream_outcome_monitoring'}
+ ]),
+ ACT000022:Object.freeze([
+  {linkId:'ITL000003',toolId:'TOL000003',requirement:'required',role:'primary_execution_tracking'},
+  {linkId:'ITL000007',toolId:'TOL000005',requirement:'required',role:'review'},
+  {linkId:'ITL000011',toolId:'TOL000006',requirement:'conditional',role:'decision_handoff'},
+  {linkId:'ITL000019',toolId:'TOL000009',requirement:'conditional',role:'downstream_outcome_monitoring'},
+  {linkId:'ITL000020',toolId:'TOL000010',requirement:'conditional',role:'downstream_outcome_monitoring'}
+ ]),
+ ACT000023:Object.freeze([
+  {linkId:'ITL000004',toolId:'TOL000004',requirement:'required',role:'primary_execution_tracking'},
+  {linkId:'ITL000008',toolId:'TOL000005',requirement:'required',role:'review'},
+  {linkId:'ITL000012',toolId:'TOL000006',requirement:'conditional',role:'decision_handoff'},
+  {linkId:'ITL000021',toolId:'TOL000009',requirement:'conditional',role:'downstream_outcome_monitoring'},
+  {linkId:'ITL000022',toolId:'TOL000010',requirement:'conditional',role:'downstream_outcome_monitoring'},
+  {linkId:'ITL000024',toolId:'TOL000008',requirement:'optional',role:'execution_support'}
+ ])
 });
-export function composeToolkitForAction(actionId){const links=LINKS[actionId]??[];if(!links.length)return null;const tools=links.map(link=>Object.freeze({...TOOLS[link.toolId],linkId:link.linkId,requirement:link.requirement,role:link.role})).filter(Boolean);return tools.length?Object.freeze({actionId,tools,compositionAuthority:'02.01.08.01'}):null}
+export function composeToolkitForAction(actionId){const links=LINKS[actionId]??[];if(!links.length)return null;const tools=links.map(link=>{const tool=TOOLS[link.toolId];return tool?Object.freeze({...tool,linkId:link.linkId,requirement:link.requirement,role:link.role}):null}).filter(Boolean);return tools.length?Object.freeze({actionId,tools,compositionAuthority:'02.01.08.01'}):null}
