@@ -70,12 +70,14 @@ assert.ok(['driver_triage','driver-triage','question'].includes(step.type),'Afte
 if(step.type==='question'){
  const deepenTargets=step.question.constructIds?.length?step.question.constructIds:[step.question.constructId].filter(Boolean);
  assert.ok(deepenTargets.includes('JOB_SECURITY'),'Selective Deepen must investigate the selected Q2 hypothesis when it is the next decision-critical target');
+}else if(step.type==='driver_triage'){
+ assert.ok((step.landscape?.candidates?.length??0)>0,'Expanded graph landscape must expose canonical candidates rather than a blank transition');
+ assert.ok(step.landscape.candidates.every(x=>x.constructId&&x.sourcePaths?.length),'Graph landscape candidates must retain canonical identity and provenance paths');
 }else{
- const triageQuestions=step.questions??[];
- assert.ok(triageQuestions.length>0,'Expanded driver landscape must expose materiality/severity triage rather than a blank transition');
- assert.ok(narrowed.constructIds.includes('JOB_SECURITY'),'Expanded driver landscape must preserve the selected cross-area hypothesis');
- assert.equal(narrowed.driverKnown.JOB_SECURITY??false,false,'Landscape expansion must not convert a routing hypothesis into causal evidence');
+ assert.ok((step.questions?.length??0)>0,'Legacy orientation driver triage must not be blank');
 }
+assert.ok(narrowed.constructIds.includes('JOB_SECURITY'),'Expanded driver landscape must preserve the selected cross-area hypothesis');
+assert.equal(narrowed.driverKnown.JOB_SECURITY??false,false,'Landscape expansion must not convert a routing hypothesis into causal evidence');
 
 const physicalUnresolved=createDiscoverySession({constructIds:[]});
 matrix=nextDiscoveryStep(physicalUnresolved);
@@ -109,8 +111,8 @@ const weightBody=physicalDriver2.options.find(o=>o.text==='Weight / body');
 assert.ok(weightBody);
 answerDiscoveryInteraction(physicalBody,physicalQ2,{[physicalDriver2.id]:[weightBody.id]});
 const physicalDeepen=nextDiscoveryStep(physicalBody);
-assert.equal(physicalDeepen.type,'question');
-assert.equal(physicalDeepen.question.id,'Q000018','Body/weight state probe is appropriate only after explicit member routing');
+assert.ok(['driver_triage','question'].includes(physicalDeepen.type),'Body/weight routing must enter the graph landscape or selective Deepen, never the legacy scheduler');
+if(physicalDeepen.type==='question')assert.equal(physicalDeepen.question.id,'Q000018','Body/weight state probe is appropriate only after explicit member routing');
 
 const safetyQuestion=DISCOVERY_BANK.find(q=>q.id==='Q000001');
 const unsafe=safetyContextForAnswer(safetyQuestion,'A000002');
@@ -147,4 +149,4 @@ assert.deepEqual(candidates.map(x=>x.constructId),['FINANCIAL_STRAIN','PHYSICAL_
 assert.equal(candidates[0].memberEmphasized,true);
 assert.equal('evidenceConfidence' in candidates[0],false);
 
-console.log('Discovery runtime regression: eight-area orientation, compact Q2 hypothesis/uncertainty routing, staged driver-landscape continuation before selective Deepen when unresolved candidates remain, Physical Q2 burden/dead-end protection, safety, feasibility projection, and evidence-backed priority handoff are covered without obsolete relationship APIs.');
+console.log('Discovery runtime regression: eight-area orientation, compact Q2 hypothesis/uncertainty routing, graph-landscape continuation before selective Deepen when unresolved candidates remain, Physical burden/dead-end protection, safety, feasibility projection, and evidence-backed priority handoff are covered without the legacy scheduler.');
