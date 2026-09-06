@@ -1,0 +1,11 @@
+import {deriveAreaPriority,investigationBudget} from './area-priority.js';
+import {projectDriverGraph} from './driver-graph.js';
+import {rankLeverageHypotheses} from './leverage-ranking.js';
+import {selectDecisionCriticalDeepening} from './deepening-policy.js';
+import {assertNoSilentLoss} from '../contracts/driver-graph.js';
+export const DISCOVERY_STAGE=Object.freeze({ORIENTATION:'orientation',AREA_PRIORITY:'area_priority',DRIVER_LANDSCAPE:'driver_landscape',DRIVER_TRIAGE:'driver_triage',SEVERITY:'severity_materiality',LEVERAGE:'causal_leverage',DEEPEN:'selective_deepening',SYNTHESIS:'member_state_synthesis',READY:'ready_for_prioritization'});
+export function createDiscoveryOrchestration({memberStateRevision=null,areas=[],constructStates=[],questionBank=[],relationshipEvidence={},unresolvedRequirements=[]}={}){
+ const areaPriority=deriveAreaPriority(areas);const graph=projectDriverGraph({memberStateRevision,constructStates,areaPriority,relationshipEvidence,unresolvedRequirements});const rankedHypotheses=rankLeverageHypotheses(graph);const deepening=selectDecisionCriticalDeepening({rankedHypotheses,questionBank});assertNoSilentLoss({beforeNodeIds:constructStates.filter(x=>!x.excluded).map(x=>x.constructId),graph});
+ return Object.freeze({architecture:'discovery-graph-v1',memberStateRevision,stage:deepening.questions.length?DISCOVERY_STAGE.DEEPEN:DISCOVERY_STAGE.READY,areaPriority:Object.freeze(areaPriority),investigationBudget:investigationBudget(areaPriority),driverGraph:graph,rankedHypotheses:Object.freeze(rankedHypotheses),deepening,readyForPrioritization:deepening.questions.length===0});
+}
+export function nextDiscoveryDecision(orchestration){if(!orchestration)return{type:'error',reason:'missing-orchestration'};if(orchestration.deepening?.questions?.length)return{type:'question',stage:DISCOVERY_STAGE.DEEPEN,question:orchestration.deepening.questions[0],reason:orchestration.deepening.reason,hypothesis:orchestration.deepening.hypothesis};return{type:'handoff',stage:DISCOVERY_STAGE.READY,driverGraph:orchestration.driverGraph,rankedHypotheses:orchestration.rankedHypotheses,reason:'decision-requirements-satisfied'};}
