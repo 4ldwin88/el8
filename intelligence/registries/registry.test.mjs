@@ -20,7 +20,7 @@ assert.ok(getEffectsForAnswer('A000109').length > 0);
 assert.ok(QUESTION_BY_ID.Q000077, 'orientation baseline must be present');
 assert.ok(QUESTION_BY_ID.Q000092, 'all eight baseline driver discriminators must be present');
 assert.ok(QUESTION_BY_ID.Q000097, 'direct state probes must be present');
-assert.ok(ANSWER_BY_ID.A000593, 'governed question-2 driver answers must be present');
+assert.ok(ANSWER_BY_ID.A000592, 'question-2 cross-dimensional driver candidates must be present');
 assert.ok(ANSWER_BY_ID.A000605, 'expanded bounded driver candidates must be present');
 assert.ok(ACTION_BY_ID.ACT000001);
 console.log('registry runtime adapter: PASS');
