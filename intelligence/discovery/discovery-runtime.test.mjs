@@ -71,6 +71,44 @@ assert.equal(step.type,'question','A selected Q2 hypothesis must route directly 
 const deepenTargets=step.question.constructIds?.length?step.question.constructIds:[step.question.constructId].filter(Boolean);
 assert.ok(deepenTargets.includes('JOB_SECURITY'),'Targeted Deepen must investigate the selected Q2 hypothesis');
 
+// Regression for the .11 Physical burden/dead-end finding: a broad Physical
+// difficulty must not silently turn into a body/weight concern. Q000018 is only a
+// valid Deepen probe after the member explicitly selects Weight / body in Q2.
+const physicalUnresolved=createDiscoverySession({constructIds:[]});
+matrix=nextDiscoveryStep(physicalUnresolved);
+answers={};
+for(const q of matrix.questions)answers[q.id]=q.options.find(o=>o.text==='Going well')?.id;
+const physical=matrix.questions.find(q=>String(q.dimension).toUpperCase()==='PHYSICAL');
+answers[physical.id]=physical.options.find(o=>o.text==='Difficult')?.id;
+answerDiscoveryInteraction(physicalUnresolved,matrix,answers);
+let physicalQ2=nextDiscoveryStep(physicalUnresolved);
+assert.equal(physicalQ2.type,'driver-triage');
+const physicalDriver=physicalQ2.questions.find(q=>String(q.dimension).toUpperCase()==='PHYSICAL');
+const notSure=physicalDriver.options.find(o=>o.text==='Not sure');
+assert.ok(notSure);
+answerDiscoveryInteraction(physicalUnresolved,physicalQ2,{[physicalDriver.id]:[notSure.id]});
+let unresolvedFinish=nextDiscoveryStep(physicalUnresolved);
+assert.equal(unresolvedFinish.type,'finish','Unresolved Physical Q2 must produce an explicit finish/handoff state, never a blank page');
+assert.equal(unresolvedFinish.stop.reason,'baseline-driver-unresolved');
+assert.equal(unresolvedFinish.stop.incomplete,true);
+assert.equal(physicalUnresolved.asked.includes('Q000018'),false,'Q000018 must not be asked without an explicit body/weight route');
+
+const physicalBody=createDiscoverySession({constructIds:[]});
+matrix=nextDiscoveryStep(physicalBody);
+answers={};
+for(const q of matrix.questions)answers[q.id]=q.options.find(o=>o.text==='Going well')?.id;
+const physical2=matrix.questions.find(q=>String(q.dimension).toUpperCase()==='PHYSICAL');
+answers[physical2.id]=physical2.options.find(o=>o.text==='Difficult')?.id;
+answerDiscoveryInteraction(physicalBody,matrix,answers);
+physicalQ2=nextDiscoveryStep(physicalBody);
+const physicalDriver2=physicalQ2.questions.find(q=>String(q.dimension).toUpperCase()==='PHYSICAL');
+const weightBody=physicalDriver2.options.find(o=>o.text==='Weight / body');
+assert.ok(weightBody);
+answerDiscoveryInteraction(physicalBody,physicalQ2,{[physicalDriver2.id]:[weightBody.id]});
+const physicalDeepen=nextDiscoveryStep(physicalBody);
+assert.equal(physicalDeepen.type,'question');
+assert.equal(physicalDeepen.question.id,'Q000018','Body/weight state probe is appropriate only after explicit member routing');
+
 const safetyQuestion=DISCOVERY_BANK.find(q=>q.id==='Q000001');
 const unsafe=safetyContextForAnswer(safetyQuestion,'A000002');
 if(unsafe.requiresImmediacyClarification){
@@ -106,4 +144,4 @@ assert.deepEqual(candidates.map(x=>x.constructId),['FINANCIAL_STRAIN','PHYSICAL_
 assert.equal(candidates[0].memberEmphasized,true);
 assert.equal('evidenceConfidence' in candidates[0],false);
 
-console.log('Discovery runtime regression: eight-area orientation, compact question-2 hypothesis/uncertainty routing, targeted Deepen transition, safety, feasibility projection, and evidence-backed priority handoff are covered without obsolete relationship APIs.');
+console.log('Discovery runtime regression: eight-area orientation, compact question-2 hypothesis/uncertainty routing, targeted Deepen transition, Physical Q2 burden/dead-end protection, safety, feasibility projection, and evidence-backed priority handoff are covered without obsolete relationship APIs.');
