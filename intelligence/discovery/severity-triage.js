@@ -1,0 +1,6 @@
+const clamp=v=>Number.isFinite(Number(v))?Math.max(0,Math.min(1,Number(v))):null;
+const mean=xs=>xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;
+export function deriveSeverityMateriality(nodes=[],responses={}){
+ return nodes.map(node=>{const r=responses[node.constructId]??{};const severity=clamp(r.severity??node.severity);const frequency=clamp(r.frequency);const impact=clamp(r.functionalImpact??r.impact??node.materiality);const importance=clamp(r.memberImportance??node.memberImportance);const known=[severity,frequency,impact,importance].filter(v=>v!==null);const materiality=mean(known);return Object.freeze({...node,severity,materiality,triage:Object.freeze({severity,frequency,functionalImpact:impact,memberImportance:importance,knownCount:known.length}),triageDisposition:materiality===null?'unknown':materiality>=.67?'major':materiality>=.34?'material':'minor'});});
+}
+export function majorDriverIds(nodes=[]){return nodes.filter(n=>['major','material'].includes(n.triageDisposition)).map(n=>n.constructId);}
