@@ -12,16 +12,12 @@ assert.equal(audit.usable,true);
 assert.deepEqual(audit.blocking,[]);
 assert.deepEqual(audit.candidateIds,['FINANCIAL_STRAIN','SLEEP_QUALITY']);
 
-// The historical handoff contract remains valid for persisted evidence: a surface
-// concern does not become decision-useful solely because it is well supported.
+// Historical persisted handoff semantics remain readable during migration.
 audit=handoffAudit([{...supported,qualitativeConfidence:'WELL_SUPPORTED',specificityFrontier:2,driverKnown:false}]);
 assert.equal(audit.usable,false);
 assert.deepEqual(audit.blocking.map(x=>x.constructId),['FINANCIAL_STRAIN']);
 audit=handoffAudit([{...supported,qualitativeConfidence:'WELL_SUPPORTED',specificityFrontier:2,driverKnown:true}]);
 assert.equal(audit.usable,true);
-
-// Bounded uncertainty remains an explicit compatibility contract for persisted
-// handoffs, but it no longer controls production Discovery completion.
 audit=handoffAudit([{...supported,qualitativeConfidence:'WELL_SUPPORTED',specificityFrontier:2,driverKnown:false}],{allowBoundedUncertainty:true});
 assert.equal(audit.usable,true);
 assert.equal(audit.boundedUncertainty,true);
@@ -32,8 +28,7 @@ for(const blocked of [
  {...supported,safetyEscalationLevel:1,specificityFrontier:2}
 ])assert.equal(handoffAudit([blocked],{allowBoundedUncertainty:true}).usable,false);
 
-// Final architecture regression: selective Deepening is chosen by the ranked
-// causal-leverage hypothesis and asked-question history, not a generic scheduler.
+// Selective Deepening is ranked-hypothesis driven, not scheduler driven.
 const rankedHypotheses=[
  {constructId:'FINANCIAL_STRAIN',score:.8,uncertainty:.6},
  {constructId:'SLEEP_QUALITY',score:.6,uncertainty:.4}
@@ -51,24 +46,27 @@ deepening=selectDecisionCriticalDeepening({rankedHypotheses,questionBank,askedId
 assert.equal(deepening.reason,'no-decision-critical-deepening');
 assert.deepEqual(deepening.questions,[]);
 
-// A graph with completed driver/severity decisions and no remaining discriminator
-// hands off cleanly instead of relying on scheduler exhaustion.
+// FINANCIAL_STRAIN has two governed population-prior neighbours. A ready fixture
+// must explicitly dispose both rather than relying on scheduler exhaustion or
+// silently dropping an unanswered landscape candidate.
+const resolvedFinancialLandscape={PRESSURE_PATTERN:'reject',EMOTIONAL_STATE:'reject'};
 const graphReady=createDiscoveryOrchestration({
  areas:[{dimensionId:'financial',state:'difficult',memberImportance:.8,functionalImpact:.8,uncertainty:.4}],
  constructStates:[{constructId:'FINANCIAL_STRAIN',evidenceRefs:['obs:financial'],memberImportance:.8,severity:.8,materiality:.8}],
  questionBank:[],
- driverSelections:{PRESSURE_PATTERN:'reject'},
+ driverSelections:resolvedFinancialLandscape,
  severityResponses:{FINANCIAL_STRAIN:{severity:.8,frequency:.8,functionalImpact:.8,memberImportance:.8}}
 });
 assert.equal(graphReady.stage,DISCOVERY_STAGE.READY);
+assert.deepEqual(graphReady.driverDispositions,{EMOTIONAL_STATE:'rejected',PRESSURE_PATTERN:'rejected'});
 const readyDecision=nextDiscoveryDecision(graphReady);
 assert.equal(readyDecision.type,'handoff');
 assert.equal(readyDecision.reason,'decision-requirements-satisfied');
 assert.ok(readyDecision.driverGraph.nodes.some(x=>x.constructId==='FINANCIAL_STRAIN'));
 
-// Production runtime must terminate the same way after the member-facing graph
-// inputs are resolved. No controller/scheduler exhaustion path is permitted.
-const runtime=Discovery.session({constructIds:['FINANCIAL_STRAIN'],questionBank:[],baselineCoverage:{FINANCIAL:{state:'difficult'}},driverSelections:{PRESSURE_PATTERN:'reject'},severityResponses:{FINANCIAL_STRAIN:{severity:.8,frequency:.8,functionalImpact:.8,memberImportance:.8}}});
+// Production runtime must terminate the same way after every relationship-derived
+// landscape candidate has an explicit member disposition.
+const runtime=Discovery.session({constructIds:['FINANCIAL_STRAIN'],questionBank:[],baselineCoverage:{FINANCIAL:{state:'difficult'}},driverSelections:resolvedFinancialLandscape,severityResponses:{FINANCIAL_STRAIN:{severity:.8,frequency:.8,functionalImpact:.8,memberImportance:.8}}});
 runtime.phase='graph';
 runtime.observationLog=[makeObservation({id:'obs:financial',questionId:'Q:financial',constructId:'FINANCIAL_STRAIN',answerValue:'difficult',specificityLevel:3,timestamp:1,effects:[{type:'evidence',target:'FINANCIAL_STRAIN',polarity:'supports',strength:1,certainty:'definitive',sourceType:'direct',temporality:'current'}]})];
 const runtimeStep=Discovery.next(runtime);
@@ -77,4 +75,4 @@ assert.equal(runtimeStep.stop.reason,'decision-requirements-satisfied');
 assert.equal(runtimeStep.stop.incomplete,false);
 assert.ok(runtimeStep.stop.candidateIds.includes('FINANCIAL_STRAIN'));
 
-console.log('G-02 human handoff regression: persisted bounded-handoff semantics remain covered while production completion and selective Deepening use the final graph architecture without scheduler/controller execution.');
+console.log('G-02 human handoff regression: persisted handoff semantics remain covered while production graph completion explicitly disposes the governed relationship landscape and uses selective Deepening without scheduler/controller execution.');
