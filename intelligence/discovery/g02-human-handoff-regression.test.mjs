@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {handoffAudit} from './sufficiency.js';
-import {selectNextQuestion} from './question-scheduler.js';
-import {createDiscoverySession,appendObservation,nextDiscoveryStep,setResolution} from './discovery-controller.js';
+import {selectDecisionCriticalDeepening} from './deepening-policy.js';
+import {createDiscoveryOrchestration,nextDiscoveryDecision,DISCOVERY_STAGE} from './discovery-orchestrator.js';
+import Discovery from './discovery-engine.js';
 import {makeObservation} from './contracts.js';
 
 const supported={constructId:'FINANCIAL_STRAIN',resolutionState:'triaged',qualitativeConfidence:'MODERATE',evidenceRefs:['obs:1'],safetyEscalationLevel:0,memberImportanceRank:3,driverKnown:false,specificityFrontier:3};
@@ -11,50 +12,69 @@ assert.equal(audit.usable,true);
 assert.deepEqual(audit.blocking,[]);
 assert.deepEqual(audit.candidateIds,['FINANCIAL_STRAIN','SLEEP_QUALITY']);
 
-// A surface concern does not become normally Planning-ready just because it is
-// well supported. Driver/context depth remains the ordinary boundary.
+// The historical handoff contract remains valid for persisted evidence: a surface
+// concern does not become decision-useful solely because it is well supported.
 audit=handoffAudit([{...supported,qualitativeConfidence:'WELL_SUPPORTED',specificityFrontier:2,driverKnown:false}]);
 assert.equal(audit.usable,false);
 assert.deepEqual(audit.blocking.map(x=>x.constructId),['FINANCIAL_STRAIN']);
 audit=handoffAudit([{...supported,qualitativeConfidence:'WELL_SUPPORTED',specificityFrontier:2,driverKnown:true}]);
 assert.equal(audit.usable,true);
 
-// Human QA .11 regression: once the governed bank is genuinely exhausted, strong
-// specificity-2 evidence may cross as bounded uncertainty instead of manufacturing
-// an artificial question solely to reach specificity 3.
+// Bounded uncertainty remains an explicit compatibility contract for persisted
+// handoffs, but it no longer controls production Discovery completion.
 audit=handoffAudit([{...supported,qualitativeConfidence:'WELL_SUPPORTED',specificityFrontier:2,driverKnown:false}],{allowBoundedUncertainty:true});
 assert.equal(audit.usable,true);
 assert.equal(audit.boundedUncertainty,true);
 assert.deepEqual(audit.candidateIds,['FINANCIAL_STRAIN']);
+for(const blocked of [
+ {...supported,qualitativeConfidence:'LIMITED',specificityFrontier:2},
+ {...supported,evidenceRefs:[],specificityFrontier:2},
+ {...supported,safetyEscalationLevel:1,specificityFrontier:2}
+])assert.equal(handoffAudit([blocked],{allowBoundedUncertainty:true}).usable,false);
 
-// Weak evidence and unresolved Safety never qualify for bounded handoff.
-audit=handoffAudit([{...supported,qualitativeConfidence:'LIMITED',specificityFrontier:2}],{allowBoundedUncertainty:true});
-assert.equal(audit.usable,false);
-audit=handoffAudit([{...supported,evidenceRefs:[],specificityFrontier:2}],{allowBoundedUncertainty:true});
-assert.equal(audit.usable,false);
-audit=handoffAudit([{...supported,safetyEscalationLevel:1,specificityFrontier:2}],{allowBoundedUncertainty:true});
-assert.equal(audit.usable,false);
+// Final architecture regression: selective Deepening is chosen by the ranked
+// causal-leverage hypothesis and asked-question history, not a generic scheduler.
+const rankedHypotheses=[
+ {constructId:'FINANCIAL_STRAIN',score:.8,uncertainty:.6},
+ {constructId:'SLEEP_QUALITY',score:.6,uncertainty:.4}
+];
+const questionBank=[
+ {id:'Q-fin-1',constructId:'FINANCIAL_STRAIN',role:'driver-discriminator',specificityLevel:3},
+ {id:'Q-sleep-1',constructId:'SLEEP_QUALITY',role:'driver-discriminator',specificityLevel:3}
+];
+let deepening=selectDecisionCriticalDeepening({rankedHypotheses,questionBank,askedIds:[]});
+assert.equal(deepening.reason,'decision-critical-discriminator');
+assert.equal(deepening.questions[0].id,'Q-fin-1');
+deepening=selectDecisionCriticalDeepening({rankedHypotheses,questionBank,askedIds:['Q-fin-1']});
+assert.equal(deepening.questions[0].id,'Q-sleep-1');
+deepening=selectDecisionCriticalDeepening({rankedHypotheses,questionBank,askedIds:['Q-fin-1','Q-sleep-1']});
+assert.equal(deepening.reason,'no-decision-critical-deepening');
+assert.deepEqual(deepening.questions,[]);
 
-// Controller must terminate cleanly rather than emit a blank/dead-end state when no
-// governed question remains and the supported concern is useful with uncertainty.
-const exhausted=createDiscoverySession({constructIds:['FINANCIAL_STRAIN'],questionBank:[]});
-exhausted.phase='deepen';
-exhausted.triaged=true;
-setResolution(exhausted,'FINANCIAL_STRAIN','triaged',{driverKnown:false});
-appendObservation(exhausted,makeObservation({id:'obs:bounded',questionId:'Q:bounded',constructId:'FINANCIAL_STRAIN',answerValue:'difficult',specificityLevel:2,timestamp:1,effects:[{type:'evidence',target:'FINANCIAL_STRAIN',polarity:'supports',strength:1,certainty:'definitive',sourceType:'direct',temporality:'current'}]}));
-const exhaustedStep=nextDiscoveryStep(exhausted);
-assert.equal(exhaustedStep.type,'finish');
-assert.equal(exhaustedStep.stop.reason,'decision-useful-handoff');
-assert.equal(exhaustedStep.stop.incomplete,false);
-assert.equal(exhaustedStep.stop.boundedUncertainty,true);
-assert.deepEqual(exhaustedStep.stop.candidateIds,['FINANCIAL_STRAIN']);
+// A graph with completed driver/severity decisions and no remaining discriminator
+// hands off cleanly instead of relying on scheduler exhaustion.
+const graphReady=createDiscoveryOrchestration({
+ areas:[{dimensionId:'financial',state:'difficult',memberImportance:.8,functionalImpact:.8,uncertainty:.4}],
+ constructStates:[{constructId:'FINANCIAL_STRAIN',evidenceRefs:['obs:financial'],memberImportance:.8,severity:.8,materiality:.8}],
+ questionBank:[],
+ driverSelections:{PRESSURE_PATTERN:'reject'},
+ severityResponses:{FINANCIAL_STRAIN:{severity:.8,frequency:.8,functionalImpact:.8,memberImportance:.8}}
+});
+assert.equal(graphReady.stage,DISCOVERY_STAGE.READY);
+const readyDecision=nextDiscoveryDecision(graphReady);
+assert.equal(readyDecision.type,'handoff');
+assert.equal(readyDecision.reason,'decision-requirements-satisfied');
+assert.ok(readyDecision.driverGraph.nodes.some(x=>x.constructId==='FINANCIAL_STRAIN'));
 
-const state={...supported,constructId:'FINANCIAL_STRAIN'};
-const repeated={id:'Q-repeat',role:'impact-probe',constructId:'FINANCIAL_STRAIN',text:'Over the past 7 days, how much did this affect you?',burden:1,eligible:true};
-const alternative={id:'Q-alt',role:'impact-probe',constructId:'FINANCIAL_STRAIN',text:'How much is this getting in the way right now?',burden:1,eligible:true};
-const recent=[{id:'Q-prev',role:'impact-probe',constructId:'FINANCIAL_STRAIN',text:'In the past 7 days, how often was this a problem?'}];
-const decision=selectNextQuestion({candidates:[repeated,alternative],states:[state],recentQuestions:recent});
-assert.equal(decision.type,'question');
-assert.equal(decision.question.id,'Q-alt');
+// Production runtime must terminate the same way after the member-facing graph
+// inputs are resolved. No controller/scheduler exhaustion path is permitted.
+const runtime=Discovery.session({constructIds:['FINANCIAL_STRAIN'],questionBank:[],baselineCoverage:{FINANCIAL:{state:'difficult'}},driverSelections:{PRESSURE_PATTERN:'reject'},severityResponses:{FINANCIAL_STRAIN:{severity:.8,frequency:.8,functionalImpact:.8,memberImportance:.8}}});
+runtime.phase='graph';
+runtime.observationLog=[makeObservation({id:'obs:financial',questionId:'Q:financial',constructId:'FINANCIAL_STRAIN',answerValue:'difficult',specificityLevel:3,timestamp:1,effects:[{type:'evidence',target:'FINANCIAL_STRAIN',polarity:'supports',strength:1,certainty:'definitive',sourceType:'direct',temporality:'current'}]})];
+const runtimeStep=Discovery.next(runtime);
+assert.equal(runtimeStep.type,'finish');
+assert.equal(runtimeStep.stop.reason,'decision-requirements-satisfied');
+assert.equal(runtimeStep.stop.incomplete,false);
+assert.ok(runtimeStep.stop.candidateIds.includes('FINANCIAL_STRAIN'));
 
-console.log('G-02 human handoff regression: ordinary handoff requires driver/context depth; exhausted useful evidence can preserve bounded uncertainty; weak/safety states block; dead-end recovery and repetitive recall are covered.');
+console.log('G-02 human handoff regression: persisted bounded-handoff semantics remain covered while production completion and selective Deepening use the final graph architecture without scheduler/controller execution.');
