@@ -7,9 +7,9 @@ import {rankLeverageHypotheses} from './leverage-ranking.js';
 import {selectDecisionCriticalDeepening} from './deepening-policy.js';
 import {createDiscoveryOrchestration,nextDiscoveryDecision,DISCOVERY_STAGE} from './discovery-orchestrator.js';
 
-const areas=['PHYSICAL','EMOTIONAL','SOCIAL','INTELLECTUAL','OCCUPATIONAL','FINANCIAL','ENVIRONMENTAL','SPIRITUAL'];
+const areas=['physical','emotional','social','intellectual','occupational','financial','environmental','spiritual'];
 const area=id=>({dimensionId:id,state:'difficult',memberImportance:.8,functionalImpact:.7,uncertainty:.5});
-const node=(constructId,dimensionIds=['PHYSICAL'],overrides={})=>({constructId,dimensionIds,evidenceRefs:[`obs:${constructId}`],sourceAreaIds:dimensionIds,memberImportance:.8,severity:.7,materiality:.7,...overrides});
+const node=(constructId,dimensionIds=['physical'],overrides={})=>({constructId,dimensionIds,evidenceRefs:[`obs:${constructId}`],sourceAreaIds:dimensionIds,memberImportance:.8,severity:.7,materiality:.7,...overrides});
 
 for(const count of [1,2,4,8]){
  const priority=deriveAreaPriority(areas.slice(0,count).map(area));
@@ -20,14 +20,14 @@ for(const count of [1,2,4,8]){
 }
 
 const deduped=canonicalDriverGraph({nodes:[
- node('ACTIVITY_LEVEL',['PHYSICAL'],{evidenceRefs:['obs:physical'],sourceAreaIds:['PHYSICAL']}),
- node('ACTIVITY_LEVEL',['OCCUPATIONAL'],{evidenceRefs:['obs:work'],sourceAreaIds:['OCCUPATIONAL']}),
- node('SLEEP_QUALITY',['PHYSICAL'])
+ node('ACTIVITY_LEVEL',['physical'],{evidenceRefs:['obs:physical'],sourceAreaIds:['physical']}),
+ node('ACTIVITY_LEVEL',['occupational'],{evidenceRefs:['obs:work'],sourceAreaIds:['occupational']}),
+ node('SLEEP_QUALITY',['physical'])
 ]});
 assert.equal(deduped.nodes.filter(x=>x.constructId==='ACTIVITY_LEVEL').length,1,'same canonical driver must merge to one node');
 const activity=deduped.nodes.find(x=>x.constructId==='ACTIVITY_LEVEL');
 assert.deepEqual(new Set(activity.evidenceRefs),new Set(['obs:physical','obs:work']),'dedupe must preserve all evidence paths');
-assert.deepEqual(new Set(activity.sourceAreaIds),new Set(['PHYSICAL','OCCUPATIONAL']),'dedupe must preserve all source areas');
+assert.deepEqual(new Set(activity.sourceAreaIds),new Set(['physical','occupational']),'dedupe must preserve all source areas');
 
 const noLossGraph=canonicalDriverGraph({nodes:[node('ACTIVITY_LEVEL'),node('SLEEP_QUALITY')]});
 assert.equal(assertNoSilentLoss({beforeNodeIds:['ACTIVITY_LEVEL','SLEEP_QUALITY'],graph:noLossGraph}),true);
@@ -55,16 +55,16 @@ const deepen=selectDecisionCriticalDeepening({rankedHypotheses:ranked,questionBa
 assert.equal(deepen.questions[0]?.id,'Q:test');
 assert.equal(deepen.reason,'decision-critical-discriminator');
 
-const lowConcern=createDiscoveryOrchestration({areas:[{dimensionId:'PHYSICAL',state:'good',memberImportance:.2,functionalImpact:.1,uncertainty:.1}],constructStates:[],questionBank:[]});
+const lowConcern=createDiscoveryOrchestration({areas:[{dimensionId:'physical',state:'good',memberImportance:.2,functionalImpact:.1,uncertainty:.1}],constructStates:[],questionBank:[]});
 assert.equal(lowConcern.stage,DISCOVERY_STAGE.READY,'low-concern path must not manufacture a driver or deepening requirement');
 assert.equal(lowConcern.readyForPrioritization,true);
 assert.equal(nextDiscoveryDecision(lowConcern).type,'handoff');
 
-const oneArea=createDiscoveryOrchestration({areas:[area('PHYSICAL')],constructStates:[node('ACTIVITY_LEVEL')],questionBank:[],severityResponses:{ACTIVITY_LEVEL:{severity:.8,frequency:.8,functionalImpact:.8,memberImportance:.8}}});
+const oneArea=createDiscoveryOrchestration({areas:[area('physical')],constructStates:[node('ACTIVITY_LEVEL')],questionBank:[],severityResponses:{ACTIVITY_LEVEL:{severity:.8,frequency:.8,functionalImpact:.8,memberImportance:.8}}});
 assert.ok([DISCOVERY_STAGE.DRIVER_TRIAGE,DISCOVERY_STAGE.READY].includes(oneArea.stage),'one-area case may expand/triage or collapse when evidence is sufficient');
 assert.ok(oneArea.driverGraph.nodes.some(x=>x.constructId==='ACTIVITY_LEVEL'));
 
-const allAreas=createDiscoveryOrchestration({areas:areas.map(area),constructStates:[node('ACTIVITY_LEVEL',['PHYSICAL']),node('SLEEP_QUALITY',['PHYSICAL']),node('FINANCIAL_STRAIN',['FINANCIAL'])],questionBank:[],severityResponses:{ACTIVITY_LEVEL:{severity:.8,frequency:.8,functionalImpact:.8,memberImportance:.8},SLEEP_QUALITY:{severity:.7,frequency:.7,functionalImpact:.7,memberImportance:.7},FINANCIAL_STRAIN:{severity:.9,frequency:.9,functionalImpact:.9,memberImportance:.9}}});
+const allAreas=createDiscoveryOrchestration({areas:areas.map(area),constructStates:[node('ACTIVITY_LEVEL',['physical']),node('SLEEP_QUALITY',['physical']),node('FINANCIAL_STRAIN',['financial'])],questionBank:[],severityResponses:{ACTIVITY_LEVEL:{severity:.8,frequency:.8,functionalImpact:.8,memberImportance:.8},SLEEP_QUALITY:{severity:.7,frequency:.7,functionalImpact:.7,memberImportance:.7},FINANCIAL_STRAIN:{severity:.9,frequency:.9,functionalImpact:.9,memberImportance:.9}}});
 assert.equal(allAreas.areaPriority.length,8,'all-eight orientation must survive into orchestration');
 assert.deepEqual(new Set(allAreas.driverGraph.nodes.map(x=>x.constructId)),new Set(['ACTIVITY_LEVEL','SLEEP_QUALITY','FINANCIAL_STRAIN']),'broad cases must not silently drop supported canonical drivers');
 assert.ok(allAreas.investigationBudget<8,'broad cases should compress investigation burden instead of forcing one deepening stream per area');
