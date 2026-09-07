@@ -18,3 +18,10 @@ test('runtime derives member identity from authenticated Supabase user',()=>{
   assert.match(source,/memberState\?\.memberId!==user\.id/);
   assert.doesNotMatch(source,/service_role|SERVICE_ROLE/);
 });
+
+test('browser activation exposes governed recoverable runtime states',()=>{
+  assert.match(source,/activateCanonicalOnboardingRuntime/);
+  assert.match(source,/runtimeStateFromError/);
+  assert.match(source,/RUNTIME_STATE\.READY/);
+  assert.match(source,/navigator\.onLine/);
+});
