@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import {
-  MEMBER_STATE_SCHEMA_VERSION,
   createMemberState,
   createConstructState,
   createFact,
@@ -9,7 +8,7 @@ import {
 } from './member-state-contract.js';
 
 const state = createMemberState({ memberId: 'T0001', now: '2026-08-30T00:00:00Z' });
-assert.equal(state.schemaVersion, MEMBER_STATE_SCHEMA_VERSION);
+assert.equal(state.schemaVersion, undefined);
 assert.equal(state.memberContext.capacity, 'unknown');
 assert.equal(state.memberContext.readiness, 'unknown');
 assert.equal(state.plan, undefined);
@@ -40,4 +39,4 @@ state.activeFocusIds.pop();
 assert.throws(() => createConstructState({ constructId: 'money_pressure' }), /Unknown constructId/);
 assert.throws(() => createFact({ factId:'bad', semanticKey:'x', sourceType:'test', sourceRef:'x', affectedConstructId:'low_focus' }), /Unknown constructId/);
 
-console.log('Member State v3 is construct-native, preserves unknowns and requires accepted member Focus');
+console.log('Member State is construct-native, unversioned at the domain boundary, preserves unknowns and requires accepted member Focus');
