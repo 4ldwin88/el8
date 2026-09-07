@@ -72,6 +72,9 @@ jobs:
       - name: Guard Home navigation against secondary module failures
         run: node app/home/home-shell-resilience.test.mjs
 
+      - name: Validate governed runtime resilience states
+        run: node app/resilience/runtime-state.test.mjs
+
       - name: Run E01 raw lifecycle validation
         run: npm run test:e01
 
