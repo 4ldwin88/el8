@@ -1,6 +1,7 @@
 import {supabase} from '../../el8-client.js';
 import {loadMemberState,saveMemberState} from '../../intelligence/state/supabase-persistence.js';
 import {saveCanonicalPlan,activateCanonicalPlan} from '../../intelligence/planning/supabase-plan-persistence.js';
+import {runtimeState,RUNTIME_STATE,runtimeStateFromError} from '../resilience/runtime-state.js';
 import {applyCanonicalBrowserPlan} from './browser-member-state-plan.js';
 import {activateCanonicalOnboarding} from './plan-activation-transaction.js';
 import {completeCanonicalOnboarding} from './onboarding-completion.js';
@@ -47,4 +48,16 @@ export async function activateCanonicalOnboardingWithSupabase({memberState,plan}
     activatePlan,
     completeOnboarding:completeCanonicalOnboarding
   });
+}
+
+// Browser-facing boundary: persistence/auth failures become governed recoverable states.
+// The underlying activation transaction still throws, so callers that need strict failure
+// semantics may continue using activateCanonicalOnboardingWithSupabase directly.
+export async function activateCanonicalOnboardingRuntime(input,{online=typeof navigator==='undefined'?true:navigator.onLine!==false}={}){
+  try{
+    const value=await activateCanonicalOnboardingWithSupabase(input);
+    return Object.freeze({value,error:null,state:runtimeState(RUNTIME_STATE.READY)});
+  }catch(error){
+    return Object.freeze({value:null,error,state:runtimeStateFromError(error,{online})});
+  }
 }
