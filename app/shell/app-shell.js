@@ -51,7 +51,9 @@ function wireNavigation(shell,active,resolved){
   }
 }
 function enhanceShell(shell,{active='home',routes={},profileInitial='',onTrack=null,onProfile=null}={}){
-  const resolved=routeMap(routes);wireNavigation(shell,active,resolved);const confirmed=rememberProfileInitial(profileInitial),initial=confirmed||cachedProfileInitial();
+  const resolved=routeMap(routes);wireNavigation(shell,active,resolved);
+  const visibleInitial=normalizedInitial(shell.querySelector('.el8-shell-avatar')?.textContent);
+  const confirmed=rememberProfileInitial(profileInitial),initial=confirmed||visibleInitial||cachedProfileInitial();
   let profileButton=shell.querySelector('.el8-shell-profile');if(!profileButton){profileButton=document.createElement('button');profileButton.type='button';profileButton.className='el8-shell-profile';profileButton.setAttribute('aria-label','Open Profile menu');shell.prepend(profileButton)}profileButton.innerHTML=`<span class="el8-shell-avatar">${initialMarkup(initial)}</span>`;
   let trackButton=shell.querySelector('.el8-shell-track');if(!trackButton){trackButton=document.createElement('button');trackButton.type='button';trackButton.className='el8-shell-track';trackButton.setAttribute('aria-label','Track or quick log');shell.appendChild(trackButton)}trackButton.innerHTML=`${ICONS.track}<span>Track</span>`;trackButton.onclick=()=>onTrack?onTrack():document.dispatchEvent(new CustomEvent('el8:track-requested'));
   document.querySelector('.el8-profile-drawer-host')?.remove();const drawer=installDrawer(shell,resolved,initial,profileButton);profileButton.onclick=()=>onProfile?onProfile():drawer.open();installScrollBehavior(shell);return shell;
