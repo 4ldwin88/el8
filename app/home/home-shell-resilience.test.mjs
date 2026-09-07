@@ -5,6 +5,7 @@ const home = await readFile(new URL('./home.js', import.meta.url), 'utf8');
 const plan = await readFile(new URL('../plan/plan.js', import.meta.url), 'utf8');
 const insights = await readFile(new URL('../insights/insights.js', import.meta.url), 'utf8');
 const explore = await readFile(new URL('../explore/explore.js', import.meta.url), 'utf8');
+const shell = await readFile(new URL('../shell/app-shell.js', import.meta.url), 'utf8');
 const homeHtml = await readFile(new URL('../../home.html', import.meta.url), 'utf8');
 const planHtml = await readFile(new URL('../../plan.html', import.meta.url), 'utf8');
 
@@ -25,6 +26,10 @@ for (const [name, html, active] of [['Home', homeHtml, 'home'], ['Plan', planHtm
   assert.match(html, /class="el8-shell-nav"/, `${name} structural shell must include primary navigation`);
   assert.match(html, /class="el8-shell-track"/, `${name} structural shell must include Track`);
 }
+
+assert.match(shell, /PROFILE_INITIAL_KEY=['"]el8-profile-initial['"]/, 'Shell must use one cached profile-initial key');
+assert.match(shell, /rememberProfileInitial\(profileInitial\)/, 'Confirmed member initial must refresh first-paint cache');
+assert.match(shell, /mountAppShell\(\{active:structuralPage,profileInitial:cachedProfileInitial\(\)\}\)/, 'All structural primary pages must use cached initial before profile fetch completes');
 
 assert.match(home, /renderHomeRuntimeState/, 'Home module must render governed runtime states');
 assert.match(homeHtml, /data-home-runtime/, 'Home HTML must provide a member-visible runtime status region');
