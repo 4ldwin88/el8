@@ -10,8 +10,7 @@ const ICONS = Object.freeze({
   plan: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M8 11h8M8 15h5"/></svg>',
   insights: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/></svg>',
   explore: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="m15 9-2 4-4 2 2-4z"/></svg>',
-  track: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
-  profile: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c.7-4.2 2.9-6.2 6.5-6.2s5.8 2 6.5 6.2"/></svg>'
+  track: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
 });
 function routeMap(overrides={}){return{...DEFAULT_ROUTES,...overrides}}
 function go(url){if(url)window.location.href=url}
@@ -19,7 +18,8 @@ function normalizedInitial(initial){const value=String(initial||'').trim();retur
 export function cachedProfileInitial(){try{return normalizedInitial(localStorage.getItem(PROFILE_INITIAL_KEY))}catch{return''}}
 export function rememberProfileInitial(initial){const value=normalizedInitial(initial);if(value)try{localStorage.setItem(PROFILE_INITIAL_KEY,value)}catch{}return value}
 function resolvedInitial(initial){return normalizedInitial(initial)||cachedProfileInitial()}
-function initialMarkup(initial){return resolvedInitial(initial)||ICONS.profile}
+// Unknown identity stays visually neutral. Never flash a fictional/default member avatar.
+function initialMarkup(initial){return resolvedInitial(initial)}
 function drawerMarkup(resolved, initial){return `<div class="el8-profile-backdrop" data-profile-close></div><aside class="el8-profile-drawer" role="dialog" aria-modal="true" aria-label="Profile menu" tabindex="-1"><div class="el8-profile-drawer-head"><span class="el8-shell-avatar">${initialMarkup(initial)}</span><div><strong>Profile</strong><small>Your EL8 account</small></div><button type="button" class="el8-profile-close" data-profile-close aria-label="Close Profile menu">×</button></div><nav class="el8-profile-menu" aria-label="Profile"><a href="${resolved.profile}">Profile & history <span>›</span></a><a href="personal-info.html?return=profile">Personal information <span>›</span></a><a href="privacy-data.html">Privacy & data <span>›</span></a></nav></aside>`}
 function installDrawer(shell,resolved,initial,trigger){
   const host=document.createElement('div');host.className='el8-profile-drawer-host';host.hidden=true;host.innerHTML=drawerMarkup(resolved,initial);document.body.appendChild(host);
