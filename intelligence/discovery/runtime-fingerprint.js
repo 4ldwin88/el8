@@ -1,2 +1,2 @@
 // Implementation provenance, verified from the runtime import graph by the gate.
-export const DISCOVERY_CONTRACT_FINGERPRINT='f02f0949b5f6ed8cbf2f3a7ed567c13de581ad5206a27b743a1ede4cff2e9501';
+export const DISCOVERY_CONTRACT_FINGERPRINT='643cf099e8575b43eb8e2e323d08be0485e2f9495aadc46bf1664f976294fc37';
