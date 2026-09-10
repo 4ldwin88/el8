@@ -57,44 +57,5 @@ jobs:
           test "$(git hash-object intelligence/registries/registry.test.mjs)" = "$(git rev-parse HEAD:intelligence/registries/registry.test.mjs)"
           grep -n "ALL_ANSWERS.length" intelligence/registries/registry.test.mjs
 
-      - name: Run canonical Intelligence contracts, state, Planning, Review and personalization validation
-        run: npm run test:intelligence
-
-      - name: Run persistence and migration validation
-        run: npm run test:persistence
-
-      - name: Run Discovery validation
-        run: npm run test:discovery
-
-      - name: Run human-QA harness regression validation
-        run: npm run test:intelligence-test
-
-      - name: Run onboarding and activation-boundary validation
-        run: npm run test:onboarding
-
-      - name: Guard Home navigation against secondary module failures
-        run: node app/home/home-shell-resilience.test.mjs
-
-      - name: Validate governed runtime resilience states
-        run: node app/resilience/runtime-state.test.mjs
-
-      - name: Run E01 raw lifecycle validation
-        run: npm run test:e01
-
-      - name: Run adversarial G-02 lifecycle and hostile matrix
-        run: npm run test:g02-adversarial
-
-      - name: Run E02 E03 QA isolation and replay validation
-        run: npm run test:e02-e03
-
-      - name: Run T01 T02 decision trace validation
-        run: npm run test:t01-t02
-
-      - name: Run S01 deterministic Safety validation
-        run: npm run test:s01
-
-      - name: Run S02 adversarial Safety validation
-        run: npm run test:s02
-
-      - name: Run R01 registry governance validation
-        run: npm run test:r01
+      - name: Run canonical repository release gate
+        run: npm test

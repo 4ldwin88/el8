@@ -25,6 +25,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Verify exact checked-out candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+      - name: Run canonical repository release gate
+        run: npm test
       - name: Write exact deployed candidate provenance
         env:
           CONTEXT: github-pages
