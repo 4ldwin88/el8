@@ -1,7 +1,16 @@
 import test from 'node:test';import assert from 'node:assert/strict';import{createDiscoveryFromSnapshot,discoveryPrioritizationInput,planningHandoffFromDiscovery,buildOnboardingPlan}from'./planning-pipeline.js';import{canonicalBrowserPlanView}from'./browser-planning-adapter.js';import{appendObservation,setResolution}from'../../intelligence/discovery/orientation-session.js';
+import BANK,{observationsForAnswer} from '../../intelligence/discovery/observationNormalizer.js';
+import {ALL_EFFECTS,getAnswer} from '../../intelligence/registries/registry.js';
 const now='2026-09-02T12:00:00.000Z';
 const handoff=(constructIds,priority=constructIds)=>({candidateConstructIds:constructIds,signals:{memberPriorityConstructIds:priority,feasibility:{}},uncertainty:{requiresDiscoveryConfirmation:true}});
-const establish=(s,id)=>{appendObservation(s,{constructId:id,questionId:`discovery-${id}`,effects:[{type:'evidence',target:id,polarity:'supports',strength:.9,sourceType:'member-report'},{type:'importance',target:id,value:'high'}]});setResolution(s,id,'sufficient',{driverKnown:true});return s};
+const establish=(s,id)=>{
+ const effect=ALL_EFFECTS.find(e=>e['Target ID / Construct']===id&&e['Effect Type']==='STATE');
+ assert.ok(effect,`governed state evidence for ${id}`);
+ const answer=getAnswer(effect['Answer ID']),question=BANK.find(q=>q.id===answer['Parent Question ID']);
+ for(const observation of observationsForAnswer(question,effect['Answer ID'],{timestamp:Date.parse(now)}))appendObservation(s,observation);
+ appendObservation(s,{id:`importance:${id}`,questionId:`importance:${id}`,timestamp:Date.parse(now),constructId:id,effects:[{type:'importance',target:id,value:'high'}]});
+ setResolution(s,id,'sufficient');return s;
+};
 test('snapshot feasibility preserves uncertainty instead of defaulting to medium',()=>{const s=createDiscoveryFromSnapshot(handoff(['PHYSICAL_CONDITION']));assert.equal(s.facts.snapshotFeasibility.capacity,'unknown')});
 test('legacy concern IDs cannot enter construct-state Discovery',()=>{assert.equal(createDiscoveryFromSnapshot(handoff(['money_pressure','poor_sleep'])),null)});
 test('resolved construct projects Member State before Prioritization',()=>{const s=establish(createDiscoveryFromSnapshot(handoff(['SLEEP_QUALITY'])),'SLEEP_QUALITY');const h=planningHandoffFromDiscovery(s,{memberId:'member:test',now});assert.equal(h.prioritization.recommended[0].constructId,'SLEEP_QUALITY');assert.equal(h.prioritization.memberStateRevision,h.memberState.revision);assert.equal(h.memberState.constructs.SLEEP_QUALITY.sufficiency,'sufficient')});

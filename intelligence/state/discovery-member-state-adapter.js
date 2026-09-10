@@ -12,7 +12,7 @@ function canonicalConfidence(item={}){
 }
 function semanticContext(item){
  const context={};
- for(const key of ['uncertaintyRefs','provenanceRefs','memberImportance','memberPriority','readiness','temporality','relationships','feasibility']){
+ for(const key of ['uncertaintyRefs','provenanceRefs','memberImportance','memberPriority','readiness','temporality','relationships','feasibility','stateEvidence','facetEvidence','contextEvidence','uncertaintyEvidence','negativeEvidence','observationRefs','questionRefs']){
   if(Object.hasOwn(item,key))context[key]=structuredClone(item[key]);
  }
  return context;

@@ -23,7 +23,7 @@ export function appendObservation(session,observation){
 export function mergeFacts(session,facts={}){session.facts={...(session.facts||{}),...facts};return session}
 
 export function deriveStates(session){
- return deriveAllConstructStates(session.observationLog,session.constructIds).map(s=>({...s,resolutionState:session.resolutionStates?.[s.constructId]??'triaged',driverKnown:session.driverKnown?.[s.constructId]??false}));
+ return deriveAllConstructStates(session.observationLog,session.constructIds).map(s=>({...s,resolutionState:s.sufficiencyBlocked?'triaged':session.resolutionStates?.[s.constructId]??'triaged',driverKnown:session.driverKnown?.[s.constructId]??false}));
 }
 
 function pendingBaselineQuestions(session){return session.questionBank.filter(q=>q.role==='orientation-baseline'&&!session.asked.includes(q.id)&&!session.baselineCoverage?.[String(q.dimension||'').toUpperCase()])}
