@@ -15,6 +15,10 @@
     {
       "path": "supabase/migrations/20260910131723_member_state_conflict_response.sql",
       "sha256": "c23cec7106355bf7d48077ec5bafa7648af3c0f99145f7394f9ca622c9c0f75b"
+    },
+    {
+      "path": "supabase/migrations/20260910135702_member_state_immutable_facts.sql",
+      "sha256": "a7c376ac1f81c10558fe373721956f63694c153841a4845f1a1c36f909982160"
     }
   ],
   "catalogHashes": {
@@ -23,7 +27,7 @@
     "indexes": "d5feee254243a1ac9f5333b6a37d03069bc399be90506600c5418c3a7ca6ae9f",
     "policies": "96e95328d732c27aac866e0bf5bf5adcd803fceff41d8bbd788bb84b78b0918e",
     "triggers": "e4d640880747e6cd4933b0e1f8329b336cb0989498631e9e7fe21fcfba93442d",
-    "functions": "9eb96d73b14fc0d20a210a0783c575e7ccfaadaf4d661605f6db843344753358",
+    "functions": "25e3a6b1fca6cde335dd604427fb32178b34c5fba1249e8b239d6148e539bf23",
     "sequences": "c87c79af0755960487313d491f5dab4afadd1d1245f9e440ceb3a355076298a7",
     "constraints": "0c44a53f000271ac3dbf2d2a075aab135dd8a62e229d0d18faedbc2071889924"
   },

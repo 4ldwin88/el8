@@ -6,6 +6,8 @@ import {createMemberState} from '../../intelligence/state/member-state-contract.
 import {saveMemberState, loadMemberState} from '../../intelligence/state/supabase-persistence.js';
 import {openMemberStateSession,persistMemberStateSession} from '../../app/auth/member-state-session.js';
 import {applyMemberStateTransition,MEMBER_STATE_EVENT} from '../../intelligence/state/member-state-transition.js';
+import {discoveryOutputToMemberState} from '../../intelligence/state/discovery-member-state-adapter.js';
+import Discovery from '../../intelligence/discovery/discovery-engine.js';
 
 const migrations = new URL('../../supabase/migrations/', import.meta.url);
 const forwardName = '20260910102819_member_state_single_writer.sql';
@@ -73,6 +75,30 @@ async function rpc(db, expected, state) {
 const memberSave = (db, id, expected, state) =>
   asRole(db, 'authenticated', id, () => rpc(db, expected, state));
 const rows = async db => (await db.query('select * from public.el8_member_state order by user_id')).rows;
+
+test('actual Discovery observations persist together at +1 and remain immutable through SQL',async()=>{
+ const db=await checkpoint();
+ try{
+  await db.exec(forward);for(const sql of later)await db.exec(sql);
+  const client={from:()=>({select:()=>({maybeSingle:async()=>({data:await asRole(db,'authenticated',A,async()=>(await db.query('select * from public.el8_member_state')).rows[0]??null),error:null})})}),rpc:async(name,args)=>({data:await memberSave(db,A,args.expected_revision,args.next_state),error:null})};
+  const session={user:{id:A}},opened=await openMemberStateSession({supabase:client,session,now:'2026-09-10T00:00:00Z'});
+  const discovery=Discovery.session({constructIds:['SLEEP_QUALITY']});
+  Discovery.answer(discovery,Discovery.BANK.find(q=>q.id==='Q000020'),'A000129');
+  Discovery.answer(discovery,Discovery.BANK.find(q=>q.id==='Q000021'),'A000132');
+  const next=discoveryOutputToMemberState(Discovery.trace(discovery),{memberId:A,existingState:opened.state,at:'2026-09-10T00:01:00Z'});
+  assert.equal(next.revision,1);assert.equal(Object.keys(next.facts).length,2);
+  assert.deepEqual(await persistMemberStateSession({supabase:client,session,previousState:opened.state,nextState:next,persisted:false}),next);
+  const reloaded=await loadMemberState(client);assert.deepEqual(reloaded,next);
+  const replay=discoveryOutputToMemberState(Discovery.trace(discovery),{memberId:A,existingState:reloaded,at:'2026-09-10T00:02:00Z'});
+  assert.deepEqual(await saveMemberState(client,replay),replay,'JSONB key order cannot invalidate identical immutable facts');
+  await assert.rejects(()=>saveMemberState(client,next,{expectedRevision:0}),e=>e.code==='PT409');
+  for(const tamper of [s=>s.facts={},s=>s.facts=null,s=>s.facts=[],s=>{Object.values(s.facts)[0].value.answerValue='A000126';}]){
+   const changed=structuredClone(replay);changed.revision++;tamper(changed);
+   await rejectedWithoutMutation(db,()=>memberSave(db,A,replay.revision,{...changed,schemaVersion:'3.0.0'}),['PT409','23514']);
+  }
+  assert.deepEqual(await asRole(db,'authenticated',B,async()=>(await db.query('select * from public.el8_member_state')).rows),[]);
+ }finally{await db.close();}
+});
 async function rejectedWithoutMutation(db, operation, codes) {
   const before = await rows(db);
   await assert.rejects(operation, error => codes.includes(error.code));
@@ -348,6 +374,27 @@ test('current Member State CAS conflicts use an explicit HTTP conflict code',asy
   await rejectedWithoutMutation(db,()=>memberSave(db,A,-1,envelope(A,0)),['PT409']);
   await memberSave(db,A,0,envelope(A,1));
   await rejectedWithoutMutation(db,()=>memberSave(db,A,0,envelope(A,1)),['PT409']);
+ }finally{await db.close();}
+});
+
+test('immutable-fact migration fails closed on definition/data drift and preserves privileges',async()=>{
+ const db=await checkpoint();
+ const migration=await readFile(new URL('20260910135702_member_state_immutable_facts.sql',migrations),'utf8');
+ try{
+  await db.exec(forward);
+  await db.exec(await readFile(new URL('20260910131723_member_state_conflict_response.sql',migrations),'utf8'));
+  const inspect=()=>db.query("select pg_get_functiondef(oid) as definition,proacl::text as acl,proowner::regrole::text as owner from pg_proc where oid='public.save_el8_member_state(integer,jsonb)'::regprocedure");
+  const before=(await inspect()).rows[0];
+  await db.exec('alter function public.save_el8_member_state(integer,jsonb) security invoker');
+  await assert.rejects(()=>db.exec(migration),/unexpected Member State writer definition/);await db.exec('rollback');
+  await db.exec(before.definition);
+  await memberSave(db,A,-1,envelope(A,0,{facts:null}));
+  await assert.rejects(()=>db.exec(migration),/existing Member State facts require explicit remediation/);await db.exec('rollback');
+  assert.deepEqual((await inspect()).rows[0],before);
+  await db.exec('delete from public.el8_member_state');
+  await db.exec(migration);
+  const after=(await inspect()).rows[0];assert.equal(after.acl,before.acl);assert.equal(after.owner,before.owner);
+  await assert.rejects(()=>db.exec(migration),/unexpected Member State writer definition/);await db.exec('rollback');
  }finally{await db.close();}
 });
 

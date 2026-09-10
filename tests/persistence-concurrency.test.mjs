@@ -6,6 +6,8 @@ import {createMemberState} from '../intelligence/state/member-state-contract.js'
 import {loadMemberState,saveMemberState,toPersistedMemberState} from '../intelligence/state/supabase-persistence.js';
 import {openMemberStateSession,persistMemberStateSession} from '../app/auth/member-state-session.js';
 import {sourceIdentity} from '../scripts/candidate-identity.mjs';
+import Discovery from '../intelligence/discovery/discovery-engine.js';
+import {discoveryOutputToMemberState} from '../intelligence/state/discovery-member-state-adapter.js';
 import {mkdirSync,writeFileSync} from 'node:fs';
 
 // Deliberately outside the offline gate. No original-backend fallback,
@@ -118,6 +120,24 @@ test('authenticated Member State boundary on the approved disposable backend',as
   assert.deepEqual(await loadMemberState(a.supabase),saved);
   assert.deepEqual(await saveMemberState(a.supabase,next),next);
  });
+ await check('actual Discovery source evidence survives +1 persistence and cannot be overwritten through RPC',async()=>{
+  const prior=await loadMemberState(a.supabase),discovery=Discovery.session({constructIds:['SLEEP_QUALITY']});
+  Discovery.answer(discovery,Discovery.BANK.find(q=>q.id==='Q000020'),'A000129');
+  Discovery.answer(discovery,Discovery.BANK.find(q=>q.id==='Q000021'),'A000132');
+  const projected=discoveryOutputToMemberState(Discovery.trace(discovery),{memberId:a.id,existingState:prior});
+  assert.equal(projected.revision,prior.revision+1);
+  assert.equal(Object.keys(projected.facts).length,2);
+  assert.deepEqual(await saveMemberState(a.supabase,projected),projected);
+  assert.deepEqual(await loadMemberState(a.supabase),projected);
+  for(const mutate of [s=>s.facts={},s=>s.facts=null,s=>{Object.values(s.facts)[0].value.answerValue='A000126';}]){
+   const tampered=advance(projected,'fixture:rewrite-observation');mutate(tampered);
+   const result=await a.supabase.rpc('save_el8_member_state',{expected_revision:projected.revision,next_state:{...tampered,schemaVersion:'3.0.0'}});
+   assert.ok(result.error&&['PT409','23514'].includes(result.error.code));
+   assert.deepEqual(await loadMemberState(a.supabase),projected);
+  }
+  const replay=discoveryOutputToMemberState(Discovery.trace(discovery),{memberId:a.id,existingState:await loadMemberState(a.supabase)});
+  assert.deepEqual(await saveMemberState(a.supabase,replay),replay);
+ });
  await check('new Auth sessions reload both members losslessly',async()=>{
   for(let i=0;i<2;i++){
    const expected=await loadMemberState(members[i].supabase),fresh=client();
@@ -126,7 +146,7 @@ test('authenticated Member State boundary on the approved disposable backend',as
    assert.equal(resumed.persisted,true);assert.deepEqual(resumed.state,expected);
   }
  });
- assert.equal(checked.length,11,'no partial acceptance receipt');
+ assert.equal(checked.length,12,'no partial acceptance receipt');
  assert.deepEqual(sourceIdentity(),before,'source changed during integration acceptance');
  mkdirSync('.candidate',{recursive:true});
  writeFileSync('.candidate/staging-member-state.json',JSON.stringify({status:'pass',...before,environment:config.url,checked,node:process.version,limits:['synthetic pre-provisioned Auth users; signup/email delivery not tested','transport failure injection; no proxy or server crash injection','not a browser journey or full release receipt']},null,2)+'\n');

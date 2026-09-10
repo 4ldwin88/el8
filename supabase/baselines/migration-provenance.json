@@ -1194,6 +1194,11 @@
       "path": "20260910131723_member_state_conflict_response.sql",
       "sha256": "c23cec7106355bf7d48077ec5bafa7648af3c0f99145f7394f9ca622c9c0f75b",
       "status": "unapplied-candidate"
+    },
+    {
+      "path": "20260910135702_member_state_immutable_facts.sql",
+      "sha256": "a7c376ac1f81c10558fe373721956f63694c153841a4845f1a1c36f909982160",
+      "status": "unapplied-candidate"
     }
   ]
 }

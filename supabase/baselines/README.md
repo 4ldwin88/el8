@@ -78,11 +78,12 @@ executes transactionally. This is an accidental-execution guard, not authorizati
 proof of environment identity. An executor must separately verify the destination is
 the newly provisioned non-production project. Never run it on the original project.
 
-Apply checkpoint, verify all captured fingerprints, then apply
-`20260910102819_member_state_single_writer.sql` and
-`20260910131723_member_state_conflict_response.sql` in that order. Exact input and
-post-replay catalog fingerprints are in `supabase/environments/staging-replay.json`.
-Both were rehearsed on the isolated hosted backend. The original EL8 schema and
+Apply the checkpoint, verify its captured fingerprints, then apply the remaining
+inputs in the exact order owned by `supabase/environments/staging-replay.json`.
+That manifest also owns exact input and post-replay catalog fingerprints; the
+offline replay gate rejects omitted supported forward migrations. The current
+sequence includes the single writer, HTTP conflict correction and immutable-fact
+guard, all rehearsed on the isolated hosted backend. The original EL8 schema and
 migration history remain untouched. Re-run the Member State SQL contract,
 then real Auth/PostgREST two-member, stale/concurrent/retry and failure-injection tests.
 Use synthetic accounts only. Stop at any unexpected catalog/version difference.

@@ -54,10 +54,10 @@ test('observed checkpoint replays with source-attributed catalog and existing fo
   }
   await assert.rejects(()=>db.exec(sql),/requires an empty public schema/);
   await db.exec('rollback');
-  await db.exec(await file('supabase/migrations/20260910102819_member_state_single_writer.sql'));
-  await db.exec(await file('supabase/migrations/20260910131723_member_state_conflict_response.sql'));
   const staging=JSON.parse(await file('supabase/environments/staging-replay.json'));
   for(const input of staging.inputs)assert.equal(hash(await file(input.path)),input.sha256,'staging replay input changed: '+input.path);
+  assert.equal(staging.inputs[0].path,baselinePath);
+  for(const input of staging.inputs.slice(1))await db.exec(await file(input.path));
   assert.deepEqual(catalogHashes((await db.query(query)).rows[0].catalog),staging.catalogHashes,'repository replay must match the actual independently captured staging catalog');
   assert.equal((await db.query("select count(*)::int as n from pg_proc where pronamespace='public'::regnamespace and proname='save_el8_member_state'")).rows[0].n,1);
   for(const role of ['anon','authenticated'])assert.equal((await db.query("select has_table_privilege($1,'public.el8_member_state','INSERT,UPDATE,DELETE') as allowed",[role])).rows[0].allowed,false);
@@ -68,6 +68,8 @@ test('every repository migration retains its explicitly recorded provenance',asy
  const provenance=JSON.parse(await file('supabase/baselines/migration-provenance.json'));
  const names=(await readdir(new URL('supabase/migrations/',root))).filter(n=>n.endsWith('.sql')).sort();
  assert.deepEqual(names,provenance.repositoryFiles.map(f=>f.path),'new migrations must declare candidate/applied provenance');
+ const replay=JSON.parse(await file('supabase/environments/staging-replay.json'));
+ assert.deepEqual(replay.inputs.slice(1).map(x=>x.path),provenance.repositoryFiles.filter(x=>x.status==='unapplied-candidate').map(x=>'supabase/migrations/'+x.path),'every supported forward migration must participate in replay');
  assert.equal(new Set(provenance.records.map(r=>r.version)).size,provenance.records.length);
  for(const entry of provenance.repositoryFiles){
   assert.equal(hash(await file('supabase/migrations/'+entry.path)),entry.sha256,`migration changed without provenance review: ${entry.path}`);
