@@ -69,3 +69,44 @@ test('ordinary run reads preserve historical fingerprints and never perform sema
   assert.deepEqual(await store.load(command.run_id),accepted,'failed explicit resume cannot rewrite stored history');
  }finally{await f.db.close();}
 });
+
+test('standard UUID casing does not turn an accepted run or retry into a failed acknowledgement',async()=>{
+ const {prepareDiscoveryRunSave,createDiscoveryRunStore}=await import(modulePath);
+ const f=await fixture();try{
+  const store=createDiscoveryRunStore(f.client);
+  for(const [runId,requestId] of [
+   ['AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'],
+   ['cccccccc-cccc-4ccc-8ccc-cccccccccccc','DDDDDDDD-DDDD-4DDD-8DDD-DDDDDDDDDDDD'],
+   ['EeEeEeEe-EeEe-4eEe-8eEe-EeEeEeEeEeEe','FfFfFfFf-FfFf-4fFf-8fFf-FfFfFfFfFfFf']
+  ]){
+   const session=Discovery.session({runId});
+   const command=prepareDiscoveryRunSave(session,-1,requestId),before=structuredClone(command);
+   const accepted=await store.save(command);
+   assert.equal(accepted.run_id,runId.toLowerCase());assert.equal(accepted.request_id,requestId.toLowerCase());
+   assert.equal(accepted.revision,0);assert.deepEqual(accepted.record,command.run_record);
+   assert.deepEqual(await store.save(command),accepted);
+   assert.deepEqual(await store.load(runId),accepted);
+   assert.deepEqual(command,before,'acknowledgement must not normalize the submitted source or command');
+  }
+  assert.equal((await f.db.query('select count(*)::int as n from public.el8_discovery_run_revisions')).rows[0].n,3);
+ }finally{await f.db.close();}
+});
+
+test('UUID case equivalence cannot accept wrong identifiers or loosen revision checks',async()=>{
+ const {prepareDiscoveryRunSave,createDiscoveryRunStore}=await import(modulePath);
+ const f=await fixture();try{
+  const command=prepareDiscoveryRunSave(Discovery.session(),-1);
+  const accepted=await createDiscoveryRunStore(f.client).save(command);
+  for(const patch of [
+   {run_id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'},
+   {request_id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'},
+   ...['run_id','request_id'].flatMap(key=>[null,42,{},[],true,'not-a-uuid'].map(value=>({[key]:value}))),
+   {revision:1},{revision:-1},{revision:'0'},{revision:null}
+  ]){
+   const corrupt={async rpc(name,args){const result=await f.client.rpc(name,args);assert.equal(result.error,null);return {...result,data:{...result.data,...patch}};}};
+   await assert.rejects(()=>createDiscoveryRunStore(corrupt).save(command),/Invalid Discovery acknowledgement/);
+  }
+  assert.deepEqual(await createDiscoveryRunStore(f.client).load(command.run_id),accepted);
+  assert.equal((await f.db.query('select count(*)::int as n from public.el8_discovery_run_revisions')).rows[0].n,1);
+ }finally{await f.db.close();}
+});

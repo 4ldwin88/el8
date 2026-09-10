@@ -1,6 +1,14 @@
 import {captureDiscoveryRun} from './run-record.js';
 import {assertJsonValue} from '../state/json-representation.js';
 
+// PostgreSQL emits UUID columns in lowercase; source JSON retains its exact text.
+// Compare standard-form UUID identity without coercing or rewriting either value.
+function sameUuid(left,right){
+ return typeof left==='string'&&typeof right==='string'
+  &&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(left)
+  &&left.toLowerCase()===right.toLowerCase();
+}
+
 // Capture once. Keep this command unchanged until its acknowledgement is known;
 // retrying must not capture later answers under the same request identity.
 export function prepareDiscoveryRunSave(session,expectedRevision,requestId=crypto.randomUUID()){
@@ -18,7 +26,7 @@ export function createDiscoveryRunStore(client){
    assertJsonValue(command,'Discovery save command');
    const {data,error}=await client.rpc('save_el8_discovery_run',structuredClone(command));
    if(error)throw error;
-   if(!data||data.run_id!==command.run_id||data.request_id!==command.request_id||data.revision!==command.expected_revision+1)
+   if(!data||!sameUuid(data.run_id,command.run_id)||!sameUuid(data.request_id,command.request_id)||data.revision!==command.expected_revision+1)
     throw new Error('Invalid Discovery acknowledgement; retain the command for reconciliation');
    return structuredClone(data);
   },
