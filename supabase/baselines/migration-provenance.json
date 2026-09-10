@@ -1199,6 +1199,12 @@
       "path": "20260910135702_member_state_immutable_facts.sql",
       "sha256": "a7c376ac1f81c10558fe373721956f63694c153841a4845f1a1c36f909982160",
       "status": "unapplied-candidate"
+    },
+    {
+      "path": "20260910190000_discovery_run_history.sql",
+      "sha256": "1605ffe3ee708b750b6cea1d25bd02aef1c66bd454816f724d96429b9e822e81",
+      "status": "unapplied-candidate",
+      "note": "Forward Discovery working-run history; applied only to approved synthetic staging, never original EL8."
     }
   ]
 }
