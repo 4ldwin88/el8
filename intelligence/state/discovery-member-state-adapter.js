@@ -1,7 +1,5 @@
-// Canonical Discovery -> Member State v3 projection used by production-like QA and runtime boundaries.
-// Discovery owns evidence acquisition/sufficiency; this adapter persists supported construct state
-// without discarding a bounded decision-useful handoff simply because the bank did not mark every
-// construct resolutionState as sufficient.
+// Discovery owns sufficiency. Candidate visibility is never evidence that its
+// requirements have been met; this mapper preserves that distinction and context.
 import {createMemberState,createFact} from './member-state-contract.js';
 import {applyMemberStateTransitions,MEMBER_STATE_EVENT} from './member-state-transition.js';
 
@@ -12,19 +10,17 @@ function canonicalConfidence(item={}){
  const normalized=String(raw).trim().toUpperCase().replace(/[ -]+/g,'_');
  return QUALITATIVE_CONFIDENCE.has(normalized)?normalized:'UNKNOWN';
 }
-function decisionUsefulIds(source={}){
- // Canonical runtime output carries the governed handoff beside trace: {trace,handoff}.
- // Historical trace shapes may carry it under trace.handoff or stopping metadata.
- const handoff=source?.handoff??source?.trace?.handoff??null;
- const stop=source?.stop??source?.stoppingDecision??source?.trace?.stop??source?.trace?.stoppingDecision??null;
- const ids=handoff?.candidateIds??stop?.candidateIds??[];
- return new Set(Array.isArray(ids)?ids:[]);
+function semanticContext(item){
+ const context={};
+ for(const key of ['uncertaintyRefs','provenanceRefs','memberImportance','memberPriority','readiness','temporality','relationships','feasibility']){
+  if(Object.hasOwn(item,key))context[key]=structuredClone(item[key]);
+ }
+ return context;
 }
 
 export function discoveryOutputToMemberState(output,{memberId=null,existingState=null,at=new Date().toISOString()}={}){
  const trace=output?.trace??output;
  const states=Array.isArray(trace?.states)?trace.states:[];
- const handoffIds=decisionUsefulIds(output);
  const state=existingState??createMemberState({memberId,now:at}),events=[];
  if(memberId!==null&&state.memberId!==memberId)throw new Error('Discovery/member state identity mismatch');
  const observations=trace?.observations??[];
@@ -37,14 +33,14 @@ export function discoveryOutputToMemberState(output,{memberId=null,existingState
  for(const item of states){
   if(!item?.constructId||item.excluded||['deferred','nonIssue','escalated'].includes(item.resolutionState))continue;
   if(!SUPPORTED_DISCOVERY_STATUS.has(item.status))continue;
-  const decisionUseful=handoffIds.has(item.constructId);
-  const sufficient=item.resolutionState==='sufficient'||decisionUseful;
-  events.push({type:MEMBER_STATE_EVENT.CONSTRUCT_UPDATED,payload:{constructId:item.constructId,status:'supported',evidenceConfidence:canonicalConfidence(item),sufficiency:sufficient?'sufficient':'insufficient',unresolvedReasons:sufficient?[]:[...(item.unresolvedReasons??[])],evidenceRefs:[...(item.evidenceRefs??[])],lastObservedAt:item.lastObservedAt??null}});
+  const sufficient=item.resolutionState==='sufficient';
+  events.push({type:MEMBER_STATE_EVENT.CONSTRUCT_UPDATED,payload:{constructId:item.constructId,status:'supported',evidenceConfidence:canonicalConfidence(item),sufficiency:sufficient?'sufficient':'insufficient',unresolvedReasons:[...(item.unresolvedReasons??[])],evidenceRefs:[...(item.evidenceRefs??[])],lastObservedAt:item.lastObservedAt??null,...semanticContext(item)}});
  }
  return events.length?applyMemberStateTransitions(state,{events,source:'discovery',at,expectedRevision:state.revision}):state;
 }
 
 export function memberStateToPrioritizationInput(state){
- const candidates=Object.values(state?.constructs??{}).filter(item=>item.status==='supported'&&item.sufficiency==='sufficient').map(item=>Object.freeze({constructId:item.constructId,status:'supported',evidenceRefs:[...(item.evidenceRefs??[])]}));
- return Object.freeze({memberStateRevision:state.revision,candidates,evidenceRefs:[...new Set(candidates.flatMap(item=>item.evidenceRefs))],sufficiency:'sufficient',uncertaintyRefs:[]});
+ const constructs=Object.values(state?.constructs??{});
+ const candidates=constructs.filter(item=>item.status==='supported'&&item.sufficiency==='sufficient').map(item=>Object.freeze(structuredClone(item)));
+ return Object.freeze({memberStateRevision:state.revision,candidates,evidenceRefs:[...new Set(candidates.flatMap(item=>item.evidenceRefs))],sufficiency:candidates.length?'sufficient':'unknown',uncertaintyRefs:[...new Set(constructs.flatMap(item=>item.uncertaintyRefs??[]))]});
 }

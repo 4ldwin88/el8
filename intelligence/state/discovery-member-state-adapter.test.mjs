@@ -20,20 +20,24 @@ test('qualitative confidence is normalized without changing its category',()=>{
  assert.equal(state.constructs.SLEEP_QUALITY.evidenceConfidence,'MODERATE');
 });
 
-test('canonical runtime {trace,handoff} keeps a decision-useful candidate eligible for Prioritization',()=>{
+test('canonical runtime {trace,handoff} preserves a triaged candidate without promoting sufficiency',()=>{
  const output={trace:{states:[{constructId:'SLEEP_QUALITY',status:'established',resolutionState:'triaged',qualitativeConfidence:'WELL_SUPPORTED',evidenceRefs:['e:test']}]},handoff:{usable:true,candidateIds:['SLEEP_QUALITY']}};
  const state=discoveryOutputToMemberState(output,{memberId:'member:test',at});
- assert.equal(state.constructs.SLEEP_QUALITY.sufficiency,'sufficient');
- assert.deepEqual(memberStateToPrioritizationInput(state).candidates.map(x=>x.constructId),['SLEEP_QUALITY']);
+ assert.equal(state.constructs.SLEEP_QUALITY.sufficiency,'insufficient');
+ assert.deepEqual(Object.keys(state.constructs),['SLEEP_QUALITY']);
+ assert.deepEqual(memberStateToPrioritizationInput(state).candidates,[]);
 });
 
-test('canonical runtime handoff preserves multiple candidates exactly',()=>{
+test('canonical runtime preserves multiple candidates and their independent sufficiency',()=>{
  const output={trace:{states:[
   {constructId:'SLEEP_QUALITY',status:'established',resolutionState:'triaged',qualitativeConfidence:'WELL_SUPPORTED',evidenceRefs:['e:sleep']},
-  {constructId:'FINANCIAL_STRAIN',status:'supported',resolutionState:'triaged',qualitativeConfidence:'MODERATE',evidenceRefs:['e:finance']}
+  {constructId:'FINANCIAL_STRAIN',status:'supported',resolutionState:'sufficient',qualitativeConfidence:'MODERATE',evidenceRefs:['e:finance']}
  ]},handoff:{usable:true,candidateIds:['SLEEP_QUALITY','FINANCIAL_STRAIN']}};
  const state=discoveryOutputToMemberState(output,{memberId:'member:test',at});
- assert.deepEqual(new Set(memberStateToPrioritizationInput(state).candidates.map(x=>x.constructId)),new Set(['SLEEP_QUALITY','FINANCIAL_STRAIN']));
+ assert.deepEqual(Object.keys(state.constructs),['SLEEP_QUALITY','FINANCIAL_STRAIN']);
+ assert.equal(state.constructs.SLEEP_QUALITY.sufficiency,'insufficient');
+ assert.equal(state.constructs.FINANCIAL_STRAIN.sufficiency,'sufficient');
+ assert.deepEqual(memberStateToPrioritizationInput(state).candidates.map(x=>x.constructId),['FINANCIAL_STRAIN']);
 });
 
 test('unresolved construct without a decision-useful handoff remains ineligible for Prioritization',()=>{
