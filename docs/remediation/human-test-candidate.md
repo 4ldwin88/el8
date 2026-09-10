@@ -83,3 +83,43 @@ old extra Member State CI owner is retired in favor of the shared gate. Pages
 promotion is explicit/manual, requires the same workflow validation receipt and
 does not upload SQL, tests, documentation, dependency packages or workflow code.
 No workflow or production deployment was executed.
+
+## Slice 2 decision: lossless ordinary Member State storage
+
+Authority: 02.03 September 7 persistence rule, 02.01.01 evidence/decision ownership,
+05.04 no guessed historical migration. Invariant: decode(encode(current)) equals
+current, including order, missing/unknown values, uncertainty, history and member
+decisions. Neither loading nor saving may create semantic defaults or infer Focus
+activation. Unsupported representations stop explicitly before domain consumption.
+
+Affected owners: intelligence/state/supabase-persistence.js and its session caller.
+C's strict JSON boundary and tests are independently reviewed and useful. Current
+read-time normalizers reconstruct Focus ordering and add defaults; an accepted
+decision can become an active Focus solely by loading. This violates ownership.
+The contract-derived original object is the equality oracle, not another mapper.
+
+C's wholesale removal of historical reader sources is not adopted without proving
+history obligations. Disconnect ordinary session reads first. Retained historical
+code must be mechanically excluded from application imports and identified as
+unapproved migration evidence, not a callable current migration service. No
+historical rows will be interpreted or rewritten. Creation/revision semantics
+remain a separate SQL-backed slice. The release-wide blockers above remain open;
+only this storage slice's independent invariant gate permits its commit.
+
+Pre-edit history check: read-only grouped live query returns zero Member State
+rows (2026-09-10). Repository references prove the session opener is the only
+ordinary caller of the historical loader; the normalizers have no other current
+consumer. Therefore retire those implementations/tests after migrating the caller;
+their source remains in Git history. This supersedes the provisional retention
+decision above using fresh evidence, not an assumption that history is disposable.
+This does not claim other environments/backups have no history: unsupported imports
+must fail and any future data migration requires its own reviewed provenance.
+
+Slice 2 result: new fixtures failed 7/8 against F before repair. Final storage,
+session and actual SQL-boundary suite: 48/48 pass. State suite: 35/35 pass.
+SQL JSONB round-trip includes deliberate Focus ordering, an accepted dormant
+decision, missing optional context and nested unknown evidence; it preserves the
+original object exactly. No defaults, read migration, aliases or second mapper.
+Retired four normalizer/migration source/test files and migrated all callers.
+Self-review: no ordinary migration imports remain; no test assertion was weakened
+to preserve old semantic defaults. First-save mismatch remains explicitly open.

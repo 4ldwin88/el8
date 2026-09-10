@@ -210,6 +210,16 @@ for (const kind of ['live', 'replay']) {
           }
         };
         const state = createMemberState({memberId: A, now: '2026-09-10T00:00:00.000Z'});
+        // JSONB canonicalizes object keys. It must not change the separately
+        // recorded Focus ordering, promote dormant decisions, or add defaults.
+        state.focusDecisions={
+          SLEEP_QUALITY:{decision:'accepted',decidedAt:state.createdAt},
+          FINANCIAL_STRAIN:{decision:'accepted',decidedAt:state.createdAt},
+          ACTIVITY_LEVEL:{decision:'accepted',decidedAt:state.createdAt}
+        };
+        state.activeFocusIds=['SLEEP_QUALITY','FINANCIAL_STRAIN'];
+        delete state.memberContext.readiness;
+        state.memberContext.preferences={evidence:[null,false,0,{uncertainty:'unresolved'}]};
         assert.deepEqual(await saveMemberState(client, state, {expectedRevision: -1}), state);
         assert.deepEqual(await loadMemberState(client), state);
         await rejectedWithoutMutation(db, () => saveMemberState(client, state, {expectedRevision: -1}), ['40001']);
