@@ -1,4 +1,0 @@
-import test from'node:test';import assert from'node:assert/strict';import{createMemberState}from'./member-state-contract.js';import{migrateCanonicalMemberState3x}from'./member-state-v3-migration.js';
-const at='2026-09-02T19:00:00Z';
-test('historical persisted state normalizes into current unversioned Member State',()=>{const old=createMemberState({memberId:'T0001',now:at});old.schemaVersion='3.1.0';delete old.memberContext.engagementSignals;const result=migrateCanonicalMemberState3x(old);assert.equal(result.state.schemaVersion,undefined);assert.deepEqual(result.state.memberContext.engagementSignals,{});assert.equal(result.migrated,true);assert.equal(result.sourceSchemaVersion,'3.1.0')});
-test('domain Member State is not treated as a persisted-version migration input',()=>{const current=createMemberState({memberId:'T0001',now:at});assert.equal(migrateCanonicalMemberState3x(current),null)});

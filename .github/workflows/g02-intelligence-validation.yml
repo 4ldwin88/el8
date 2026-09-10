@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [reconcile/g02-intelligence]
+    branches: [reconcile/g02-intelligence, benchmark/member-state-boundary-20260910]
 
 permissions:
   contents: read
