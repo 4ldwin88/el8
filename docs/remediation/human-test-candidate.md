@@ -178,3 +178,23 @@ is resolved by reload, never a blind overwrite. Positive/failure cases run throu
 the same JS session owner into actual SQL. Duplicate requests retain the RPC's
 explicit conflict behavior. This does not initialize or decide immutable baseline
 timing and does not make the later Plan activation transaction safe.
+
+Creation slice: real SQL first-save acceptance failed before repair, exposing the
+fake/SQL contradiction. Session now creates revision 0 before exactly one update.
+Both persistence fakes enforce expected+1 as the SQL does; they no longer accept
+revision 1 for creation. Tests inject failure before the update and after its
+commit/before acknowledgement. Reload exposes the durable predecessor or committed
+success respectively; a guarded retry succeeds only when appropriate. Duplicate
+requests conflict; another member sees no row. Skipped revisions and history-prefix
+rewrites are rejected before writes. No automatic read mutation or silent rebasing.
+
+## Gate fixture reconciliation decision
+
+The newly discovered question test expects retired GEN001 aliases; Planning tests
+pass PHY-A01/PHY-A04 despite the governed opaque Action ID contract. Fresh-read
+02.01.06 and the 02.01.07 Action Library identify ACT000001 and ACT000004 as the
+current identities, with old labels explicitly limited to design/migration use.
+Update only these fixtures to current identities and assert alias rejection.
+Keep their substantive routing, preference/evidence and rejection assertions.
+The mixed-Focus test is a valid no-silent-loss requirement and stays failing until
+its real UI/Planning boundary is repaired. It is not an obsolete expectation.

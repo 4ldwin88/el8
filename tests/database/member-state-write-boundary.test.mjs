@@ -4,6 +4,8 @@ import {readFile, readdir} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
 import {createMemberState} from '../../intelligence/state/member-state-contract.js';
 import {saveMemberState, loadMemberState} from '../../intelligence/state/supabase-persistence.js';
+import {openMemberStateSession,persistMemberStateSession} from '../../app/auth/member-state-session.js';
+import {applyMemberStateTransition,MEMBER_STATE_EVENT} from '../../intelligence/state/member-state-transition.js';
 
 const migrations = new URL('../../supabase/migrations/', import.meta.url);
 const forwardName = '20260910102819_member_state_single_writer.sql';
@@ -300,4 +302,39 @@ test('inherited client write privilege blocks migration rather than claiming iso
     assert.equal((await db.query(`select prosecdef from pg_proc
       where oid='public.save_el8_member_state(integer,jsonb)'::regprocedure`)).rows[0].prosecdef, false);
   } finally { await db.close(); }
+});
+
+test('real SQL session creation, interrupted save, ambiguous acknowledgement and reload',async t=>{
+  for(const failure of ['none','before-update','after-update']) await t.test(failure,async()=>{
+    const db=await checkpoint();
+    try {
+      await db.exec(forward);
+      let calls=0;
+      const client={
+        from:()=>({select:()=>({maybeSingle:async()=>({data:await asRole(db,'authenticated',A,async()=>
+          (await db.query('select * from public.el8_member_state')).rows[0]??null),error:null})})}),
+        rpc:async(name,args)=>{
+          assert.equal(name,'save_el8_member_state'); calls++;
+          if(calls===2&&failure==='before-update') throw new Error('injected transport failure');
+          const data=await memberSave(db,A,args.expected_revision,args.next_state);
+          if(calls===2&&failure==='after-update') throw new Error('injected acknowledgement failure');
+          return {data,error:null};
+        }
+      };
+      const session={user:{id:A}},opened=await openMemberStateSession({supabase:client,session,now:'2026-09-10T00:00:00Z'});
+      assert.equal(opened.persisted,false);
+      const next=applyMemberStateTransition(opened.state,{type:MEMBER_STATE_EVENT.MEMBER_CONTEXT_UPDATED,payload:{capacity:'low'},expectedRevision:0,source:'member',at:'2026-09-10T00:01:00Z'});
+      const persist=()=>persistMemberStateSession({supabase:client,session,previousState:opened.state,nextState:next,persisted:false});
+      if(failure==='none') assert.deepEqual(await persist(),next);
+      else await assert.rejects(persist,/injected/);
+      const reloaded=await openMemberStateSession({supabase:client,session});
+      assert.equal(reloaded.persisted,true);
+      assert.deepEqual(reloaded.state,failure==='before-update'?opened.state:next);
+      if(failure==='before-update') assert.deepEqual(await persistMemberStateSession({supabase:client,session,previousState:reloaded.state,nextState:next,persisted:true}),next);
+      await assert.rejects(persist,error=>error.code==='40001');
+      assert.deepEqual(await loadMemberState(client),next);
+      const other=await asRole(db,'authenticated',B,async()=>db.query('select * from public.el8_member_state'));
+      assert.deepEqual(other.rows,[]);
+    } finally { await db.close(); }
+  });
 });
