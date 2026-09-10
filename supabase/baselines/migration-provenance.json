@@ -1189,6 +1189,11 @@
       "path": "20260910102819_member_state_single_writer.sql",
       "sha256": "f528deaba2157bc2ee5517a3b96eb5283e0d3099f333871d33db130b1c84dce5",
       "status": "unapplied-candidate"
+    },
+    {
+      "path": "20260910131723_member_state_conflict_response.sql",
+      "sha256": "c23cec7106355bf7d48077ec5bafa7648af3c0f99145f7394f9ca622c9c0f75b",
+      "status": "unapplied-candidate"
     }
   ]
 }

@@ -4,6 +4,7 @@ import {readFile,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {PGlite} from '@electric-sql/pglite';
 import {pgcrypto} from '@electric-sql/pglite/contrib/pgcrypto';
+import {canonicalCatalog as canonical,catalogHashes} from '../../scripts/backend-catalog.mjs';
 
 const root=new URL('../../',import.meta.url);
 const file=path=>readFile(new URL(path,root),'utf8');
@@ -11,12 +12,6 @@ const hash=value=>createHash('sha256').update(value).digest('hex');
 const baselinePath='supabase/baselines/observed-public-20260910.sql';
 const catalogPath='supabase/baselines/inspect-public.sql';
 const manifestPath='supabase/baselines/observed-public-20260910.json';
-function canonical(value){
- if(typeof value==='string'&&/^\{(?:[a-z_]*=[arwdDxtmXU*]*\/postgres,?)*\}$/.test(value))return value.slice(1,-1).split(',').sort();
- if(Array.isArray(value))return value.map(canonical);
- if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,canonical(v)]));
- return value;
-}
 async function platformFixture(){
  const db=new PGlite({extensions:{pgcrypto}});
  // Platform-only fixture. This is SQL/schema acceptance, not JWT or Auth evidence.
@@ -60,6 +55,10 @@ test('observed checkpoint replays with source-attributed catalog and existing fo
   await assert.rejects(()=>db.exec(sql),/requires an empty public schema/);
   await db.exec('rollback');
   await db.exec(await file('supabase/migrations/20260910102819_member_state_single_writer.sql'));
+  await db.exec(await file('supabase/migrations/20260910131723_member_state_conflict_response.sql'));
+  const staging=JSON.parse(await file('supabase/environments/staging-replay.json'));
+  for(const input of staging.inputs)assert.equal(hash(await file(input.path)),input.sha256,'staging replay input changed: '+input.path);
+  assert.deepEqual(catalogHashes((await db.query(query)).rows[0].catalog),staging.catalogHashes,'repository replay must match the actual independently captured staging catalog');
   assert.equal((await db.query("select count(*)::int as n from pg_proc where pronamespace='public'::regnamespace and proname='save_el8_member_state'")).rows[0].n,1);
   for(const role of ['anon','authenticated'])assert.equal((await db.query("select has_table_privilege($1,'public.el8_member_state','INSERT,UPDATE,DELETE') as allowed",[role])).rows[0].allowed,false);
  }finally{await db.close();}

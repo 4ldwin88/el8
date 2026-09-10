@@ -1,0 +1,32 @@
+{
+  "environment": "staging",
+  "projectRef": "bqumsiqkpxkofjykgzqp",
+  "observedDate": "2026-09-10",
+  "serverVersion": "17.6",
+  "inputs": [
+    {
+      "path": "supabase/baselines/observed-public-20260910.sql",
+      "sha256": "31648300e44cdb4c31b3a0fdb10f7016dc37a65694e3ebcc476eb40d1b33dce6"
+    },
+    {
+      "path": "supabase/migrations/20260910102819_member_state_single_writer.sql",
+      "sha256": "f528deaba2157bc2ee5517a3b96eb5283e0d3099f333871d33db130b1c84dce5"
+    },
+    {
+      "path": "supabase/migrations/20260910131723_member_state_conflict_response.sql",
+      "sha256": "c23cec7106355bf7d48077ec5bafa7648af3c0f99145f7394f9ca622c9c0f75b"
+    }
+  ],
+  "catalogHashes": {
+    "enums": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+    "tables": "2a26920d7bb6d7dbcaf59e7b49e4e10f385563fa19d3f91f84e6d3629ec80039",
+    "indexes": "d5feee254243a1ac9f5333b6a37d03069bc399be90506600c5418c3a7ca6ae9f",
+    "policies": "96e95328d732c27aac866e0bf5bf5adcd803fceff41d8bbd788bb84b78b0918e",
+    "triggers": "e4d640880747e6cd4933b0e1f8329b336cb0989498631e9e7fe21fcfba93442d",
+    "functions": "9eb96d73b14fc0d20a210a0783c575e7ccfaadaf4d661605f6db843344753358",
+    "sequences": "c87c79af0755960487313d491f5dab4afadd1d1245f9e440ceb3a355076298a7",
+    "constraints": "0c44a53f000271ac3dbf2d2a075aab135dd8a62e229d0d18faedbc2071889924"
+  },
+  "historyPolicy": "Explicit checkpoint plus forward replay; no fabricated historical migration records",
+  "humanTestReady": false
+}

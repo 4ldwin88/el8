@@ -332,3 +332,47 @@ Concrete proposal: fresh `el8-remediation-staging`, existing EL8 organization
 Supabase's project creation/confirmation tools require explicit organization and
 cost confirmation. Await that confirmation before creating infrastructure. This is
 not a renewed product-semantic decision and does not authorize any live mutation.
+# Isolated backend and API acceptance continuation
+
+Authority fresh-read: 05.07 requires isolated synthetic validation and source-owned
+reconstruction; 05.04 requires provenance, lossless persistence and recoverable
+material writes. The original EL8 project remains read-only. The founder explicitly
+authorized pausing Ridgewood after the free-project quota blocked new staging.
+Ridgewood is paused and retains a 90-day restore obligation. New staging identity
+is owned by `supabase/environments/staging.json`; no production users, secrets,
+cron, Storage objects or Edge Functions were copied.
+
+Decision before schema replay: reconstruct the existing observed checkpoint in the
+verified empty PG17 staging project, compare its independent catalog, then rehearse
+the F writer and prove actual Auth/PostgREST ownership and CAS. Preserve historical
+migration provenance. Do not advance the semantic journey on SQL-only green tests.
+
+The API rehearsal exposed the writer's use of `40001`, which PostgREST maps to HTTP
+500. The forward conflict-response migration uses PT409/HTTP 409 for ordinary CAS
+conflicts. An exact prior-definition check prevents rewriting an unknown writer;
+tests prove all other function text, ownership and privileges remain unchanged.
+The acceptance test first failed for PT409, then passed with the forward migration.
+No existing shared migration was rewritten and no second writer was introduced.
+
+Completed boundary evidence: all eight original public catalog sections matched
+before the forward changes; repository PG17 replay matches the independently read
+post-forward staging catalog; 12 real authenticated tests passed. The first live
+ownership fixture accidentally used the foreign revision and reached CAS first;
+it was corrected to hold the caller revision valid without weakening ownership.
+The live test now targets Member State itself and rejects all unapproved endpoints,
+replacing the unrelated Edge-harness test path and its original-project fallback.
+
+The full offline gate remains red: 344 tests, 343 pass, one valid mixed-Focus
+failure and nine page import failures. No release receipt, deployment, human-test
+package or ordinary-development readiness is claimed. The next bounded slice is
+Discovery-to-Member-State semantic preservation and the confirmed Discovery
+baseline, followed by the remaining ordered contracts. Actual browser persistence
+must also reconcile multi-transition domain revisions with the +1 write contract.
+
+Self-review: one mapper/writer retained; only the business conflict response changed;
+real account setup remains a privileged synthetic fixture; no mock JWTs, service
+keys in tests, production defaults, legacy aliases or copied semantic registries
+added. Pinned Supabase SDK and lockfile make the integration client reproducible.
+The original harness page/function remain historical consumers pending retirement
+review; neither is used to certify Member State or deployed to staging. The actual
+browser still uses an unpinned SDK URL and remains outside this accepted boundary.

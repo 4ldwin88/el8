@@ -133,7 +133,7 @@ for (const kind of ['live', 'replay']) {
         for (const [expected, state] of [
           [-1, envelope(A, 0)], [0, envelope(A, 1)], [0, envelope(A, 1, {stale: true})],
           [8, envelope(A, 9)]
-        ]) await rejectedWithoutMutation(db, () => memberSave(db, A, expected, state), ['40001']);
+        ]) await rejectedWithoutMutation(db, () => memberSave(db, A, expected, state), ['PT409']);
       });
       await t.test('initial create requires a complete revision-zero envelope', async () => {
         const good = envelope(B, 0);
@@ -225,7 +225,7 @@ for (const kind of ['live', 'replay']) {
         state.memberContext.preferences={evidence:[null,false,0,{uncertainty:'unresolved'}]};
         assert.deepEqual(await saveMemberState(client, state, {expectedRevision: -1}), state);
         assert.deepEqual(await loadMemberState(client), state);
-        await rejectedWithoutMutation(db, () => saveMemberState(client, state, {expectedRevision: -1}), ['40001']);
+        await rejectedWithoutMutation(db, () => saveMemberState(client, state, {expectedRevision: -1}), ['PT409']);
       });
     } finally { await db.close(); }
   });
@@ -309,6 +309,7 @@ test('real SQL session creation, interrupted save, ambiguous acknowledgement and
     const db=await checkpoint();
     try {
       await db.exec(forward);
+      for(const sql of later)await db.exec(sql);
       let calls=0;
       const client={
         from:()=>({select:()=>({maybeSingle:async()=>({data:await asRole(db,'authenticated',A,async()=>
@@ -331,10 +332,39 @@ test('real SQL session creation, interrupted save, ambiguous acknowledgement and
       assert.equal(reloaded.persisted,true);
       assert.deepEqual(reloaded.state,failure==='before-update'?opened.state:next);
       if(failure==='before-update') assert.deepEqual(await persistMemberStateSession({supabase:client,session,previousState:reloaded.state,nextState:next,persisted:true}),next);
-      await assert.rejects(persist,error=>error.code==='40001');
+      await assert.rejects(persist,error=>error.code==='PT409');
       assert.deepEqual(await loadMemberState(client),next);
       const other=await asRole(db,'authenticated',B,async()=>db.query('select * from public.el8_member_state'));
       assert.deepEqual(other.rows,[]);
     } finally { await db.close(); }
   });
+});
+
+test('current Member State CAS conflicts use an explicit HTTP conflict code',async()=>{
+ const db=await checkpoint();
+ try{
+  await db.exec(forward);for(const sql of later)await db.exec(sql);
+  await memberSave(db,A,-1,envelope(A,0));
+  await rejectedWithoutMutation(db,()=>memberSave(db,A,-1,envelope(A,0)),['PT409']);
+  await memberSave(db,A,0,envelope(A,1));
+  await rejectedWithoutMutation(db,()=>memberSave(db,A,0,envelope(A,1)),['PT409']);
+ }finally{await db.close();}
+});
+
+test('conflict-response migration refuses unknown definitions and preserves everything except its error code',async()=>{
+ const db=await checkpoint();
+ const migration=await readFile(new URL('20260910131723_member_state_conflict_response.sql',migrations),'utf8');
+ try{
+  await db.exec(forward);
+  const inspect=()=>db.query("select pg_get_functiondef(oid) as definition,proacl::text as acl,proowner::regrole::text as owner from pg_proc where oid='public.save_el8_member_state(integer,jsonb)'::regprocedure");
+  const before=(await inspect()).rows[0];
+  await db.exec('alter function public.save_el8_member_state(integer,jsonb) security invoker');
+  await assert.rejects(()=>db.exec(migration),/unexpected Member State writer definition/);
+  await db.exec('rollback');
+  await db.exec(before.definition);
+  await db.exec(migration);
+  assert.deepEqual((await inspect()).rows[0],{...before,definition:before.definition.replace("errcode = '40001'","errcode = 'PT409'")});
+  await assert.rejects(()=>db.exec(migration),/unexpected Member State writer definition/);
+  await db.exec('rollback');
+ }finally{await db.close();}
 });

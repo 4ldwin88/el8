@@ -1,120 +1,133 @@
+import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createClient} from '@supabase/supabase-js';
+import {requireStagingTestEnvironment} from '../scripts/staging-test-environment.mjs';
+import {createMemberState} from '../intelligence/state/member-state-contract.js';
+import {loadMemberState,saveMemberState,toPersistedMemberState} from '../intelligence/state/supabase-persistence.js';
+import {openMemberStateSession,persistMemberStateSession} from '../app/auth/member-state-session.js';
+import {sourceIdentity} from '../scripts/candidate-identity.mjs';
+import {mkdirSync,writeFileSync} from 'node:fs';
 
-const SUPABASE_URL = process.env.EL8_SUPABASE_URL || 'https://jprdsidxwjkgiqqakwpr.supabase.co';
-const ENDPOINT = process.env.EL8_PERSISTENCE_HARNESS_URL || `${SUPABASE_URL}/functions/v1/persistence-harness`;
-const PUBLISHABLE_KEY = process.env.EL8_SUPABASE_PUBLISHABLE_KEY;
-const QA_EMAIL = process.env.EL8_QA_EMAIL;
-const QA_PASSWORD = process.env.EL8_QA_PASSWORD;
-
-function requireSecret(name, value) {
-  if (!value) throw new Error(`Missing required live-test environment variable: ${name}`);
-  return value;
-}
-
-async function getAccessToken() {
-  requireSecret('EL8_SUPABASE_PUBLISHABLE_KEY', PUBLISHABLE_KEY);
-  requireSecret('EL8_QA_EMAIL', QA_EMAIL);
-  requireSecret('EL8_QA_PASSWORD', QA_PASSWORD);
-
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: PUBLISHABLE_KEY
-    },
-    body: JSON.stringify({ email: QA_EMAIL, password: QA_PASSWORD })
-  });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok || !body.access_token) {
-    throw new Error(`QA authentication failed (HTTP ${response.status}): ${body.error_description || body.msg || body.error || 'no access token returned'}`);
+// Deliberately outside the offline gate. No original-backend fallback,
+// service key, Edge harness or simulated JWT transport is accepted.
+const config=requireStagingTestEnvironment();
+const before=sourceIdentity();
+const client=options=>createClient(config.url,config.key,{auth:{persistSession:false,autoRefreshToken:false},...options});
+const advance=(state,ref)=>({...structuredClone(state),revision:state.revision+1,historyRefs:[...state.historyRefs,ref]});
+const conflict=error=>error.code==='PT409';
+const checked=[];
+test('authenticated Member State boundary on the approved disposable backend',async t=>{
+ const members=[];
+ for(const account of config.accounts){
+  const supabase=client();
+  const {data,error}=await supabase.auth.signInWithPassword(account);
+  assert.equal(error,null,'real Auth must issue the session');
+  assert.ok(data.session.access_token);
+  members.push({supabase,session:data.session,id:data.user.id});
+ }
+ const [a,b]=members;
+ assert.notEqual(a.id,b.id);
+ const check=async(name,fn)=>{
+  await t.test(name,async()=>{try{await fn();checked.push(name);}catch(error){console.error(name+': '+error.message);throw error;}});
+  assert.ok(checked.includes(name),'stop after failed acceptance: '+name);
+ };
+ await check('fresh authenticated reads do not create Member State',async()=>{
+  for(const member of members){
+   assert.equal(await loadMemberState(member.supabase),null,'use freshly provisioned synthetic identities for each acceptance run');
+   const opened=await openMemberStateSession(member);
+   assert.equal(opened.persisted,false);assert.equal(opened.state.revision,0);
+   assert.equal(await loadMemberState(member.supabase),null);
   }
-  return body.access_token;
-}
-
-const ACCESS_TOKEN = await getAccessToken();
-const stamp = () => Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
-
-async function rawWrite(entry_id, payload, simulate_ambiguous = false) {
-  const response = await fetch(ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: PUBLISHABLE_KEY,
-      Authorization: `Bearer ${ACCESS_TOKEN}`
-    },
-    body: JSON.stringify({ entry_id, payload, simulate_ambiguous })
-  });
-  let body;
-  try { body = await response.json(); } catch { body = { error: 'non-json response' }; }
-  return { ok: response.ok, status: response.status, body };
-}
-
-async function write(entry_id, payload) {
-  const response = await rawWrite(entry_id, payload);
-  assert.equal(response.ok, true, response.body?.error || `HTTP ${response.status}`);
-  return response.body;
-}
-
-async function distinctConcurrentIds() {
-  const run = stamp();
-  const ids = Array.from({ length: 20 }, (_, i) => `M0-HARNESS-DIST-${run}-${String(i + 1).padStart(2, '0')}`);
-  const out = await Promise.all(ids.map((id, i) => write(id, { kind: 'distinct', i, run })));
-  assert.equal(out.filter(x => x.status === 'created').length, 20);
-  assert.equal(new Set(out.map(x => x.entry_id)).size, 20);
-}
-
-async function duplicateSafeRetries() {
-  const run = stamp();
-  const id = `M0-HARNESS-SAME-${run}`;
-  const payload = { kind: 'same', run };
-  const out = await Promise.all(Array.from({ length: 20 }, () => write(id, payload)));
-  assert.equal(out.filter(x => x.status === 'created').length, 1);
-  assert.equal(out.filter(x => x.status === 'duplicate_safe').length, 19);
-  assert.equal(out.filter(x => x.status === 'conflict').length, 0);
-}
-
-async function conflictingPayloads() {
-  const run = stamp();
-  const id = `M0-HARNESS-CONFLICT-${run}`;
-  const out = await Promise.all([
-    write(id, { kind: 'conflict', value: 'A', run }),
-    write(id, { kind: 'conflict', value: 'B', run })
-  ]);
-  assert.equal(out.filter(x => x.status === 'created').length, 1);
-  assert.equal(out.filter(x => x.status === 'conflict').length, 1);
-}
-
-async function ambiguousAcknowledgement() {
-  const run = stamp();
-  const id = `M0-HARNESS-AMBIG-${run}`;
-  const payload = { kind: 'ambiguous', run };
-  const first = await rawWrite(id, payload, true);
-  const retry = await rawWrite(id, payload, false);
-  assert.equal(first.ok, false);
-  assert.equal(first.status, 504);
-  assert.equal(retry.ok, true);
-  assert.equal(retry.body?.status, 'duplicate_safe');
-}
-
-async function repeatedOverlappingRounds() {
-  for (let round = 1; round <= 10; round++) {
-    const run = stamp();
-    const ids = Array.from({ length: 8 }, (_, i) => `M0-HARNESS-R${round}-${run}-${i}`);
-    const calls = ids.flatMap((id, i) => [
-      write(id, { round, i, run }),
-      write(id, { round, i, run })
-    ]);
-    const out = await Promise.all(calls);
-    assert.equal(out.filter(x => x.status === 'created').length, 8, `round ${round} created count`);
-    assert.equal(out.filter(x => x.status === 'duplicate_safe').length, 8, `round ${round} duplicate-safe count`);
-    assert.equal(out.filter(x => x.status === 'conflict').length, 0, `round ${round} conflict count`);
+ });
+ await check('concurrent creation accepts exactly one revision-zero document',async()=>{
+  const initial=createMemberState({memberId:a.id,now:'2026-09-10T00:00:00.000Z'});
+  const results=await Promise.allSettled(Array.from({length:6},()=>saveMemberState(a.supabase,initial,{expectedRevision:-1})));
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+  for(const r of results.filter(r=>r.status==='rejected'))assert.equal(r.reason.code,'PT409');
+  assert.deepEqual(await loadMemberState(a.supabase),initial);
+ });
+ await check('actual session first save establishes zero then advances exactly once',async()=>{
+  const opened=await openMemberStateSession(b),next=advance(opened.state,'fixture:first-decision');
+  assert.deepEqual(await persistMemberStateSession({...b,previousState:opened.state,nextState:next,persisted:false}),next);
+  assert.deepEqual((await openMemberStateSession(b)).state,next);
+ });
+ await check('business conflicts are HTTP 409 rather than server errors',async()=>{
+  const saved=await loadMemberState(a.supabase);
+  const result=await a.supabase.rpc('save_el8_member_state',{expected_revision:-1,next_state:toPersistedMemberState(saved)});
+  assert.equal(result.status,409);assert.equal(result.error?.code,'PT409');
+  assert.deepEqual(await loadMemberState(a.supabase),saved);
+ });
+ await check('two-member SELECT isolation and cross-member RPC rejection',async()=>{
+  for(const [owner,other] of [[a,b],[b,a]]){
+   const own=await owner.supabase.from('el8_member_state').select('user_id');
+   assert.equal(own.error,null);assert.deepEqual(own.data,[{user_id:owner.id}]);
+   const cross=await owner.supabase.from('el8_member_state').select('user_id').eq('user_id',other.id);
+   assert.equal(cross.error,null);assert.deepEqual(cross.data,[]);
+   // Hold the caller's expected revision valid so this isolates ownership,
+   // rather than accidentally exercising the earlier stale-revision rejection.
+   const foreign={...advance(await loadMemberState(owner.supabase),'fixture:forged'),memberId:other.id};
+   await assert.rejects(()=>saveMemberState(owner.supabase,foreign),e=>e.code==='23514');
   }
-}
-
-console.log(`Live persistence endpoint: ${ENDPOINT}`);
-await distinctConcurrentIds();
-await duplicateSafeRetries();
-await conflictingPayloads();
-await ambiguousAcknowledgement();
-await repeatedOverlappingRounds();
-console.log('canonical live persistence concurrency test passed');
+ });
+ await check('direct INSERT UPDATE DELETE UPSERT and anonymous RPC are denied',async()=>{
+  const saved=await loadMemberState(a.supabase);
+  const row={user_id:a.id,schema_version:'3.0.0',revision:saved.revision,state:toPersistedMemberState(saved)};
+  const table=()=>a.supabase.from('el8_member_state');
+  for(const op of [()=>table().insert(row),()=>table().update({state:row.state}).eq('user_id',a.id),()=>table().delete().eq('user_id',a.id),()=>table().upsert(row)])assert.equal((await op()).error?.code,'42501');
+  const anon=client();
+  assert.equal((await anon.rpc('save_el8_member_state',{expected_revision:saved.revision,next_state:toPersistedMemberState(advance(saved,'fixture:anon'))})).error?.code,'42501');
+  assert.deepEqual(await loadMemberState(a.supabase),saved);
+ });
+ await check('malformed and historical envelopes fail without changing accepted state',async()=>{
+  const saved=await loadMemberState(a.supabase),good=toPersistedMemberState(advance(saved,'fixture:malformed'));
+  const cases=[null,[],{},...['schemaVersion','memberId','revision'].flatMap(key=>{const missing={...good};delete missing[key];return [missing,{...good,[key]:null}];}),{...good,schemaVersion:'1.0.0'},{...good,revision:String(good.revision)},{...good,revision:good.revision+1}];
+  const rejected=await Promise.all(cases.map(next_state=>a.supabase.rpc('save_el8_member_state',{expected_revision:saved.revision,next_state})));
+  for(const r of rejected)assert.ok(['23514','23502'].includes(r.error?.code),r.error?.message??'unexpected acceptance');
+  assert.deepEqual(await loadMemberState(a.supabase),saved);
+ });
+ await check('competing updates have one winner; stale and duplicate retries never overwrite it',async()=>{
+  for(let round=0;round<3;round++){
+   const saved=await loadMemberState(a.supabase);
+   const candidates=Array.from({length:5},(_,i)=>advance(saved,'fixture:round-'+round+'-candidate-'+i));
+   const results=await Promise.allSettled(candidates.map(state=>saveMemberState(a.supabase,state)));
+   const winner=results.findIndex(r=>r.status==='fulfilled');
+   assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+   for(const r of results.filter(r=>r.status==='rejected'))assert.equal(r.reason.code,'PT409');
+   assert.deepEqual(await loadMemberState(a.supabase),candidates[winner]);
+   await Promise.all(candidates.map(candidate=>assert.rejects(()=>saveMemberState(a.supabase,candidate),conflict)));
+   assert.deepEqual(await loadMemberState(a.supabase),candidates[winner]);
+  }
+ });
+ await check('a lost acknowledgement after real commit is recovered by reload before retry',async()=>{
+  const saved=await loadMemberState(a.supabase),next=advance(saved,'fixture:lost-ack');
+  let dropped=0;
+  const ambiguous=client({global:{headers:{Authorization:'Bearer '+a.session.access_token},fetch:async(...args)=>{
+   const response=await fetch(...args);
+   if(String(args[0]).includes('/rpc/save_el8_member_state')&&response.ok){await response.arrayBuffer();dropped++;throw new Error('injected lost acknowledgement after server response');}
+   return response;
+  }}});
+  await assert.rejects(()=>saveMemberState(ambiguous,next));assert.equal(dropped,1);
+  assert.deepEqual(await loadMemberState(a.supabase),next);
+  await assert.rejects(()=>saveMemberState(a.supabase,next),conflict);
+  assert.deepEqual(await loadMemberState(a.supabase),next);
+ });
+ await check('transport failure before dispatch preserves state and reload permits a guarded retry',async()=>{
+  const saved=await loadMemberState(a.supabase),next=advance(saved,'fixture:pre-dispatch');
+  const disconnected=client({global:{fetch:async()=>{throw new Error('injected pre-dispatch failure');}}});
+  await assert.rejects(()=>saveMemberState(disconnected,next));
+  assert.deepEqual(await loadMemberState(a.supabase),saved);
+  assert.deepEqual(await saveMemberState(a.supabase,next),next);
+ });
+ await check('new Auth sessions reload both members losslessly',async()=>{
+  for(let i=0;i<2;i++){
+   const expected=await loadMemberState(members[i].supabase),fresh=client();
+   const {data,error}=await fresh.auth.signInWithPassword(config.accounts[i]);assert.equal(error,null);
+   const resumed=await openMemberStateSession({supabase:fresh,session:data.session});
+   assert.equal(resumed.persisted,true);assert.deepEqual(resumed.state,expected);
+  }
+ });
+ assert.equal(checked.length,11,'no partial acceptance receipt');
+ assert.deepEqual(sourceIdentity(),before,'source changed during integration acceptance');
+ mkdirSync('.candidate',{recursive:true});
+ writeFileSync('.candidate/staging-member-state.json',JSON.stringify({status:'pass',...before,environment:config.url,checked,node:process.version,limits:['synthetic pre-provisioned Auth users; signup/email delivery not tested','transport failure injection; no proxy or server crash injection','not a browser journey or full release receipt']},null,2)+'\n');
+});

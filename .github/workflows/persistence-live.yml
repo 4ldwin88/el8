@@ -1,4 +1,4 @@
-name: Live Persistence Validation
+name: Isolated Member State Integration
 
 on:
   workflow_dispatch:
@@ -9,17 +9,30 @@ permissions:
 jobs:
   persistence:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     env:
-      EL8_SUPABASE_URL: https://jprdsidxwjkgiqqakwpr.supabase.co
-      EL8_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.EL8_SUPABASE_PUBLISHABLE_KEY }}
-      EL8_QA_EMAIL: ${{ secrets.EL8_QA_EMAIL }}
-      EL8_QA_PASSWORD: ${{ secrets.EL8_QA_PASSWORD }}
+      EL8_TEST_MUTATIONS: allow-synthetic
+      EL8_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.EL8_STAGING_PUBLISHABLE_KEY }}
+      EL8_QA_EMAIL_A: ${{ secrets.EL8_STAGING_EMAIL_A }}
+      EL8_QA_PASSWORD_A: ${{ secrets.EL8_STAGING_PASSWORD_A }}
+      EL8_QA_EMAIL_B: ${{ secrets.EL8_STAGING_EMAIL_B }}
+      EL8_QA_PASSWORD_B: ${{ secrets.EL8_STAGING_PASSWORD_B }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v4
         with:
-          node-version: 24
-          package-manager-cache: false
-      - name: Run authenticated live persistence concurrency suite
-        run: npm run test:persistence:live
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Run authenticated staging persistence acceptance with fresh synthetic users
+        run: |
+          export EL8_SUPABASE_URL="https://$(node -p "JSON.parse(require('fs').readFileSync('supabase/environments/staging.json')).projectRef").supabase.co"
+          npm run test:persistence:live
+      - uses: actions/upload-artifact@v4
+        with:
+          name: staging-member-state-${{ github.sha }}
+          path: .candidate/staging-member-state.json
+          include-hidden-files: true
+          if-no-files-found: error
