@@ -198,3 +198,14 @@ Update only these fixtures to current identities and assert alias rejection.
 Keep their substantive routing, preference/evidence and rejection assertions.
 The mixed-Focus test is a valid no-silent-loss requirement and stays failing until
 its real UI/Planning boundary is repaired. It is not an obsolete expectation.
+
+After correcting the Action identities, one old assertion exposed a second
+obsolete expectation: it treated two uncalibrated numeric challenger inputs as
+authoritative evidence and expected them to override an otherwise eligible member
+choice. 02.01.04's September 1 calibration rule explicitly assigns those numbers
+to Subcon, while eligible member replacement remains permitted. Split the test:
+prove the challenger prefers ACT000001 but cannot override the eligible choice
+ACT000004; separately prove that a preferred ACT000004 with missing required
+evidence cannot be selected and retains the hard-gate rejection reason. Production
+Planning is unchanged and its broader comparison/relationship gaps remain open.
+Creation suite final: 46/46 pass. This does not claim true simultaneous connections.
