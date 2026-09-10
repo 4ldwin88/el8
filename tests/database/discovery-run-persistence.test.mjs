@@ -7,6 +7,20 @@ import {restoreDiscoveryRun} from '../../intelligence/discovery/run-record.js';
 import * as Runtime from '../../app/onboarding/discovery-runtime.js';
 const modulePath=new URL('../../intelligence/discovery/supabase-run-persistence.js',import.meta.url);
 const A='11111111-1111-4111-8111-111111111111';
+test('deferred conflicting evidence stays deferred after actual run SQL persistence and explicit resume',async()=>{
+ const {prepareDiscoveryRunSave,createDiscoveryRunStore}=await import(modulePath);
+ const f=await fixture();try{
+  const store=createDiscoveryRunStore(f.client),s=Runtime.createDiscoverySession({constructIds:['SLEEP_QUALITY']});
+  const question=Discovery.BANK.find(q=>q.id==='Q000020');
+  Runtime.answerDiscoveryQuestion(s,question,'A000129');Runtime.answerDiscoveryQuestion(s,question,'A000126');
+  Runtime.submitDiscoveryTriage(s,{SLEEP_QUALITY:0});
+  const command=prepareDiscoveryRunSave(s,-1);await store.save(command);
+  const loaded=await store.load(s.runId);assert.deepEqual(loaded.record,command.run_record);
+  const resumed=restoreDiscoveryRun(loaded.record),output=Runtime.discoveryOutput(resumed),state=output.trace.states[0];
+  assert.equal(state.resolutionState,'deferred');assert.equal(state.sufficiencyBlocked,true);assert.equal(state.stateEvidence.length,2);
+  assert.deepEqual(output.handoff.candidateIds,[]);assert.deepEqual(resumed.observationLog,s.observationLog);
+ }finally{await f.db.close();}
+});
 test('answer correction appends through the existing SQL writer and survives reload and retry',async()=>{
  const {prepareDiscoveryRunSave,createDiscoveryRunStore}=await import(modulePath);
  const f=await fixture();try{
