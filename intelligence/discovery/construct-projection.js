@@ -45,9 +45,9 @@ export function deriveConstructState(observationLog,constructId){
  const immediacy=latest(effects,e=>e.type==='immediacy'&&e.target===constructId);
  const readiness=latest(effects,e=>e.type==='readiness'&&e.target===constructId);
  const temporal=latest(effects,e=>['current','recurring'].includes(e.temporality))??latest(effects,e=>['historical','resolved'].includes(e.temporality));
- // Confidence here concerns the direct report only. It does not establish
- // concern severity, causation, sufficiency or a cross-construct preference.
- const qualitativeConfidence=stateEvidence.length?(sufficiencyBlocked?'LIMITED':'WELL_SUPPORTED'):'UNKNOWN';
+ // Evidence presence and conflict are explicit below. Neither supplies a
+ // governed confidence assessment; do not manufacture a calibrated category.
+ const qualitativeConfidence='UNKNOWN';
  return Object.freeze({constructId,status:stateEvidence.length?(sufficiencyBlocked?'supported':'established'):'unknown',
   qualitativeConfidence,excluded:false,sufficiencyBlocked,unresolvedReasons,
   stateEvidence,facetEvidence:ofType('FACET','IMPACT'),contextEvidence:ofType('CONTEXT'),
