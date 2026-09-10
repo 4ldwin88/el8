@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {mkdtempSync, mkdirSync, writeFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
-import {discoverTests, verifyWorkflows} from '../../scripts/candidate-gate.mjs';
+import {execFileSync} from 'node:child_process';
+import {discoverTests, verifyWorkflows,verifyTestScripts} from '../../scripts/candidate-gate.mjs';
 import {checkBrowserModules} from '../../scripts/browser-import-smoke.mjs';
 import {assertValidatedIdentity} from '../../scripts/candidate-identity.mjs';
 
@@ -39,6 +40,11 @@ test('workflows cannot own copied suites or deploy after ignored validation',()=
 test('repository workflows share the required gate',()=>{
   assert.deepEqual(verifyWorkflows(),[]);
 });
+test('a newly named npm test cannot hide an undiscovered test or reach live mutations',()=>{
+  assert.deepEqual(verifyTestScripts({'test:x':'node --test app/x.test.js'},['app/x.test.js']),[]);
+  assert.ok(verifyTestScripts({'test:x':'node scripts/hidden-check.js'},[]).length);
+  assert.ok(verifyTestScripts({'test:x':'npm run test:persistence:live'},[]).length);
+});
 test('artifact promotion rejects stale, dirty or failed validation',()=>{
   const identity={sha:'a',tree:'t',sourceHash:'s',migrationFingerprint:'m',dirty:false};
   const receipt={status:'pass',...identity};
@@ -46,4 +52,15 @@ test('artifact promotion rejects stale, dirty or failed validation',()=>{
   for(const key of ['sha','tree','sourceHash','migrationFingerprint']) assert.throws(()=>assertValidatedIdentity(receipt,{...identity,[key]:'different'}));
   assert.throws(()=>assertValidatedIdentity(receipt,{...identity,dirty:true}));
   assert.throws(()=>assertValidatedIdentity({...receipt,status:'fail'},identity));
+});
+test('offline transport guard handles Node normalized socket arguments without making connections',()=>{
+  execFileSync(process.execPath,['--input-type=module','-e',`
+    import net from 'node:net'; import assert from 'node:assert/strict';
+    net.Socket.prototype.connect=function(){throw new Error('local transport reached');};
+    await import('./scripts/offline-test-environment.mjs');
+    assert.throws(()=>net.createConnection({host:'example.invalid',port:443}),/Offline/);
+    assert.throws(()=>new net.Socket().connect([{host:'example.invalid',port:443}]),/Offline/);
+    assert.throws(()=>fetch('https://example.invalid'),/Offline/);
+    assert.throws(()=>new net.Socket().connect({host:'127.0.0.1',port:5432}),/local transport reached/);
+  `]);
 });

@@ -209,3 +209,45 @@ ACT000004; separately prove that a preferred ACT000004 with missing required
 evidence cannot be selected and retains the hard-gate rejection reason. Production
 Planning is unchanged and its broader comparison/relationship gaps remain open.
 Creation suite final: 46/46 pass. This does not claim true simultaneous connections.
+
+## STOP: immutable baseline timing needs an authoritative decision
+
+Fresh current Drive evidence is materially inconsistent:
+- 02.01.02, Discovery Outputs: completed Discovery establishes the immutable initial
+  baseline before Prioritization; member confirmation does not establish it.
+- 00.01, approved D-012 and Member Record Standard: completed Discovery plus
+  confirmed Focus establishes that baseline.
+- 00.00 canonical semantics and 02.04 Discovery architecture repeat the latter rule.
+
+00.01's Source of Truth Matrix assigns Member State and cross-stage semantics to
+02.01.01, and detailed acquisition/handoff to Discovery. The current parent
+architecture requires immutable baseline/history but does not settle this timing
+or explicitly supersede D-012. Choosing solely by modification date would silently
+promote one contradictory statement over an approved cross-stage decision. Choosing
+the governance summary alone could instead overrule the current specialized
+Discovery contract. A founder decision is required before baseline establishment
+and its correction/reassessment dependents can be implemented coherently.
+
+Decision requested: freeze the immutable initial baseline at completed Discovery,
+or after member Focus confirmation? Record the chosen owner/trigger in the current
+authority and explicitly reconcile the conflicting references. No authoritative
+Drive text was changed by this remediation. The independent preservation/write
+work above establishes neither choice and remains valid under both.
+
+Current readiness: IMPROVED BUT BLOCKED / NOT HUMAN-TEST-READY. Full offline gate
+still rejects the candidate for the valid mixed-Focus disposition regression and
+nine broken HTML import graphs. No validation receipt, candidate deployment or
+human-test accounts were issued. Full backend replay, JWT/PostgREST ownership,
+independent concurrent sessions, atomic Plan activation, semantic handoffs and
+actual member lifecycle remain unproven. No production/live Supabase mutation.
+
+Final self-review also added npm test-script discovery enforcement and corrected
+the offline socket guard for Node's normalized argument arrays; seven gate tests
+pass, including a no-network transport probe. No retained assertion grants
+production authority to uncalibrated challenger scores.
+
+Proposed execution-status updates (not applied to authoritative trackers): record
+the one canonical remediation line; mark lossless storage and scoped writer/session
+acceptance complete; mark overall release gate RED; add the baseline-timing decision
+and full backend replay as blocking; retain G-02/human-test readiness as blocked.
+Do not mark architectural migration, beta, external testing or production ready.

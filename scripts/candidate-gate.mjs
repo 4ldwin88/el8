@@ -44,9 +44,26 @@ export function verifyWorkflows(workflows) {
   }
   return errors;
 }
+export function verifyTestScripts(scripts,tests) {
+  const errors=[];
+  for(const [name,command] of Object.entries(scripts)) {
+    if(!name.startsWith('test:')||name==='test:persistence:live') continue;
+    for(const part of command.split(' && ')) {
+      const nested=/^npm run (test:[\w:-]+)$/.exec(part);
+      if(nested) {
+        if(!Object.hasOwn(scripts,nested[1])||nested[1]==='test:persistence:live') errors.push(`${name}: missing or live nested test`);
+        continue;
+      }
+      const node=/^node (?:--test )?(.+)$/.exec(part);
+      if(!node||node[1].split(' ').some(file=>!tests.includes(file))) errors.push(`${name}: non-live tests must be discoverable .test.js/.mjs/.cjs files`);
+    }
+  }
+  return errors;
+}
 export async function runGate() {
   fs.rmSync('.candidate/checks.json',{force:true});
   const before=sourceIdentity(),errors=verifyWorkflows(),tests=discoverTests();
+  errors.push(...verifyTestScripts(JSON.parse(fs.readFileSync('package.json','utf8')).scripts,tests));
   if(errors.length) throw new Error(errors.join('\n'));
   let modules=0, moduleError;
   try { modules=await checkBrowserModules(); } catch(error) { moduleError=error; console.error(error.message); }
