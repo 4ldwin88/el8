@@ -5,7 +5,7 @@ assert.equal(discoveryRuntimeState().kind, RUNTIME_STATE.LOADING);
 assert.equal(discoveryRuntimeState({ handoff: { usable: false, blockingConstructIds: ['sleep'], unresolvedConstructIds: ['sleep'] } }).kind, RUNTIME_STATE.INSUFFICIENT_EVIDENCE);
 assert.equal(discoveryRuntimeState({ handoff: { usable: true, boundedUncertainty: true } }).kind, RUNTIME_STATE.READY);
 assert.equal(discoveryRuntimeState({ handoff: { usable: true, boundedUncertainty: true } }).boundedUncertainty, true);
-assert.equal(discoveryRuntimeState({ safety: { interrupted: true }, handoff: { usable: true } }).kind, RUNTIME_STATE.SAFETY_INTERRUPT);
+assert.equal(discoveryRuntimeState({ trace: { safety: { pauseOrdinaryFlow: true } }, handoff: { usable: false, blockedBySafety: true } }).kind, RUNTIME_STATE.SAFETY_INTERRUPT);
 
 assert.equal(runtimeStateFromError(new Error('Member State revision conflict'), { online: true }).kind, RUNTIME_STATE.REVISION_CONFLICT);
 assert.equal(runtimeStateFromError(new Error('network unavailable'), { online: false }).kind, RUNTIME_STATE.OFFLINE);

@@ -39,7 +39,7 @@ export function runtimeStateFromError(error, { online = typeof navigator === 'un
 }
 
 export function discoveryRuntimeState(output = {}) {
-  if (output?.safety?.interrupted === true || output?.handoff?.safetyInterrupted === true) return runtimeState(RUNTIME_STATE.SAFETY_INTERRUPT);
+  if (output?.trace?.safety?.pauseOrdinaryFlow === true || output?.handoff?.blockedBySafety === true) return runtimeState(RUNTIME_STATE.SAFETY_INTERRUPT);
   const handoff = output?.handoff;
   if (!handoff) return runtimeState(RUNTIME_STATE.LOADING);
   if (handoff.usable === false || (handoff.blockingConstructIds?.length ?? 0) > 0) {

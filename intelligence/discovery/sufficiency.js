@@ -1,54 +1,26 @@
-// Question count is telemetry, not a production completion rule. QA may pass an
-// explicit outerGuardrail to detect runaway paths without treating the threshold
-// as semantic sufficiency.
-export const DEFAULT_EFFICIENCY_BENCHMARK = 8;
-const terminal = new Set(['sufficient','deferred','escalated','nonIssue']);
-const usableConfidence = new Set(['MODERATE','WELL_SUPPORTED']);
-
-export function coverageAudit(states) {
-  const unresolved = states.filter(s => !terminal.has(s.resolutionState));
-  return {complete: unresolved.length === 0, unresolved};
+// One Discovery handoff evaluator. Confidence, driver knowledge, question depth,
+// candidate visibility and question exhaustion cannot discharge evidence requirements.
+import {ALL_EFFECTS,isExecutableEffect} from '../registries/registry.js';
+import {DIMENSION_IDS} from '../../registries/taxonomy/dimensions.js';
+const disposed=new Set(['deferred','escalated','nonIssue']);
+const supported=new Set(['supported','established']);
+export function orientationCoverageComplete(areas=[]){
+ if(areas.length!==DIMENSION_IDS.length)return false;
+ // Explicit unknown is permitted internally; it is not a first-matrix answer.
+ return DIMENSION_IDS.every(id=>{const rows=areas.filter(a=>String(a.dimensionId).toLowerCase()===id);return rows.length===1&&(rows[0].state==='unknown'||ALL_EFFECTS.some(e=>isExecutableEffect(e)&&e['Effect Type']==='BASELINE_COVERAGE'&&e['Target ID / Construct']===`DIMENSION_${id.toUpperCase()}`&&e.Value===rows[0].state))});
 }
-
-function evidenceUsable(state={}) {
-  if ((state.safetyEscalationLevel ?? 0) > 0) return false;
-  if (!usableConfidence.has(state.qualitativeConfidence)) return false;
-  return (state.evidenceRefs?.length ?? 0) > 0;
-}
-
-function decisionUsefulState(state={}, {allowBoundedUncertainty=false}={}) {
-  if (!evidenceUsable(state)) return false;
-  // Normal handoff still expects governed driver/context depth. When Discovery has
-  // exhausted the governed questions that could add decision value, however, a
-  // supported concern may cross the boundary with its uncertainty preserved rather
-  // than forcing an artificial specificity question solely to satisfy a threshold.
-  if (state.driverKnown === true || (state.specificityFrontier ?? 0) >= 3) return true;
-  return allowBoundedUncertainty && (state.specificityFrontier ?? 0) >= 2;
-}
-
-// Discovery may legitimately stop with unresolved constructs when the available
-// governed bank has nothing else useful to ask. Bounded uncertainty is opt-in and
-// is used only by the controller after eligible/recovery questions are exhausted.
-// Safety and weak/unsupported evidence remain blocking in every mode.
-export function handoffAudit(states,{allowBoundedUncertainty=false}={}) {
-  const unresolved = states.filter(s => !terminal.has(s.resolutionState));
-  const blocking = unresolved.filter(s => !decisionUsefulState(s,{allowBoundedUncertainty}));
-  return {
-    usable: states.length > 0 && blocking.length === 0,
-    unresolved,
-    blocking,
-    candidateIds: unresolved.filter(s=>decisionUsefulState(s,{allowBoundedUncertainty})).map(s => s.constructId),
-    boundedUncertainty: allowBoundedUncertainty && unresolved.some(s=>evidenceUsable(s)&&s.driverKnown!==true&&(s.specificityFrontier??0)<3)
-  };
-}
-
-export function stoppingDecision({states, questionsAsked = 0, outerGuardrail = null}) {
-  const unresolvedSafety = states.filter(s => (s.safetyEscalationLevel ?? 0) > 0 && !['escalated','nonIssue'].includes(s.resolutionState));
-  if (unresolvedSafety.length) return {stop:false, reason:'unresolved-safety'};
-  const coverage = coverageAudit(states);
-  if (coverage.complete) return {stop:true, reason:'sufficient-coverage', incomplete:false};
-  if (Number.isFinite(outerGuardrail) && outerGuardrail > 0 && questionsAsked >= outerGuardrail) {
-    return {stop:true, reason:'qa-outer-guardrail', incomplete:true, testOnly:true, defer:coverage.unresolved.map(s => s.constructId)};
-  }
-  return {stop:false, reason:'coverage-incomplete'};
+export function handoffAudit(states,{unresolvedRequirements=[],safety=null,incomplete=false,allowEmpty=false}={}){
+ if(!Array.isArray(states)||!Array.isArray(unresolvedRequirements))throw new Error('Discovery states and unresolved requirements must be arrays');
+ const active=states.filter(s=>!s.excluded&&!disposed.has(s.resolutionState));
+ const eligible=active.filter(s=>supported.has(s.status)&&s.resolutionState==='sufficient'&&(s.evidenceRefs?.length??0)>0);
+ const unresolved=active.filter(s=>!eligible.includes(s));
+ const optional=r=>r&&typeof r==='object'&&r.blocking===false&&r.required!==true&&typeof r.requirementId==='string'&&r.requirementId.trim().length>0&&typeof r.reason==='string'&&r.reason.trim().length>0;
+ const blockingRequirements=unresolvedRequirements.filter(r=>!optional(r));
+ const blockedBySafety=Boolean(safety?.pauseOrdinaryFlow||states.some(s=>(s.safetyEscalationLevel??0)>0));
+ return {
+  usable:!incomplete&&!blockedBySafety&&!blockingRequirements.length&&!unresolved.length&&(active.length>0||allowEmpty),
+  unresolved,blocking:[...unresolved],candidateIds:active.map(s=>s.constructId),eligibleCandidateIds:eligible.map(s=>s.constructId),
+  unresolvedRequirements:structuredClone(unresolvedRequirements),blockingRequirements:structuredClone(blockingRequirements),
+  blockedBySafety,boundedUncertainty:unresolvedRequirements.some(optional),incomplete:Boolean(incomplete)
+ };
 }
