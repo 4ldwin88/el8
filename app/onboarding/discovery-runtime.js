@@ -1,3 +1,4 @@
+import {captureDiscoveryRun,restoreDiscoveryRun} from '../../intelligence/discovery/run-record.js';
 import * as Discovery from '../../intelligence/discovery/discovery-engine.js';
 import {constructsForAnswer} from '../../intelligence/discovery/observationNormalizer.js';
 import {CONSTRUCT_BY_ID,isConstructId} from '../../registries/taxonomy/index.js';
@@ -42,8 +43,8 @@ export function discoveryOutput(session){
  const trace=Discovery.trace(session),audit=Discovery.handoff(session),orchestration=trace.orchestration;
  return Object.freeze({trace,handoff:Object.freeze({...audit,unresolvedConstructIds:Object.freeze(audit.unresolved.map(x=>x.constructId)),blockingConstructIds:Object.freeze(audit.blocking.map(x=>x.constructId)),...(orchestration?{driverGraph:orchestration.driverGraph,driverDispositions:orchestration.driverDispositions,rankedHypotheses:orchestration.rankedHypotheses}:{})})});
 }
-export function saveDiscoveryDraft(session){const serializable={...session,questionBank:undefined};sessionStorage.setItem(STORAGE_KEY,JSON.stringify(serializable));return session}
-export function loadDiscoveryDraft(){const raw=sessionStorage.getItem(STORAGE_KEY);if(!raw)return null;try{return{...JSON.parse(raw),questionBank:Discovery.BANK}}catch{return null}}
+export function saveDiscoveryDraft(session){sessionStorage.setItem(STORAGE_KEY,JSON.stringify(captureDiscoveryRun(session)));return session}
+export function loadDiscoveryDraft(){const raw=sessionStorage.getItem(STORAGE_KEY);if(!raw)return null;let record;try{record=JSON.parse(raw)}catch(cause){throw new Error('Invalid Discovery run record JSON',{cause})}return restoreDiscoveryRun(record)}
 export function clearDiscoveryDraft(){sessionStorage.removeItem(STORAGE_KEY)}
 function normalizedImportance(s={}){const raw=s.memberImportance;if(raw===null||raw===undefined)return null;if(typeof raw==='number')return raw;const map={low:0,moderate:1,high:2,'very-high':3};return map[raw]??null}
 const CONFIDENCE_ORDER=Object.freeze({UNKNOWN:0,LIMITED:1,MODERATE:2,WELL_SUPPORTED:3});
