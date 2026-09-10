@@ -2,6 +2,7 @@ import BANK from './observationNormalizer.js';
 import {DISCOVERY_CONTRACT_FINGERPRINT} from './runtime-fingerprint.js';
 import {assertJsonValue} from '../state/json-representation.js';
 import {isConstructId} from '../../registries/taxonomy/index.js';
+import {currentObservations} from './contracts.js';
 
 const FORMAT='el8.discovery-run.v1';
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
@@ -16,6 +17,7 @@ function validateSession(s){
  if(!Number.isFinite(s.assessmentStart)||!Number.isInteger(s.questionsAsked)||s.questionsAsked<0||typeof s.phase!=='string')
   throw new Error('Invalid Discovery run progress');
  if(Object.hasOwn(s,'questionBank'))throw new Error('Discovery run must not embed an executable bank');
+ currentObservations(s.observationLog);
 }
 export function captureDiscoveryRun(session){
  if(!session||Object.getOwnPropertyDescriptor(session,'questionBank')?.value!==BANK)throw new Error('Discovery run bank does not match the governed runtime contract');

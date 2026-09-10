@@ -1,5 +1,6 @@
 // Interpret the source captured with the answer, never today's registry or a
 // synthetic support score. Ordinary persistence does not call this projection.
+import {currentObservations} from './contracts.js';
 const importanceRank=Object.freeze({low:1,moderate:2,high:3,'very-high':4,1:1,2:2,3:3,4:4});
 const latest=(effects,predicate)=>[...effects].reverse().find(predicate);
 const unique=values=>[...new Set(values)];
@@ -27,8 +28,10 @@ function directConflicts(records){
 export function deriveConstructState(observationLog,constructId){
  if(observationLog.some(o=>o.effects?.some(e=>e.type==='evidence')))
   throw new Error('Obsolete generic Discovery evidence requires explicit reacquisition or governed migration');
- const records=sourceRecords(observationLog,constructId);
- const observations=observationLog.filter(o=>o.constructId===constructId||records.some(r=>r.observationRef===o.id)||o.effects?.some(e=>e.target===constructId));
+ const current=currentObservations(observationLog);
+ const records=sourceRecords(current,constructId);
+ const history=sourceRecords(observationLog,constructId);
+ const observations=current.filter(o=>o.constructId===constructId||records.some(r=>r.observationRef===o.id)||o.effects?.some(e=>e.target===constructId));
  const effects=observations.flatMap(o=>(o.effects??[]).map(e=>({...e,questionId:e.questionId??o.questionId})));
  const ofType=(...types)=>records.filter(r=>types.includes(r.effect['Effect Type']));
  const stateEvidence=ofType('STATE');
@@ -55,7 +58,7 @@ export function deriveConstructState(observationLog,constructId){
   uncertaintyRefs:unique([...uncertaintyEvidence.map(r=>r.factRef),...unresolvedReasons.flatMap(r=>r.evidenceRefs)]),
   relationships:ofType('RELATIONSHIP').map(r=>Object.freeze({...r,kind:'member_reported_hypothesis',
    confidence:'unknown',direction:'unknown',evidenceRefs:[r.factRef]})),
-  evidenceRefs:unique(stateEvidence.map(r=>r.factRef)),provenanceRefs:unique(records.map(r=>r.factRef)),
+  evidenceRefs:unique(stateEvidence.map(r=>r.factRef)),provenanceRefs:unique(history.map(r=>r.factRef)),
   observationRefs:unique(observations.map(o=>o.id)),questionRefs:unique(observations.map(o=>o.questionId)),
   memberImportance:importance?.value??null,memberImportanceRank:importanceRank[importance?.value]??0,
   memberPriority:memberPriority?.value??null,memberPrioritySelected:Boolean(memberPriority),

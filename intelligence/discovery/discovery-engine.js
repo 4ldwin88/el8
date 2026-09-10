@@ -1,8 +1,9 @@
 import BANK,{answerEffects,observationsForAnswer,constructsForAnswer,safetyContextForAnswer,openingPathForAnswer,baselineCoverageForAnswer} from './observationNormalizer.js';
 import {createDiscoverySession,appendObservation,nextOrientationStep,markTriaged,deriveStates,setResolution,mergeFacts,activateConstructs} from './orientation-session.js';
 import {createDiscoveryOrchestration,nextDiscoveryDecision} from './discovery-orchestrator.js';
-import {handoffAudit,orientationCoverageComplete} from './sufficiency.js';
+import {handoffAudit,orientationCoverageComplete,isActiveDiscoveryCandidate} from './sufficiency.js';
 import {safetyGate} from '../safety/gate.js';
+import {currentObservations} from './contracts.js';
 function orchestrationAreas(s){return Object.entries(s.baselineCoverage||{}).map(([dimension,value])=>({dimensionId:dimension,state:value?.state??'unknown'}))}
 function driverSelections(s){return {...(s.driverSelections||{})}}
 function severityResponses(s){return {...(s.severityResponses||{})}}
@@ -24,6 +25,41 @@ function applyGovernedFocusedSufficiency(s,question,answerIds){
 }
 export function answer(s,question,answerIds){const routed=constructsForAnswer(question,answerIds);if(routed.length)activateConstructs(s,routed);const openingPath=openingPathForAnswer(question,answerIds);if(openingPath)s.openingPath=openingPath;for(const baseline of baselineCoverageForAnswer(question,answerIds))s.baselineCoverage[baseline.dimension]={state:baseline.state,effectId:baseline.effectId,questionId:question.id,timestamp:Date.now()};for(const o of observationsForAnswer(question,answerIds))appendObservation(s,o);applyGovernedFocusedSufficiency(s,question,answerIds);const safety=safetyContextForAnswer(question,answerIds);if(safety.requiresImmediacyClarification)s.safetyRequiresImmediacyClarification=true;return setSafetyContext(s,safety.contextualSignals,s.safetyConfirmation)}
 export function seedFacts(s,facts={}){return mergeFacts(s,facts)}
+export function correctAnswer(s,{observationId,answerId,correctionId,timestamp}={}){
+ if(s.assessmentCompleted)throw new Error('Completed Discovery correction requires dependent-state revalidation');
+ if(typeof correctionId!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(correctionId)||!Number.isSafeInteger(timestamp)||!Number.isFinite(new Date(timestamp).getTime()))
+  throw new Error('Correction requires a stable UUID and finite timestamp');
+ const current=currentObservations(s.observationLog);
+ const prior=s.observationLog.find(o=>o.id===observationId);
+ if(!prior||timestamp<prior.timestamp)throw new Error('Invalid correction observation target or time');
+ const question=BANK.find(q=>q.id===prior.questionId);
+ if(!question?.maySatisfyFocusedEvidence||question.responseMode!=='single'||question.constructIds.length!==1||
+  !question.options.every(a=>answerEffects(question,a.id).every(e=>['STATE','UNCERTAINTY'].includes(e['Effect Type']))))
+  throw new Error('Correction currently requires an ordinary single-answer focused question');
+ if(typeof answerId!=='string'||!question.options.some(a=>a.id===answerId))throw new Error('Invalid correction answer');
+ const source=observationsForAnswer(question,answerId,{timestamp})[0];
+ const replacement=Object.freeze({...source,id:correctionId,supersedesObservationId:observationId});
+ const retry=s.observationLog.find(o=>o.id===correctionId);
+ if(retry){
+  // Compare JSON values independent of object-key order after a JSONB round trip.
+  const equal=(a,b)=>a===b||(a!==null&&b!==null&&typeof a==='object'&&typeof b==='object'&&
+   Array.isArray(a)===Array.isArray(b)&&Object.keys(a).length===Object.keys(b).length&&
+   Object.keys(a).every(k=>Object.hasOwn(b,k)&&equal(a[k],b[k])));
+  if(!equal(retry,replacement))throw new Error('Correction identity reused with different content');
+  return s;
+ }
+ if(!current.includes(prior))throw new Error('Correction target is no longer current');
+ currentObservations([...s.observationLog,replacement]); // Validate before any mutation.
+ appendObservation(s,replacement);
+ const constructId=question.constructIds[0];
+ if(isActiveDiscoveryCandidate({resolutionState:s.resolutionStates[constructId]})){
+  setResolution(s,constructId,'triaged');applyGovernedFocusedSufficiency(s,question,answerId);
+ }
+ delete s.orchestration;
+ if(['ready_for_prioritization','incomplete'].includes(s.phase))s.phase='graph';
+ s.incomplete=true;
+ return s;
+}
 export function setDriverSelections(s,selections={}){s.driverSelections={...(s.driverSelections||{}),...selections};const accepted=Object.entries(selections).filter(([,value])=>['accept','accepted','yes','supported'].includes(String(value).toLowerCase())).map(([constructId])=>constructId);if(accepted.length)activateConstructs(s,accepted);return s}
 export function setSeverityResponses(s,responses={}){s.severityResponses={...(s.severityResponses||{}),...responses};return s}
 export function setRelationshipEvidence(s,evidence={}){s.relationshipEvidence={...(s.relationshipEvidence||{}),...evidence};return s}

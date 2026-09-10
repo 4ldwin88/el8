@@ -4,8 +4,28 @@ import {readFile} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
 import Discovery from '../../intelligence/discovery/discovery-engine.js';
 import {restoreDiscoveryRun} from '../../intelligence/discovery/run-record.js';
+import * as Runtime from '../../app/onboarding/discovery-runtime.js';
 const modulePath=new URL('../../intelligence/discovery/supabase-run-persistence.js',import.meta.url);
 const A='11111111-1111-4111-8111-111111111111';
+test('answer correction appends through the existing SQL writer and survives reload and retry',async()=>{
+ const {prepareDiscoveryRunSave,createDiscoveryRunStore}=await import(modulePath);
+ const f=await fixture();try{
+  const store=createDiscoveryRunStore(f.client),s=Runtime.createDiscoverySession({constructIds:['SLEEP_QUALITY']});
+  Runtime.answerDiscoveryQuestion(s,Discovery.BANK.find(q=>q.id==='Q000020'),'A000129');
+  const original=await store.save(prepareDiscoveryRunSave(s,-1));
+  const correction={observationId:s.observationLog[0].id,answerId:'A000130',correctionId:crypto.randomUUID(),timestamp:Date.now()+1000};
+  Runtime.correctDiscoveryAnswer(s,correction);
+  const command=prepareDiscoveryRunSave(s,original.revision);f.loseNextAck();
+  await assert.rejects(()=>store.save(command),/acknowledgement lost/);
+  const accepted=await store.save(command),loaded=await store.load(s.runId);
+  assert.equal(accepted.revision,1);assert.deepEqual(loaded.record,command.run_record);
+  const resumed=restoreDiscoveryRun(loaded.record),state=Runtime.discoveryOutput(resumed).trace.states[0];
+  Runtime.correctDiscoveryAnswer(resumed,correction);assert.deepEqual(resumed.observationLog,loaded.record.session.observationLog,'JSONB object-key ordering cannot break command retry');
+  assert.equal(state.status,'unknown');assert.equal(state.stateEvidence.length,0);assert.equal(state.uncertaintyEvidence.length,1);
+  assert.deepEqual(resumed.observationLog[0],original.record.session.observationLog[0]);
+  assert.deepEqual((await f.db.query('select record from public.el8_discovery_run_revisions where revision=0')).rows[0].record,original.record);
+ }finally{await f.db.close();}
+});
 // Transport shim only: all acceptance, revision, isolation and persistence behavior
 // runs in the real migration SQL. It cannot invent a successful receipt.
 async function fixture(){
