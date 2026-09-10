@@ -60,7 +60,7 @@ jobs:
       - name: Run canonical Intelligence contracts, state, Planning, Review and personalization validation
         run: npm run test:intelligence
 
-      - name: Run persistence and migration validation
+      - name: Run persistence boundary validation
         run: npm run test:persistence
 
       - name: Run Discovery validation
