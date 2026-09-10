@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import {readFile, readdir} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
 import {createMemberState} from '../../intelligence/state/member-state-contract.js';
-import {saveMemberState, loadMemberState} from '../../intelligence/state/supabase-persistence.js';
+import {saveMemberState, loadMemberState,toPersistedMemberState,assertPersistedMemberStateRow} from '../../intelligence/state/supabase-persistence.js';
 import {openMemberStateSession,persistMemberStateSession} from '../../app/auth/member-state-session.js';
 import {applyMemberStateTransition,MEMBER_STATE_EVENT} from '../../intelligence/state/member-state-transition.js';
-import {discoveryOutputToMemberState} from '../../intelligence/state/discovery-member-state-adapter.js';
+import {discoveryOutputToMemberState,memberStateToPrioritizationInput} from '../../intelligence/state/discovery-member-state-adapter.js';
 import Discovery from '../../intelligence/discovery/discovery-engine.js';
 
 const migrations = new URL('../../supabase/migrations/', import.meta.url);
@@ -75,6 +75,26 @@ async function rpc(db, expected, state) {
 const memberSave = (db, id, expected, state) =>
   asRole(db, 'authenticated', id, () => rpc(db, expected, state));
 const rows = async db => (await db.query('select * from public.el8_member_state order by user_id')).rows;
+
+test('Discovery requirements persist with facts at one revision and survive SQL reload and stale-write rejection',async()=>{
+ const db=await checkpoint();try{
+  await db.exec(forward);for(const sql of later)await db.exec(sql);
+  const initial=createMemberState({memberId:A});await memberSave(db,A,-1,toPersistedMemberState(initial));
+  const gap={requirementId:'required-context',reason:'Required context unknown',required:true,evidenceRefs:['second','first'],provenance:{confidence:'unknown'}};
+  const s=Discovery.session({constructIds:['SLEEP_QUALITY'],unresolvedRequirements:[gap]});
+  Discovery.answer(s,Discovery.BANK.find(q=>q.id==='Q000020'),'A000129');
+  const trace=Discovery.trace(s),next=discoveryOutputToMemberState(trace,{memberId:A,existingState:initial});
+  await memberSave(db,A,0,toPersistedMemberState(next));
+  const restored=assertPersistedMemberStateRow(await asRole(db,'authenticated',A,async()=>(await db.query('select * from public.el8_member_state')).rows[0]));
+  assert.equal(restored.revision,1);assert.deepEqual(restored,next);assert.deepEqual(restored.discoveryRequirements.unresolvedRequirements,[gap]);
+  assert.deepEqual(memberStateToPrioritizationInput(restored).candidates,[]);assert.equal(Object.keys(restored.facts).length,1);
+  const cleared=discoveryOutputToMemberState({...trace,unresolvedRequirements:[]},{memberId:A,existingState:restored});
+  const accepted=assertPersistedMemberStateRow(await memberSave(db,A,1,toPersistedMemberState(cleared)));
+  assert.equal(accepted.revision,2);assert.equal(memberStateToPrioritizationInput(accepted).candidates.length,1);assert.deepEqual(accepted.facts,restored.facts);
+  await assert.rejects(()=>memberSave(db,A,0,toPersistedMemberState(next)),e=>e.code==='PT409');
+  assert.deepEqual(assertPersistedMemberStateRow((await rows(db))[0]),accepted);
+ }finally{await db.close();}
+});
 
 test('actual Discovery observations persist together at +1 and remain immutable through SQL',async()=>{
  const db=await checkpoint();

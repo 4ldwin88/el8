@@ -1,10 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {DISCOVERY_CONTRACT_FINGERPRINT} from '../discovery/runtime-fingerprint.js';
+// Positive handoff fixtures explicitly assess global requirements; omission is unknown.
+const assessed={runId:'11111111-1111-4111-8111-111111111111',contractFingerprint:DISCOVERY_CONTRACT_FINGERPRINT,unresolvedRequirements:[]};
 import {discoveryOutputToMemberState,memberStateToPrioritizationInput} from './discovery-member-state-adapter.js';
 import {toPersistedMemberState,fromPersistedMemberState} from './supabase-persistence.js';
 const at='2026-09-10T16:00:00.000Z';
 const item={constructId:'SLEEP_QUALITY',status:'supported',resolutionState:'triaged',qualitativeConfidence:'MODERATE',evidenceRefs:['answer:2','answer:1'],unresolvedReasons:['required current-state distinction missing']};
-function project(state,extra={}){return discoveryOutputToMemberState({trace:{states:[state]},...extra},{memberId:'member:test',at});}
+function project(state,extra={}){return discoveryOutputToMemberState({trace:{...assessed,states:[state]},...extra},{memberId:'member:test',at});}
 
 test('candidate consideration cannot satisfy evidence requirements through any handoff metadata',()=>{
  for(const extra of [{handoff:{usable:true,candidateIds:['SLEEP_QUALITY']}},{stop:{candidateIds:['SLEEP_QUALITY']}},{stoppingDecision:{candidateIds:['SLEEP_QUALITY']}}]){

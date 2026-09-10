@@ -2,14 +2,19 @@ import {
   createConstructState,
   createFocusDecision,
   validateMemberStateShape,
+  assertDiscoveryRequirements,
 } from './member-state-contract.js';
 import { createEngagementSignal } from './engagement-signal.js';
 import { isConstructId, isDimensionId } from '../../registries/taxonomy/index.js';
 
-export const MEMBER_STATE_EVENT = Object.freeze({DIMENSION_UPDATED:'DIMENSION_UPDATED',CONSTRUCT_UPDATED:'CONSTRUCT_UPDATED',FACT_RECORDED:'FACT_RECORDED',HYPOTHESIS_UPDATED:'HYPOTHESIS_UPDATED',FOCUS_DECIDED:'FOCUS_DECIDED',PLAN_ACTIVATED:'PLAN_ACTIVATED',PLAN_CLEARED:'PLAN_CLEARED',MEMBER_CONTEXT_UPDATED:'MEMBER_CONTEXT_UPDATED',ENGAGEMENT_SIGNAL_UPDATED:'ENGAGEMENT_SIGNAL_UPDATED',SAFETY_DISPOSITION_UPDATED:'SAFETY_DISPOSITION_UPDATED',REVIEW_CYCLE_LINKED:'REVIEW_CYCLE_LINKED'});
+export const MEMBER_STATE_EVENT = Object.freeze({DISCOVERY_REQUIREMENTS_UPDATED:'DISCOVERY_REQUIREMENTS_UPDATED',DIMENSION_UPDATED:'DIMENSION_UPDATED',CONSTRUCT_UPDATED:'CONSTRUCT_UPDATED',FACT_RECORDED:'FACT_RECORDED',HYPOTHESIS_UPDATED:'HYPOTHESIS_UPDATED',FOCUS_DECIDED:'FOCUS_DECIDED',PLAN_ACTIVATED:'PLAN_ACTIVATED',PLAN_CLEARED:'PLAN_CLEARED',MEMBER_CONTEXT_UPDATED:'MEMBER_CONTEXT_UPDATED',ENGAGEMENT_SIGNAL_UPDATED:'ENGAGEMENT_SIGNAL_UPDATED',SAFETY_DISPOSITION_UPDATED:'SAFETY_DISPOSITION_UPDATED',REVIEW_CYCLE_LINKED:'REVIEW_CYCLE_LINKED'});
 function clone(v){return structuredClone(v)}function requireString(v,n){if(typeof v!=='string'||!v.trim())throw new Error(`${n} required`)}function requireArray(v,n){if(!Array.isArray(v))throw new Error(`${n} must be array`)}function unique(v){return [...new Set(v)]}function validateState(state){const errors=validateMemberStateShape(state);if(errors.length)throw new Error(`invalid canonical Member State: ${errors.join('; ')}`)}
 function applyEvent(next,{type,payload={}},at){
  switch(type){
+ case MEMBER_STATE_EVENT.DISCOVERY_REQUIREMENTS_UPDATED:{
+  assertDiscoveryRequirements(payload,next.discoveryRequirements);
+  next.discoveryRequirements=clone(payload);break;
+ }
  case MEMBER_STATE_EVENT.DIMENSION_UPDATED:{const{dimensionId,...patch}=payload;if(!isDimensionId(dimensionId))throw new Error(`Unknown dimensionId: ${dimensionId}`);next.dimensions[dimensionId]={...next.dimensions[dimensionId],...clone(patch),dimensionId,lastDerivedAt:at};break;}
  case MEMBER_STATE_EVENT.CONSTRUCT_UPDATED:{const{constructId,...patch}=payload;if(!isConstructId(constructId))throw new Error(`Unknown constructId: ${constructId}`);const current=next.constructs[constructId]??createConstructState({constructId,now:at});next.constructs[constructId]={...current,...clone(patch),constructId,lastDerivedAt:at};for(const dimensionId of next.constructs[constructId].dimensionIds??[]){const d=next.dimensions[dimensionId];if(d)d.constructIds=unique([...(d.constructIds??[]),constructId]);}break;}
  case MEMBER_STATE_EVENT.FACT_RECORDED:{requireString(payload.factId,'factId');requireString(payload.semanticKey,'semanticKey');requireString(payload.sourceType,'fact sourceType');requireString(payload.sourceRef,'fact sourceRef');requireString(payload.observedAt,'fact observedAt');if(payload.affectedConstructId!=null&&!isConstructId(payload.affectedConstructId))throw new Error(`Unknown constructId: ${payload.affectedConstructId}`);if(payload.affectedDimensionId!=null&&!isDimensionId(payload.affectedDimensionId))throw new Error(`Unknown dimensionId: ${payload.affectedDimensionId}`);const existing=next.facts[payload.factId];if(existing&&!sameJson(existing,payload))throw new Error(`factId is immutable once recorded: ${payload.factId}`);next.facts[payload.factId]=clone(payload);break;}

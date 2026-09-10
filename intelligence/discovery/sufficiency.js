@@ -6,6 +6,13 @@ const disposed=new Set(['deferred','escalated','nonIssue']);
 const supported=new Set(['supported','established']);
 export function isActiveDiscoveryCandidate(state){return !state.excluded&&!disposed.has(state.resolutionState);}
 export function hasSufficientDiscoveryEvidence(state){return supported.has(state.status)&&state.resolutionState==='sufficient'&&(state.evidenceRefs?.length??0)>0;}
+export function auditDiscoveryRequirements(unresolvedRequirements){
+ if(!Array.isArray(unresolvedRequirements))throw new Error('Discovery unresolved requirements must be an array');
+ const optional=r=>r&&typeof r==='object'&&r.blocking===false&&r.required!==true&&typeof r.requirementId==='string'&&r.requirementId.trim().length>0&&typeof r.reason==='string'&&r.reason.trim().length>0;
+ return {unresolvedRequirements:structuredClone(unresolvedRequirements),
+  blockingRequirements:structuredClone(unresolvedRequirements.filter(r=>!optional(r))),
+  boundedUncertainty:unresolvedRequirements.some(optional)};
+}
 export function orientationCoverageComplete(areas=[]){
  if(areas.length!==DIMENSION_IDS.length)return false;
  // Explicit unknown is permitted internally; it is not a first-matrix answer.
@@ -16,13 +23,12 @@ export function handoffAudit(states,{unresolvedRequirements=[],safety=null,incom
  const active=states.filter(isActiveDiscoveryCandidate);
  const eligible=active.filter(hasSufficientDiscoveryEvidence);
  const unresolved=active.filter(s=>!eligible.includes(s));
- const optional=r=>r&&typeof r==='object'&&r.blocking===false&&r.required!==true&&typeof r.requirementId==='string'&&r.requirementId.trim().length>0&&typeof r.reason==='string'&&r.reason.trim().length>0;
- const blockingRequirements=unresolvedRequirements.filter(r=>!optional(r));
+ const requirements=auditDiscoveryRequirements(unresolvedRequirements);
+ const {blockingRequirements}=requirements;
  const blockedBySafety=Boolean(safety?.pauseOrdinaryFlow||states.some(s=>(s.safetyEscalationLevel??0)>0));
  return {
   usable:!incomplete&&!blockedBySafety&&!blockingRequirements.length&&!unresolved.length&&(active.length>0||allowEmpty),
   unresolved,blocking:[...unresolved],candidateIds:active.map(s=>s.constructId),eligibleCandidateIds:eligible.map(s=>s.constructId),
-  unresolvedRequirements:structuredClone(unresolvedRequirements),blockingRequirements:structuredClone(blockingRequirements),
-  blockedBySafety,boundedUncertainty:unresolvedRequirements.some(optional),incomplete:Boolean(incomplete)
+  ...requirements,blockedBySafety,incomplete:Boolean(incomplete)
  };
 }

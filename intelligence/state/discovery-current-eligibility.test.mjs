@@ -1,10 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {DISCOVERY_CONTRACT_FINGERPRINT} from '../discovery/runtime-fingerprint.js';
+// Positive handoff fixtures explicitly assess global requirements; omission is unknown.
+const assessed={runId:'11111111-1111-4111-8111-111111111111',contractFingerprint:DISCOVERY_CONTRACT_FINGERPRINT,unresolvedRequirements:[]};
 import {discoveryOutputToMemberState,memberStateToPrioritizationInput} from './discovery-member-state-adapter.js';
 import {toPersistedMemberState,fromPersistedMemberState} from './supabase-persistence.js';
 const at='2026-09-10T16:30:00.000Z';
 const item={constructId:'SLEEP_QUALITY',status:'supported',resolutionState:'sufficient',evidenceRefs:['e:1'],qualitativeConfidence:'MODERATE',unresolvedReasons:[],uncertaintyRefs:['u:1']};
-const project=(states,existingState)=>discoveryOutputToMemberState({states},{memberId:'member:test',existingState,at});
+const project=(states,existingState)=>discoveryOutputToMemberState({...assessed,states},{memberId:'member:test',existingState,at});
 const reload=s=>fromPersistedMemberState(toPersistedMemberState(s));
 test('explicit newer inactive or unresolved Discovery state cannot inherit earlier eligibility',()=>{
  const initial=project([item]);
