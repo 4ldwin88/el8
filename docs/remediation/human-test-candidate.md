@@ -56,3 +56,30 @@ are classified before changing code or expectations.
 This slice does not claim browser journey, database replay, concurrency or
 human readiness. Storage, trusted writes, backend reproduction and semantic
 handoffs remain separately gated slices. No live mutation or deployment.
+
+### Slice 1 verification and self-review
+
+Gate mechanism acceptance: 5/5 tests passed, including newly discovered tests,
+missing-export rejection, optional/bypassed workflow rejection and stale/dirty
+candidate refusal. The initial acceptance run failed before implementation.
+All 82 original offline test files were run: 297 pass / 6 fail. Two failing
+Profile files imported a removed domain-version constant; independently verified
+D's current-contract correction (versionless Member State, confirmation timestamp
+preserved) was incorporated. Those 15 Profile tests now pass.
+
+The candidate-wide gate correctly remains RED: four other baseline failures
+(legacy question aliases, two legacy Action ID fixtures, and missing mixed-Focus
+disposition UI) plus broken module graphs on nine HTML pages. These are retained
+as blockers, not excluded tests. Gate self-tests passing is evidence only for the
+gate mechanism, never for the candidate journey. No receipt/artifact is produced
+on failure. The backend/lifecycle slices must resolve these before promotion.
+
+Self-review improvements: include new/untracked files in source fingerprint;
+verify the built public artifact's import graph as well as source; preserve the
+taxonomy directory required by browser imports; remove the old independent build
+metadata writer; reject optional reusable validation jobs; deny accidental remote
+connections in offline tests. Non-live files are discovered automatically. The
+old extra Member State CI owner is retired in favor of the shared gate. Pages
+promotion is explicit/manual, requires the same workflow validation receipt and
+does not upload SQL, tests, documentation, dependency packages or workflow code.
+No workflow or production deployment was executed.

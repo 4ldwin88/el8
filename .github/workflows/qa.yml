@@ -1,57 +1,29 @@
 name: Canonical Repository QA
-
 on:
+  workflow_call:
   workflow_dispatch:
   pull_request:
-    branches: [development, main]
   push:
-    branches: [development, main, migration/intelligence-canonical-contracts]
-
+    branches: [main, development, 'remediation/**']
 permissions:
   contents: read
-
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Browser module import smoke
-        run: node scripts/browser-import-smoke.mjs
-      - name: Contracts
-        run: npm run test:contracts
-      - name: Intelligence
-        run: npm run test:intelligence
-      - name: Persistence
-        run: npm run test:persistence
-      - name: Safety
-        run: npm run test:safety
-      - name: Discovery
-        run: npm run test:discovery
-      - name: Intelligence test harness
-        run: npm run test:intelligence-test
-      - name: Onboarding
-        run: npm run test:onboarding
-      - name: Outcomes
-        run: npm run test:outcomes
-      - name: Insights
-        run: npm run test:insights
-      - name: Profile
-        run: npm run test:profile
-      - name: E01 raw lifecycle
-        run: npm run test:e01
-      - name: E02 E03 QA isolation
-        run: npm run test:e02-e03
-      - name: T01 T02 decision trace
-        run: npm run test:t01-t02
-      - name: S01 Safety validation
-        run: npm run test:s01
-      - name: S02 adversarial Safety
-        run: npm run test:s02
-      - name: R01 registry governance
-        run: npm run test:r01
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: candidate-checks-${{ github.sha }}
+          path: .candidate/checks.json
+          include-hidden-files: true
+          if-no-files-found: error
