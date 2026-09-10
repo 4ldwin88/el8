@@ -38,7 +38,6 @@ export function submitDiscoveryDriverTriage(session,selections={}){return Discov
 export function submitDiscoverySeverityTriage(session,responses={}){return Discovery.setSeverityResponses(session,responses)}
 export function submitDiscoveryRelationshipEvidence(session,evidence={}){return Discovery.setRelationshipEvidence(session,evidence)}
 export function submitDiscoveryTriage(session,importanceByConstruct){return Discovery.triage(session,importanceByConstruct)}
-export function resolveDiscoveryConstruct(session,constructId,resolutionState,options={}){return Discovery.resolve(session,constructId,resolutionState,options)}
 export function finishDiscovery(session){Discovery.complete(session);return discoveryOutput(session)}
 export function discoveryOutput(session){
  const trace=Discovery.trace(session),audit=Discovery.handoff(session),orchestration=trace.orchestration;

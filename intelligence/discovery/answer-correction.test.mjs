@@ -44,10 +44,12 @@ test('unknown correction reopens sufficiency, clears cached decisions, preserves
 });
 
 test('correction is idempotent and cannot erase an independent member deferral',()=>{
- const s=fixture();Discovery.resolve(s,'SLEEP_QUALITY','deferred');
- const c=command(s);Runtime.correctDiscoveryAnswer(s,c);const accepted=captureDiscoveryRun(s);
+ const s=fixture(),c=command(s);Discovery.triage(s,{SLEEP_QUALITY:0});
+ const decision=structuredClone(s.observationLog.at(-1));
+ Runtime.correctDiscoveryAnswer(s,c);const accepted=captureDiscoveryRun(s);
  Runtime.correctDiscoveryAnswer(s,c);assert.deepEqual(captureDiscoveryRun(s),accepted);
  assert.equal(current(s).resolutionState,'deferred');
+ assert.deepEqual(s.observationLog.find(o=>o.id===decision.id),decision);
  Runtime.correctDiscoveryAnswer(s,command(s,'A000128',ID2));const later=captureDiscoveryRun(s);
  Runtime.correctDiscoveryAnswer(s,c);assert.deepEqual(captureDiscoveryRun(s),later,'old exact retry cannot undo a later correction');
 });
