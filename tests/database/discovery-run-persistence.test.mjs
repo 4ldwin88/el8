@@ -7,6 +7,30 @@ import {restoreDiscoveryRun} from '../../intelligence/discovery/run-record.js';
 import * as Runtime from '../../app/onboarding/discovery-runtime.js';
 const modulePath=new URL('../../intelligence/discovery/supabase-run-persistence.js',import.meta.url);
 const A='11111111-1111-4111-8111-111111111111';
+test('same answer ID preserves historical parent meaning through SQL while current runs use canonical parentage',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const historical=JSON.parse(await readFile(new URL('../fixtures/discovery-run-1e961f1.json',import.meta.url))).record;
+ const {prepareDiscoveryRunSave,createDiscoveryRunStore}=await import(modulePath);
+ const f=await fixture();try{
+  const store=createDiscoveryRunStore(f.client);
+  const command={run_id:historical.runId,expected_revision:-1,request_id:crypto.randomUUID(),run_record:historical};
+  await store.save(command);
+  const loaded=await store.load(historical.runId);
+  assert.deepEqual(loaded.record,historical);
+  const old=loaded.record.session.observationLog[0];
+  assert.equal(old.answerValue,'A000574');assert.equal(old.questionId,'Q000086');
+  assert.equal(old.registryEvidence.answer.Answer,'Energy');
+  assert.equal(old.registryEvidence.effects[0]['Effect Type'],'ROUTE');
+  assert.throws(()=>restoreDiscoveryRun(loaded.record),/contract changed/);
+  const current=Discovery.session();Discovery.answer(current,Discovery.BANK.find(q=>q.id==='Q000094'),'A000574');
+  const next=prepareDiscoveryRunSave(current,-1);await store.save(next);
+  const now=await store.load(current.runId);assert.deepEqual(now.record,next.run_record);
+  const observation=restoreDiscoveryRun(now.record).observationLog[0];
+  assert.equal(observation.questionId,'Q000094');assert.equal(observation.registryEvidence.answer.Answer,'A lot of control');
+  assert.equal(observation.registryEvidence.effects[0]['Effect Type'],'STATE');
+  assert.deepEqual((await store.load(historical.runId)).record,historical,'new interpretation cannot rewrite old evidence');
+ }finally{await f.db.close();}
+});
 test('deferred conflicting evidence stays deferred after actual run SQL persistence and explicit resume',async()=>{
  const {prepareDiscoveryRunSave,createDiscoveryRunStore}=await import(modulePath);
  const f=await fixture();try{

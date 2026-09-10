@@ -1,0 +1,118 @@
+{
+  "sourceCandidate": "1e961f185b4ea7afd492bf921712cab9753289b7",
+  "record": {
+    "format": "el8.discovery-run.v1",
+    "contractFingerprint": "6af2da85c04214e8f4183c4684839b5aba6bb422ba8dfd68682f223d25f4e0a0",
+    "runId": "c4c4c4c4-c4c4-44c4-84c4-c4c4c4c4c4c4",
+    "session": {
+      "observationLog": [
+        {
+          "id": "Q000086:A000574:1789062054702",
+          "questionId": "Q000086",
+          "constructId": "ENERGY_FUNCTION",
+          "answerValue": "A000574",
+          "specificityLevel": 1,
+          "timestamp": 1789062054702,
+          "effects": [],
+          "registryEvidence": {
+            "question": {
+              "Question ID": "Q000086",
+              "Sort Key": "1.0112",
+              "Legacy ID": "",
+              "Question": "What seems connected to how you feel emotionally?",
+              "Response Type": "Multi",
+              "Role": "baseline-discriminator",
+              "Primary Dimension": "Emotional",
+              "Primary Construct": "Emotional baseline driver routing",
+              "Prerequisite / Trigger": "Emotional baseline = Mixed or Difficult and direct evidence does not already resolve scope",
+              "Scheduling / Stage": "Narrow — question 2 relationship/driver screen",
+              "Burden": 0.1,
+              "Audit Status": "Keep",
+              "Runtime Status": "Conditional / baseline narrowing",
+              "Evidence Status": "Hypothesis",
+              "Decision Use": "Route selected plausible Emotional and cross-dimensional constructs for targeted Deepen; do not infer causality.",
+              "Variant Group": "BASELINE_DRIVER_EMOTIONAL",
+              "Source Sheet": "General",
+              "Registry Notes": "Compact question-2 relationship/driver screen; bounded cross-dimensional candidates; short member-facing labels."
+            },
+            "answer": {
+              "Answer ID": "A000574",
+              "Sort Key": "",
+              "Parent Question ID": "Q000086",
+              "Legacy ID": "",
+              "Answer": "Energy",
+              "Primary Dimension": "Emotional",
+              "Primary Construct": "Emotional baseline relationship hypothesis",
+              "Audit Status": "Keep",
+              "Runtime Status": "Available when parent is asked",
+              "Evidence Status": "Hypothesis",
+              "Mapping Notes": "Scope/relationship hypothesis only; no severity or causal inference.",
+              "Decision Use": "Route ENERGY_FUNCTION for targeted Deepen",
+              "Variant Group": "BASELINE_DRIVER_EMOTIONAL",
+              "Safety Meaning": "No automatic Safety classification",
+              "Source Sheet": "General",
+              "Registry Notes": "Question-2 bounded relationship candidate"
+            },
+            "effects": [
+              {
+                "Effect ID": "EFX000491",
+                "Answer ID": "A000574",
+                "Effect Type": "ROUTE",
+                "Target ID / Construct": "ENERGY_FUNCTION",
+                "Key": "scope",
+                "Value": "identified",
+                "Qualifier / Semantics": "Relationship hypothesis only; no severity or causal inference",
+                "Decision Use": "Activate ENERGY_FUNCTION targeted Deepen path",
+                "Evidence Status": "Hypothesis",
+                "Runtime Status": "Executable",
+                "Legacy Answer ID": "",
+                "Source Sheet": "General",
+                "Registry Notes": "Question-2 relationship/driver candidate Q000086"
+              }
+            ]
+          }
+        }
+      ],
+      "facts": {},
+      "constructIds": [
+        "ENERGY_FUNCTION"
+      ],
+      "labels": {},
+      "asked": [],
+      "questionsAsked": 0,
+      "outerGuardrail": null,
+      "phase": "orient",
+      "triaged": false,
+      "incomplete": false,
+      "resolutionStates": {
+        "ENERGY_FUNCTION": "triaged"
+      },
+      "driverKnown": {},
+      "baselineCoverage": {},
+      "baselineDriverTriaged": false,
+      "runId": "c4c4c4c4-c4c4-44c4-84c4-c4c4c4c4c4c4",
+      "assessmentStart": 1789062054701,
+      "questionTimings": [],
+      "driverSelections": {},
+      "severityResponses": {},
+      "relationshipEvidence": {},
+      "unresolvedRequirements": [],
+      "memberStateRevision": null,
+      "safetyContextualSignals": {},
+      "safetyConfirmation": null,
+      "safety": {
+        "stage": "discovery",
+        "status": "clear_for_ordinary_flow",
+        "pauseOrdinaryFlow": false,
+        "contextual": {
+          "needsDirectConfirmation": false,
+          "signals": [],
+          "rationaleCodes": [
+            "no_confirmation_trigger"
+          ]
+        },
+        "disposition": null
+      }
+    }
+  }
+}

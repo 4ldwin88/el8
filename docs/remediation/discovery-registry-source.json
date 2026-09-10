@@ -1,0 +1,31 @@
+{
+  "spreadsheetId": "1DUMbxIVaR7L5lQSOkjSQ826ng4T6g1Po44-Oy0bVuMA",
+  "questionScope": "Q000085\u2013Q000097",
+  "authority": "Canonical Questions/Answers/Effects; approved A000568 restoration",
+  "collections": {
+    "BASELINE_DISCRIMINATOR_QUESTIONS": {
+      "count": 8,
+      "sha256": "aa5600d2a7012cfbc2afddfc1bebe4aacb7ffdfcbde16597cef0f821ce4e2778"
+    },
+    "BASELINE_DISCRIMINATOR_ANSWERS": {
+      "count": 22,
+      "sha256": "a29f56e5310bc7e17e4874866154024d449e75d9297c1c4a9b49074bd76d6c6e"
+    },
+    "BASELINE_DISCRIMINATOR_EFFECTS": {
+      "count": 19,
+      "sha256": "ae71dded8f84ebc3572e74e447116b0418ba0e162a1d158c0dee82f31b6a6b32"
+    },
+    "DIRECT_STATE_PROBE_QUESTIONS": {
+      "count": 5,
+      "sha256": "cb36ca44ab32a64821b964257260afbc49411e3ac67136e8d363190d92b2b08e"
+    },
+    "DIRECT_STATE_PROBE_ANSWERS": {
+      "count": 25,
+      "sha256": "d4fa8bdc54f75a1ab824586a5e0ddb5572f1fc7c1891f18bbb4b911077b041af"
+    },
+    "DIRECT_STATE_PROBE_EFFECTS": {
+      "count": 25,
+      "sha256": "1b6da2992eface35f4c76c78346484a5ff8f1883c286baf3a049785e5a241073"
+    }
+  }
+}

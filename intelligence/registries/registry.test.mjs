@@ -6,8 +6,8 @@ assert.equal(Object.keys(QUESTION_BY_ID).length, ALL_QUESTIONS.length);
 assert.equal(Object.keys(ANSWER_BY_ID).length, ALL_ANSWERS.length);
 assert.equal(Object.keys(ACTION_BY_ID).length, ACTIONS.length);
 assert.equal(ALL_QUESTIONS.length, 97);
-assert.equal(ALL_ANSWERS.length, 654);
-assert.equal(ALL_EFFECTS.length, 522);
+assert.equal(ALL_ANSWERS.length, 593);
+assert.equal(ALL_EFFECTS.length, 482);
 assert.equal(ACTIONS.length, 41);
 assert.equal(migrateLegacyRegistryId('GEN001'), 'Q000001');
 assert.equal(migrateLegacyRegistryId('GEN001.01'), 'A000001');
@@ -20,17 +20,13 @@ assert.ok(getEffectsForAnswer('A000109').length > 0);
 assert.ok(QUESTION_BY_ID.Q000077, 'orientation baseline must be present');
 assert.ok(QUESTION_BY_ID.Q000092, 'all eight baseline driver discriminators must be present');
 assert.ok(QUESTION_BY_ID.Q000097, 'direct state probes must be present');
-assert.ok(ANSWER_BY_ID.A000592, 'question-2 cross-dimensional driver candidates must be present');
-assert.ok(ANSWER_BY_ID.A000605, 'expanded bounded driver candidates must be present');
-assert.ok(ANSWER_BY_ID.A000629, 'question-2 uncertainty choices must be present');
-assert.ok(ANSWER_BY_ID.A000630, 'direct-state answer range must follow Q2 answer range without collision');
-assert.ok(ANSWER_BY_ID.A000654, 'all direct-state probe answers must retain unique permanent IDs');
-for(const qid of ['Q000085','Q000086','Q000087','Q000088','Q000089','Q000090','Q000091','Q000092']){
- const labels=getAnswersForQuestion(qid).map(a=>a.Answer);
- assert.ok(labels.includes('Not sure'),`${qid} must include Not sure`);
- assert.ok(labels.includes('None'),`${qid} must include None`);
- assert.ok(labels.includes('Something else'),`${qid} must include Something else`);
-}
-for(const aid of ['A000606','A000607','A000608','A000621','A000622','A000623','A000627','A000628','A000629'])assert.equal(getEffectsForAnswer(aid).length,0,`${aid} must not fabricate a driver`);
+// Exact canonical parentage replaces the former repository-only ID allocation.
+assert.equal(ANSWER_BY_ID.A000592['Parent Question ID'],'Q000097');
+assert.equal(ANSWER_BY_ID.A000574['Parent Question ID'],'Q000094');
+assert.equal(ANSWER_BY_ID.A000568['Parent Question ID'],'Q000092');
+for(const id of ['A000605','A000629','A000630','A000654'])assert.equal(getAnswer(id),null);
+for(const answer of ALL_ANSWERS)assert.ok(QUESTION_BY_ID[answer['Parent Question ID']],answer['Answer ID']);
+for(const effect of ALL_EFFECTS)assert.ok(ANSWER_BY_ID[effect['Answer ID']],effect['Effect ID']);
+assert.equal(new Set(ALL_EFFECTS.map(e=>e['Effect ID'])).size,ALL_EFFECTS.length,'effect identities must be unique');
 assert.ok(ACTION_BY_ID.ACT000001);
 console.log('registry runtime adapter: PASS');
