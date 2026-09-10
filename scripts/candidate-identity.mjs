@@ -6,7 +6,7 @@ export function sourceIdentity(root=process.cwd()) {
   const git=(...args)=>execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
   const files=git('ls-files','--cached','--others','--exclude-standard','-z').split('\0').filter(Boolean).sort();
   const hashes=Object.fromEntries(files.map(file=>[file,existsSync(`${root}/${file}`)?hash(readFileSync(`${root}/${file}`)):null]));
-  return {sha:git('rev-parse','HEAD'),tree:git('rev-parse','HEAD^{tree}'),dirty:git('status','--porcelain').length>0,sourceHash:hash(JSON.stringify(hashes)),contractHashes:Object.fromEntries(Object.entries(hashes).filter(([f])=>/contract|registries\//.test(f)&&!f.includes('.test.'))),migrationFingerprint:hash(JSON.stringify(Object.entries(hashes).filter(([f])=>f.startsWith('supabase/migrations/'))))};
+  return {sha:git('rev-parse','HEAD'),tree:git('rev-parse','HEAD^{tree}'),dirty:git('status','--porcelain').length>0,sourceHash:hash(JSON.stringify(hashes)),contractHashes:Object.fromEntries(Object.entries(hashes).filter(([f])=>/contract|registries\//.test(f)&&!f.includes('.test.'))),migrationFingerprint:hash(JSON.stringify(Object.entries(hashes).filter(([f])=>/^supabase\/(migrations|baselines)\//.test(f))))};
 }
 export function assertValidatedIdentity(receipt,current) {
   if(receipt.status!=='pass'||receipt.dirty||current.dirty) throw new Error('A clean validated candidate is required');

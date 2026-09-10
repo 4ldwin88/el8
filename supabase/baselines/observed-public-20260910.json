@@ -1,0 +1,40 @@
+{
+  "format": 1,
+  "status": "observed-checkpoint-not-product-authority",
+  "sourceProject": "jprdsidxwjkgiqqakwpr",
+  "observedAt": "2026-09-10",
+  "postgresMajor": 17,
+  "sqlSha256": "31648300e44cdb4c31b3a0fdb10f7016dc37a65694e3ebcc476eb40d1b33dce6",
+  "inspectionSha256": "841a80712cb02c6abc7f7314664b5eed7e487bd0f2965bbeabecc916004a4e1f",
+  "catalogHashes": {
+    "enums": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+    "tables": "0df2e94c4050e37834fc1c8fd9e33e030c4f37bf6ed6a733660e99af0fc987ff",
+    "indexes": "d5feee254243a1ac9f5333b6a37d03069bc399be90506600c5418c3a7ca6ae9f",
+    "policies": "2c43682c20e64ef13126636820da49684d000c5a0d1f08492deed662f9d5fb12",
+    "triggers": "e4d640880747e6cd4933b0e1f8329b336cb0989498631e9e7fe21fcfba93442d",
+    "functions": "9d33a6560467b04dba2222374796a2f84d1478202104b5437eddaf92e43d471b",
+    "sequences": "c87c79af0755960487313d491f5dab4afadd1d1245f9e440ceb3a355076298a7",
+    "constraints": "9961347c7bae2a4d482a78b996406d2f8a757c710e7272eff2b707c0a128ceea"
+  },
+  "counts": {
+    "enums": 0,
+    "tables": 43,
+    "indexes": 46,
+    "policies": 67,
+    "triggers": 6,
+    "functions": 45,
+    "sequences": 4,
+    "constraints": 200
+  },
+  "excluded": [
+    "member rows",
+    "Auth implementation/data",
+    "Storage implementation/data/policies",
+    "cron schedules",
+    "Vault secrets",
+    "Edge Functions/configuration",
+    "platform event triggers and default grants",
+    "sequence current positions"
+  ],
+  "humanTestReady": false
+}

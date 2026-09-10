@@ -1,0 +1,1194 @@
+{
+  "format": 1,
+  "sourceProject": "jprdsidxwjkgiqqakwpr",
+  "observedAt": "2026-09-10",
+  "records": [
+    {
+      "version": "20260817234131",
+      "name": "canonical_persistence_v01",
+      "statementsSha256": "8c73d096024e6edbcc2219f7046cdecb78d3f6a94f0019dc7e514617f6ca1a0d",
+      "sqlSha256": "9d150cad79bcb983959c951959aa22ba88f6077be3e2542f196a226f3119dd46"
+    },
+    {
+      "version": "20260817234154",
+      "name": "fix_payload_hash_v01",
+      "statementsSha256": "b58d1e90265b1a691b1af1f0504af54b602cedbb3bcd589146754536e58bb92c",
+      "sqlSha256": "e13dcd916120bfb228d6cf41cc8115fea11da61c117cc5419b758fb43fce541c"
+    },
+    {
+      "version": "20260817234735",
+      "name": "canonical_correction_v01",
+      "statementsSha256": "91ec93e1631d1e2506d0bf54afaecf9673aa8cbb27e9d6140cd5dd0188ce6cd0",
+      "sqlSha256": "66e6a4c841826a507c5d57b0488d5e4c5fe1ea7df709f02d0b0759fea718564e"
+    },
+    {
+      "version": "20260817234909",
+      "name": "lock_down_canonical_rpc_v01",
+      "statementsSha256": "8846460727446d88703ffc2056956f85a93211a62877f645cb2c8e9629c6b437",
+      "sqlSha256": "11d2c128e72d722c3b8113f95b4b7d0958233b3aec206b22d9b57fbfd2b388a6"
+    },
+    {
+      "version": "20260818001013",
+      "name": "prototype_accounts_v01",
+      "statementsSha256": "aed30cc676f8e35e4ac1aa42dec47f83721e8b9688ba5a07294da250f41e529d",
+      "sqlSha256": "01abc9037d320876d71ba386bf7bb96b9d0f4775d782bb474cb04efcc3b7ef3a"
+    },
+    {
+      "version": "20260818013122",
+      "name": "safety_pause_events_v01",
+      "statementsSha256": "c58fa1ac49200a5b8d9f1ca0ee4059a6d8df51f2c386b2f315b04c6d6589910b",
+      "sqlSha256": "e61dac2362cae36244cc203ccf87170a8a314543c3450791be374a1f03bb1eb5"
+    },
+    {
+      "version": "20260818015033",
+      "name": "safety_reconciliation_v01",
+      "statementsSha256": "b1625aaf36c2ce62bba65f48ff745d45a3d2239d7135cae7f817b4302d7f5c57",
+      "sqlSha256": "0c17425e7ca908af5edf96f96464fe0ea4f5494628418a4c505f33a8ea70147c"
+    },
+    {
+      "version": "20260818015716",
+      "name": "fix_simulation_safety_disposition",
+      "statementsSha256": "bb4b2d406da5ee89a1d7b7976523e48a01e38c9dfb6d045e2ef75c6c3ee2ee62",
+      "sqlSha256": "00e7a7bf50b0c7262af29f6f9db7922d454d1366972e2a023e15e9b9a127a643"
+    },
+    {
+      "version": "20260818020820",
+      "name": "prevent_duplicate_pending_safety_reconciliations",
+      "statementsSha256": "a339a7686d1b5cc78ba45afe65e21465f7a91a4e0273ceef364ed51563ab0100",
+      "sqlSha256": "0c19a1e5c69c614bb2e929b6f575da39dd357808a29191ebe8c9a49a0b0ac404"
+    },
+    {
+      "version": "20260818022309",
+      "name": "admin_console_v01",
+      "statementsSha256": "505bdfa800967ca9fd28528a7d4f403eb69f422778d7cdc5ed02b701cb87b71b",
+      "sqlSha256": "ad1f923363ff9ec338b8be315b229c65624f4c781ea93f85abaccb26d4d07ef2"
+    },
+    {
+      "version": "20260818024804",
+      "name": "focus_clarification_v01",
+      "statementsSha256": "aee5066886d348f8d40155d258b9899222296fee4fb8b419e5e4c38ac68623ff",
+      "sqlSha256": "f9ad5858a383154bf5097bb76c987e6bf1c556469c13107a9edf7cd698783045"
+    },
+    {
+      "version": "20260818030716",
+      "name": "add_emotional_deepening_plans",
+      "statementsSha256": "90cccbf9f84cc64b63ba964da2c8a7e6f251bcba2a7b68be4bfd11270b3c7610",
+      "sqlSha256": "a81bf434a77172a0795fa4b463dd0c5e1a6a4c16a39f0200b45b217c2d5b5423"
+    },
+    {
+      "version": "20260818035749",
+      "name": "add_plan_checkins_and_reviews",
+      "statementsSha256": "5131cf3650f3a528f33b3d86e3eff6aa8771a500052364e4d348fdf515ad3ce9",
+      "sqlSha256": "eecc03506c35239e840352d75fbac70792dead8813138db1733e3123eb549938"
+    },
+    {
+      "version": "20260818045556",
+      "name": "plan_review_checkin_context",
+      "statementsSha256": "2c792bbbdc6638b21e866461a9c39aaee71bff4e000a678427c56786b8ca734b",
+      "sqlSha256": "412b85138c6c81ea4ae6b45cd4fa70839ef7068052b24d37b9319d82be156709"
+    },
+    {
+      "version": "20260819060942",
+      "name": "member_zero_capture_pipeline",
+      "statementsSha256": "5eaa521fb431d1a3ed4af1cb3b82f7221cdc80e823994fa20805ef9ac08cb17f",
+      "sqlSha256": "fa13a25533815b61087359a4408178d582d8e6c9dd64291fbf01d6c75268bb06"
+    },
+    {
+      "version": "20260819061031",
+      "name": "tighten_capture_table_grants",
+      "statementsSha256": "c1cc0e98fdcab0c36bfb3b2eab148517b2c9c286a88b498f63c80b1234a95652",
+      "sqlSha256": "0bd74e7ddc0a2838a61f798389fa261d6e321919b0ddb4f6ddc74a9c988ec5ed"
+    },
+    {
+      "version": "20260819062902",
+      "name": "add_member_timezone",
+      "statementsSha256": "256789f269cfdb4bbc9256015910e15cb5f0983a1f8f56499793fe35dc5c0e97",
+      "sqlSha256": "78d840e4dcbc6988de39e9073f941b0c7a5b13cbc8addd4c6a1873fc4704e59a"
+    },
+    {
+      "version": "20260819065956",
+      "name": "secure_member_entry_writes",
+      "statementsSha256": "f36709d84e28bfb83c2181e93d84f82fa7fa67b5360787b1aef0ef4da0b5c781",
+      "sqlSha256": "4e97de13ecf9316e70519c6213dbeed701ca50dbd0ffc53e059b808649208b2e"
+    },
+    {
+      "version": "20260819070803",
+      "name": "add_entry_soft_delete_and_member_updates",
+      "statementsSha256": "d69b9575c42c101aa1b976056e9edfb0aae3cd4ffb0a43fa0fd9b5c5e97ef808",
+      "sqlSha256": "b6dfb4fadd1ce969e9ca5602de51c082a91c42371d78564156e995efc895fd9f"
+    },
+    {
+      "version": "20260819075523",
+      "name": "add_transcribed_status",
+      "statementsSha256": "55375b3e64ca229a11c949384ecf97cf67ff3f577e2f79b5991092f81d1733c2",
+      "sqlSha256": "b637fad1584aa6c750e3e5d198034b23745f577040f3321bee40e9980507be20"
+    },
+    {
+      "version": "20260819103350",
+      "name": "add_profile_birthdate_and_baseline_gate",
+      "statementsSha256": "c34a9002c960cf35c7f1aa86c02ba4460175b7495ea73f973e8839656971a479",
+      "sqlSha256": "4951c4a9dab1d64c77a3f5ec621b914a6a5d07d595498df2065396e2d915bc83"
+    },
+    {
+      "version": "20260819103854",
+      "name": "expand_required_member_profile",
+      "statementsSha256": "14f71459f3757fa78f92a28d257787a592623963350bd661573e29845bab076a",
+      "sqlSha256": "8666cf5a1a2a64b8e674441152a6135917f6c750388c3a44827e2f586c02ffcd"
+    },
+    {
+      "version": "20260819130536",
+      "name": "add_ai_usage_cost_log",
+      "statementsSha256": "d9c6fe03e20eaa8613306cbbcbeeebd60f16f1779b7f6eaad2b3a46979aac647",
+      "sqlSha256": "1058b3dc5bc02a95a55b7df1cb0783fa3c3b637b7626fe0623aa07e81d216ae4"
+    },
+    {
+      "version": "20260819151622",
+      "name": "add_member_appearance_preference",
+      "statementsSha256": "13aa3718eab6e68c9a683acbf8244950d1709fc3f3db846ac1b9b7ffdd15b30d",
+      "sqlSha256": "9f4954b32c0972afc369352a974c2c02e9fd92f1d1d21cf9a05fd512e98019b3"
+    },
+    {
+      "version": "20260819160339",
+      "name": "enforce_submitted_history_immutability",
+      "statementsSha256": "7439d365681d8b0eaae3a54a48e3a233a55cb5d17c01c659392ede62d324d206",
+      "sqlSha256": "c873df407b80ab9bc5c1bcb3798dea4b28cf2ecd1df44bc03e2db32e49a8e61f"
+    },
+    {
+      "version": "20260819160425",
+      "name": "restrict_security_definer_rpc_execution",
+      "statementsSha256": "2cfd64eabdd3b74be98451829dbac53fc4e1d2ac05f80a6e7de11e1ef37951d9",
+      "sqlSha256": "311943b69391ff26458aa8bfc737fad546d67fe297503b64c36b066b15f1f448"
+    },
+    {
+      "version": "20260819160745",
+      "name": "harden_function_execute_privileges",
+      "statementsSha256": "7d15b9b04d9a16fae77360201ec609d26f0805ee90b8265c71aefaa4f92d0443",
+      "sqlSha256": "d565daa24aa12f520382cc9efe9c9c7fc9eb8fa40ac8967dec560b9d44596dd7"
+    },
+    {
+      "version": "20260819160758",
+      "name": "add_missing_foreign_key_indexes",
+      "statementsSha256": "792240b51bdf5f33c7b4e1237d46d81df66967a5a96fa7626bba80ef56d461dc",
+      "sqlSha256": "e4e4b275830df7895318c2ec3f8f548edf96125154fe39949d54bbb59783aeea"
+    },
+    {
+      "version": "20260819161024",
+      "name": "optimize_rls_auth_uid_initplans",
+      "statementsSha256": "f2e8567873db365dd241f93b9a6d764be6c5ee138fa1de802d81141a131ba7ad",
+      "sqlSha256": "d111b4b3b639e420aebbad17edf713baae4505c599ae261409621a77ed5292b4"
+    },
+    {
+      "version": "20260819161151",
+      "name": "retire_legacy_onboarding_client_access",
+      "statementsSha256": "3f8df869abbb49b13e69a2726585a76ed2d1627c0bbd412e1aafc4826af76a90",
+      "sqlSha256": "1d492644be8abc3338fe024f1030cd8d964c21a7a4cfae80f55b0e66d5768283"
+    },
+    {
+      "version": "20260819161158",
+      "name": "make_entry_revisions_append_only",
+      "statementsSha256": "4bb95a93df71f90f52b7c5ca559be6540fdc62b111b749e4f42fee2a414fe780",
+      "sqlSha256": "a11665992ae3411bbe331ddcf3fef64fe6d4a71b5a929ea12cece11dcc3af190"
+    },
+    {
+      "version": "20260819161206",
+      "name": "restrict_completed_assessment_policy",
+      "statementsSha256": "a247c08c450273cae1c32e9e615e0113e2c6b1655fa446b07e6dd53cbb6bcf58",
+      "sqlSha256": "368c876523bfb05de5d3fe532fb5435194927686890e3f7bc3200b059323d3f3"
+    },
+    {
+      "version": "20260819161215",
+      "name": "protect_entry_identity_fields",
+      "statementsSha256": "5424154cc2409c2b497e10246ae99c152df9d8d8dab9d30d1920b8851324d038",
+      "sqlSha256": "905e53c232b68e65e6213776fbeaf2f3002e6f6eb1bf8a79764e3239cd71eab3"
+    },
+    {
+      "version": "20260819161236",
+      "name": "remove_anonymous_table_privileges",
+      "statementsSha256": "842b85c9d50f80a62263996cebb6458d962bfabb10442ef41fe4b6723e8783cf",
+      "sqlSha256": "f5940483b6fd0b5088e82d34b420091f102c78449edec82e411072f023ac9d18"
+    },
+    {
+      "version": "20260819161244",
+      "name": "least_privilege_member_tables",
+      "statementsSha256": "28761d2f3b8e9a0d78f52239b6da099b13fe2acfe344533c6dd28512bd912f46",
+      "sqlSha256": "19b5ee41dcb732cf2dfc9dbe91d2b64552661744b95becd78c0f9ff00a8a3605"
+    },
+    {
+      "version": "20260819161301",
+      "name": "protect_profile_system_fields",
+      "statementsSha256": "3713066c78d191d586f572c4c6aaaa2ccae368dcb02cf13df30225fe5bf871db",
+      "sqlSha256": "be70f42bfd5a5a91857ccbf4aa78efc24c4e91f57b43dbe4e105ff00cad575a1"
+    },
+    {
+      "version": "20260819161318",
+      "name": "fix_profile_system_field_guard",
+      "statementsSha256": "51b125435981ce911db53bb6bd588f3fdabd49e6e0742a1aaef21ea77fa1ccec",
+      "sqlSha256": "8ea0898014dbec22cb5885badc71b1e94a9e9ed22884910c2042354f157e579d"
+    },
+    {
+      "version": "20260819161350",
+      "name": "restrict_direct_entry_updates",
+      "statementsSha256": "9367de3135ed982d7166676f1190eaeba7bb408c885072e7da809b1260091fd8",
+      "sqlSha256": "0611639a800713f79beb9b09f4f1fda489605d72e4c172ffaf0e88ebfa1a7795"
+    },
+    {
+      "version": "20260819161358",
+      "name": "restrict_submission_updates",
+      "statementsSha256": "e1ae08188dbb66e05c34bead78f33ee2adaddcaf774a4624353ea74c99ab076f",
+      "sqlSha256": "f537b0ce8bc924ff74ca74d4450eb540c1d48382ad5ea439a34cea76e636d7ff"
+    },
+    {
+      "version": "20260819161407",
+      "name": "protect_safety_events_append_only",
+      "statementsSha256": "9331d525b0f0052e7d263cbce48d160b01f9d771c07d30bb2f9072fa5523ceb2",
+      "sqlSha256": "067e625d866019576ef382d998f93db038fe88dd92e74fe8c56fc74981118f99"
+    },
+    {
+      "version": "20260819161423",
+      "name": "prevent_safety_event_deletion",
+      "statementsSha256": "63c7d0d246c7c7934dfec90d851d7e9a0803b0ace504466a685bbbba9cb614e0",
+      "sqlSha256": "61d9f9f5b8aa3b5aa6c954a90178ff8880c06c6b233c5e5b4d156abe8fad3418"
+    },
+    {
+      "version": "20260819161430",
+      "name": "prevent_safety_reconciliation_deletion",
+      "statementsSha256": "e793f1d442a237d243abc15b301565d5b0142bef68eb40d8409461ea20e32cb1",
+      "sqlSha256": "52a0ca7d19160000b203288925e108f613d2a2b6bc1bbbc76156d6a512ceecdb"
+    },
+    {
+      "version": "20260819161449",
+      "name": "protect_safety_reconciliation_identity",
+      "statementsSha256": "33b0745f4db50df21cc9dec567c2f72b1dd97961c54b647c38f2c5d5fb43961f",
+      "sqlSha256": "14c228ad18358b6ddf3e1d6f59fe23afa193cb6a289336e0fd4f9de6a2f25359"
+    },
+    {
+      "version": "20260819161508",
+      "name": "append_only_plan_observation_records",
+      "statementsSha256": "67cea9b645d85d521613eba86dc2b1c0d5d3c0d62f41ea68d4a0adbff5be0aea",
+      "sqlSha256": "c598c358c56949c5b23e9f9e9af1aeda2fe8ed4d940df1406f46a8d8de23092e"
+    },
+    {
+      "version": "20260819161516",
+      "name": "append_only_emotional_deepenings",
+      "statementsSha256": "d5484fc2acbd71d4818a19de082a5923cf6b4e34add84b76eba15f68ca89e58e",
+      "sqlSha256": "bf6a30a8206c6bf46bddda377cb8bf0eba036e3478cbf33729468960030f2273"
+    },
+    {
+      "version": "20260819161523",
+      "name": "append_only_focus_clarifications",
+      "statementsSha256": "bbd4dd1bf9133bc0beaf20ee149541d45d04365659f75e8e55fad8787165baab",
+      "sqlSha256": "7940242c83274bc84c66fb1cb35e209b1422079bbf8303e68f4d7e6ebe18f154"
+    },
+    {
+      "version": "20260819161547",
+      "name": "normalize_nested_auth_uid_policies",
+      "statementsSha256": "fe36fe93a2e6f79ba605c4ab5d4a041f6bff17435759cc854685b41219212c81",
+      "sqlSha256": "94223197ae8ccb824d4fed055195464e6263b969228f20ebc61c7bb9f40531d6"
+    },
+    {
+      "version": "20260819161555",
+      "name": "protect_plan_identity_fields",
+      "statementsSha256": "0d6cca8349d3618e94fbfb1d1ba35fe88169d39a559db428e83015022c97f52d",
+      "sqlSha256": "cafe101b4d7252029816b10ca72b4bd5cffc8ad674195e881cfc2ab34ea8f0d8"
+    },
+    {
+      "version": "20260819161602",
+      "name": "protect_module_assignment_identity",
+      "statementsSha256": "abe06d9fa772939cccd2b7c5cb9ba26f4d9518bd7b92450373667483b1487860",
+      "sqlSha256": "76547134342332bce936b16e2bfb469181972f9095dccf8e448c93807c69c6b1"
+    },
+    {
+      "version": "20260819161619",
+      "name": "prevent_canonical_entry_deletion",
+      "statementsSha256": "1c139a1b9ef6e363d67b5c31db2d23419ef77468356f342b4ff927f75895be3c",
+      "sqlSha256": "88b86439502dfa02e12d3c5343967294209ce3dcb4c6ccbe5ae7a8fc48e67d30"
+    },
+    {
+      "version": "20260819161627",
+      "name": "prevent_submission_deletion",
+      "statementsSha256": "431ea288577e24dd1267f17a8df73c7b29321f696e7d099865f647c068a3018a",
+      "sqlSha256": "60002d26fa7b94023056ef12a6ef8601b3fea4f49d76532006b01cbdc43fd289"
+    },
+    {
+      "version": "20260819161643",
+      "name": "preserve_history_on_account_deletion",
+      "statementsSha256": "4489878a0f94bd08505b6119f9197d5030f35ebae92f3e305d553b39d06aa75f",
+      "sqlSha256": "771baaaca0521d03c7d755244a594ab2e6a1e97d389fd0d56365fe0f87f91d53"
+    },
+    {
+      "version": "20260819161701",
+      "name": "restore_test_account_deletion_cascades",
+      "statementsSha256": "805857b14de2e351728c6e49cc9f4899c74a317e1e79677620004b5d34fd25c7",
+      "sqlSha256": "89e5d8bcd047833bb34ba0652eec0dde348f593667ab7f595d2288f10c0745c5"
+    },
+    {
+      "version": "20260819161717",
+      "name": "restrict_baseline_helper_to_self",
+      "statementsSha256": "0ba1040c4ba00942c21f11adc0707b09f118b59220392856535cabbcc78a618a",
+      "sqlSha256": "3cbc7646a87c18d3ffbca63681e7849bc3e896ae82460cc03573fb304c0c392f"
+    },
+    {
+      "version": "20260819161742",
+      "name": "allow_privileged_system_state_updates",
+      "statementsSha256": "ed1f5953c24535c61f711efd0440beb6d63e09444ab22e51d1e14ebff307af4c",
+      "sqlSha256": "09c757adbd17c83184c3d7b8c1da03f8654082a5651870989726135f3426432f"
+    },
+    {
+      "version": "20260819161750",
+      "name": "permit_security_definer_profile_transitions",
+      "statementsSha256": "06865309a6795fa6129dbe3a2245194fda5e4acb250dfa971df7d9fdf272febc",
+      "sqlSha256": "b8c891e4a10a12944aeb5c5ad481bbd1d8055248a585e2b0a197bfc7e4b08873"
+    },
+    {
+      "version": "20260819164624",
+      "name": "secure_entry_correction_ownership",
+      "statementsSha256": "b94c1e7f453e6ac486871b918569973362e371cf0903411dd1f7daf2564eafc5",
+      "sqlSha256": "9dfb3688d6815e6474ed306e0bc14a74e1ba0e05fcf66abae5cd3dcacd235704"
+    },
+    {
+      "version": "20260819165709",
+      "name": "restrict_member_plan_and_module_mutation",
+      "statementsSha256": "0c28da3ac76604d645d98265161de13d6c7f5c4c95ca795593fc427e9830ea1a",
+      "sqlSha256": "3f17f6f6e7eb292b23a58bbb36a80f6fd19023527508c7b54f23328eb5d6376c"
+    },
+    {
+      "version": "20260819165734",
+      "name": "revoke_member_plan_and_assignment_writes",
+      "statementsSha256": "4b1d2e68d03e7369db324c4fb844f0451f8a5ed14f313159249db4835b84ed2a",
+      "sqlSha256": "1d83b7d4abc978d13f64c94d86c170eb6b4a9045fcdb96af6b641d85dce9f507"
+    },
+    {
+      "version": "20260819170134",
+      "name": "hide_soft_deleted_entries_from_members",
+      "statementsSha256": "b1fe962e47438cb526a71e4a4940bf23273165c89b3e2331c84ac188cb9a0953",
+      "sqlSha256": "21e082ce31c27b76a20834270c99529c188312ece9c4627ead9b1505442e72d2"
+    },
+    {
+      "version": "20260819170147",
+      "name": "block_corrections_to_soft_deleted_entries",
+      "statementsSha256": "246469a33874a97d40198ea7fdcf4fe505a7afb05f0156df3ab4ee8c451af688",
+      "sqlSha256": "67d2efa1957c5efe809523a2442d7a938ff1274843f9f27dc48550b8ea3a21de"
+    },
+    {
+      "version": "20260819170223",
+      "name": "add_discarded_submission_status",
+      "statementsSha256": "690050e0b69977bf302780a43e16630d53d2fe30ffbfba53e82574ac6883e3c5",
+      "sqlSha256": "70d8f517eb2342d9784cedf7b1ae0e3713dbd9d3c4ff2d1ca283f66d5b6352f1"
+    },
+    {
+      "version": "20260819171427",
+      "name": "enable_cron_and_pg_net",
+      "statementsSha256": "25db91624d5a9da9bac33c731339db1c285d5644f103c83c81b5197040c21b27",
+      "sqlSha256": "35653fbf4735caead855df68a8d5ee3081cdcfedeeac9a31932f933adb440d0d"
+    },
+    {
+      "version": "20260819171504",
+      "name": "schedule_abandoned_media_cleanup",
+      "statementsSha256": "235eda051d876be82af9c74bf0a65252192a8eb43ae8f948dc2690d25fb24142",
+      "sqlSha256": "aafdc8b11c78c958460ed2ceffc0b8b96eb6f95f35cd5a10c77c5c7e1ad76a86"
+    },
+    {
+      "version": "20260819171646",
+      "name": "authorize_cleanup_cron_with_vault_token",
+      "statementsSha256": "4b82faf7c2dffd2c612db568e3ff27c50f9d938c0779c348102ef1c575cee75a",
+      "sqlSha256": "ff1e03b7a3d21b48478523bb08370c2a3274e7523f478aacfb0bb0333baa049a"
+    },
+    {
+      "version": "20260819173140",
+      "name": "plan_engine_v1_schema",
+      "statementsSha256": "68a77d72df0b2146434df0b6c9a26d09d651557d697b1db77d3183aa42fe0a38",
+      "sqlSha256": "084a8cc4c19ce09860bead2efaf3a25db42a9765d86c93d38cd20e0f74f4ab86"
+    },
+    {
+      "version": "20260819173209",
+      "name": "plan_engine_v1_generator",
+      "statementsSha256": "40af034b9ba37c15184223d97f185c103203d72c0313e14ee5327e542138c739",
+      "sqlSha256": "e22fa30c9b8208a326f1e369e6d71dce64dc0d8c3c352a3b42c8308d9318216e"
+    },
+    {
+      "version": "20260819173923",
+      "name": "auto_create_initial_plan_after_baseline",
+      "statementsSha256": "9a0f0df6cd50f895dc2ef4512c5deda17617a7cad2cd9e37df09e6403f437263",
+      "sqlSha256": "f10d250d6f121bdde90e3b97dca3796a9a575543c2dc563636afc2a7edbc242b"
+    },
+    {
+      "version": "20260819173949",
+      "name": "fix_initial_plan_baseline_timestamp",
+      "statementsSha256": "f94f33011a866d03d5b9eb0d144c25d5cb72f7c2ff97cde0a90e6e2b1ea6420b",
+      "sqlSha256": "9bfab0e42a14c137fb7bed08311441ba50cdad81321d88e8f8c6d27479e182ef"
+    },
+    {
+      "version": "20260819174337",
+      "name": "plan_review_adjustment_engine_v1",
+      "statementsSha256": "c39a928b5e513c7a94bfa112d4f9e9f470c37331b1b49b44e6d7cf81822e1bac",
+      "sqlSha256": "38ef92b9ee23e97ea1ee0a78e7e4ad43288c091885fa19b17b39f7d1a5e47cdf"
+    },
+    {
+      "version": "20260819174346",
+      "name": "plan_review_member_policies_v1",
+      "statementsSha256": "03edf45ae8e3a8b88ccbabfd1499e72101aefc1cd8726184e944d0e90aa0bcdb",
+      "sqlSha256": "e08f8d2e87a4925f4b1e4207042085c50ce845eea16dc79fd6213d872e14a4ae"
+    },
+    {
+      "version": "20260819174403",
+      "name": "restrict_internal_plan_generation_rpc_v1",
+      "statementsSha256": "81f8acec4c812be9ed091781d045574e2462ab54ff28106c9ed69d4bd0aafa99",
+      "sqlSha256": "6082822d2381eca4a439c8814648fccaf1d5d65be068b814ee85840b8d95d196"
+    },
+    {
+      "version": "20260819175624",
+      "name": "plan_review_state_and_evidence_v2",
+      "statementsSha256": "2748fb6797cb93a0e97dd62c29bbb5c715912f4089505b0446f199e4e9fb59e1",
+      "sqlSha256": "289389497d34c8062c7bfb3a0e969452433fcd700074c7c77c80116b0b17e902"
+    },
+    {
+      "version": "20260819175636",
+      "name": "plan_review_recommendation_guard_v1",
+      "statementsSha256": "aa5963381797931c2a4fe0dd67dc5f211526c0d593ed53b05007dd762036647d",
+      "sqlSha256": "33b261beebef1ebf76d1a1b32d0023aa8f1d32063b1fd870f83e767d54a6589e"
+    },
+    {
+      "version": "20260819223147",
+      "name": "restrict_el8_apply_plan_review_rpc",
+      "statementsSha256": "63efc678fc33a1470926c38f59166cd4fe3b298ce1c92156ad0580528a9f0d98",
+      "sqlSha256": "b2cc5f5d4f8d6084ce04643d33c80e521a348cf15fb9b77bc2d775df278b725f"
+    },
+    {
+      "version": "20260819230515",
+      "name": "add_quick_logs",
+      "statementsSha256": "a04eb0a6de1958d086e3373fc7c69fd4877e2348fbe3587e0332054d274a5567",
+      "sqlSha256": "4982ebc4dbd1b2fa8a4b09fe5ec65f7caf1915d079946de744ccda84b8e09224"
+    },
+    {
+      "version": "20260819231908",
+      "name": "allow_plan_review_apply_metadata_once",
+      "statementsSha256": "a8c934c6e1a489173fa5c0d509aeb95aedb5822abe7f43c8f2201ae61625cf9b",
+      "sqlSha256": "8037a42c950e926ae2b02cce812d6d80dd12996b8dbc139ca7192cb4f979da04"
+    },
+    {
+      "version": "20260820014641",
+      "name": "allow_cancelled_submission_status",
+      "statementsSha256": "5a05748db046cb662571e13648a56a409c32b6673fbfd1e13d0ff5fbb246fd87",
+      "sqlSha256": "24de28308f1124bc46f92f23587bebcd240c453afe56efb601a99801b13960b4"
+    },
+    {
+      "version": "20260820020637",
+      "name": "member_daily_signals_rpc",
+      "statementsSha256": "f6a93d701af12d82f7df8e118705d9c3334caaa892e77a6abb35bab6f2b24dc3",
+      "sqlSha256": "41c3ab0c877b9f184de75c8ba5fcc2583ef7594168f3f3bc712e236184eca34a"
+    },
+    {
+      "version": "20260820024131",
+      "name": "add_member_hydration_target",
+      "statementsSha256": "f442365966cd424b74911586ec94dcdb628994b0f0f81da71edb76d0da01506a",
+      "sqlSha256": "d172757582579438b77ad61fc61da17d6ce4a869be152bbe0d6134385294f38e"
+    },
+    {
+      "version": "20260820114415",
+      "name": "align_plan_status_with_review_engine",
+      "statementsSha256": "3264da5e58d270080269d8aa6184eacd3edca32bce6a1effa39f7f7797c92923",
+      "sqlSha256": "ea3aaaf4234caa740367f756b9a592c83c9f38b4c366ebc5bd8ab2f2772fc91c"
+    },
+    {
+      "version": "20260820132901",
+      "name": "adaptive_multidimensional_plan_v2",
+      "statementsSha256": "8b258691c1bd6d4f81101b91ab619036941fb3c7802fff47e22e32ab470edfd0",
+      "sqlSha256": "dfc1c149af7e79efeedbafc14fdd334203777c864d66b947eba030951cdc8423"
+    },
+    {
+      "version": "20260820133802",
+      "name": "native_initial_plan_engine_v2",
+      "statementsSha256": "bb16b47ad39efc939c751cb659b341d4e16e26bb2fc1063ba73617dffdc0d322",
+      "sqlSha256": "e6e1c9cbf01e452d8a87a5b6206bde84cec1744c40507ba48a12d866bb71fc60"
+    },
+    {
+      "version": "20260820134032",
+      "name": "plan_review_v2_adaptation_signals",
+      "statementsSha256": "e28d3e104b738103bcf6e99555fe3b358e16ecc1377463fb768945c557cd649f",
+      "sqlSha256": "c3f11839ec5ff87c5023b7baa305adc49ac7cb3c02135cdec44d514591f40742"
+    },
+    {
+      "version": "20260820142407",
+      "name": "allow_qa_isolated_plan_statuses",
+      "statementsSha256": "6825585e0ad53227e9b690eb085e5ab0dd8520cc3afec48947b5de6bbe70a3ed",
+      "sqlSha256": "6c9e29c12f7a29b013938053f0f9949f34272e4cd3439847ce1fbfcc916dc4ff"
+    },
+    {
+      "version": "20260820142808",
+      "name": "allow_progress_plan_review_recommendation_v2",
+      "statementsSha256": "2da4fe7b55c3e047118ee26f2fab7a878e3afe1d73b5a4bc4e9f7a5e3cc00d83",
+      "sqlSha256": "17419d5683d15b854d79e588dada71786ac34d5ef4b2099f60ac1d9e72d9f171"
+    },
+    {
+      "version": "20260820144202",
+      "name": "enforce_plan_evidence_version_integrity",
+      "statementsSha256": "0c2cdad1242265c94ffb1c42e42240403cd32151b23aa3d38fd4f01865ce536a",
+      "sqlSha256": "c734d23a124c535a9a1ccc28b32d059e546c599d5619bb99ab75a87040339f9e"
+    },
+    {
+      "version": "20260820144557",
+      "name": "quarantine_qa_plans_without_mutating_reviews",
+      "statementsSha256": "252660e91ea9415649f2929e8ee7deffa626b638c2208b56c4564c72a2eb71b7",
+      "sqlSha256": "29c53b2b171f22d539f06faa986be6e92f4c03c02db1a67243c34734aff01190"
+    },
+    {
+      "version": "20260820144854",
+      "name": "quarantine_qa_plans_without_mutating_reviews",
+      "statementsSha256": "0f5692644b327c2d6a04d872cd0a9d2f6b7b84ac89d1d873175fd72735924e91",
+      "sqlSha256": "ba5608571bf3ca2465e5503bf6c780a0733fa119a0be1e7240cb1f8555b4b9b2"
+    },
+    {
+      "version": "20260820145402",
+      "name": "derive_review_test_classification",
+      "statementsSha256": "990a0faeafcf8c9fb8f706d81d287c1a0c481eef697519507709aa841f577dd9",
+      "sqlSha256": "50651a5ec4dd2df78743a0dd073ef3b91b08979f10bf712aab9d0c58e1f05e44"
+    },
+    {
+      "version": "20260820152342",
+      "name": "normalize_legacy_plan_v2_metadata",
+      "statementsSha256": "0f151f2b43590821678fb0aa7a4d0a4fcb8763aaf296246b2805c6cdceba0f54",
+      "sqlSha256": "8a4439be56aaa418a0beb729c2def98de70cebcc32fd4ee56ab20833b53c012b"
+    },
+    {
+      "version": "20260820223238",
+      "name": "fix_initial_plan_baseline_timestamp",
+      "statementsSha256": "e753d996e6a7f4987e350a6e6685bc4bde57b9421ad58377bf1bda27b465121b",
+      "sqlSha256": "098a9811c1c0e9ba7b95bc78cb16f4306e4f52060caf9dc5a9875c64951c8253"
+    },
+    {
+      "version": "20260820224043",
+      "name": "complete_onboarding_rpc",
+      "statementsSha256": "ec03174676525fab4f887bee67d24af99fade212f3908197384838019b5063f4",
+      "sqlSha256": "53eb8ba6451eb9d927b97478eadfbff304680a8c00a916d5fb2f73f1618ca746"
+    },
+    {
+      "version": "20260820233115",
+      "name": "adaptive_daily_checkin_payload",
+      "statementsSha256": "ffb46ded6dff579c2f56762cb3fb97a9274c2499c0bb9e0240287b75f0a1204e",
+      "sqlSha256": "4fcfc91f44561710aaedf2b7713644e5ae813ef1d7b96261b083e15325d8ce19"
+    },
+    {
+      "version": "20260821042514",
+      "name": "daily_manageability_unsure",
+      "statementsSha256": "a398b1ca8d3cca4cc38dc49c79a6e7c76d08a7c3f1a65de62a4cac98f2b020b4",
+      "sqlSha256": "b2d5a9ef2ea8c3923f8fd498cb9cf6be4bb0f90d8251f628fea9431b732da2dd"
+    },
+    {
+      "version": "20260821044621",
+      "name": "adaptive_checkin_followup_engine",
+      "statementsSha256": "8ba1e77234ac0071f28a4f97ed30b103fc4c6cabd111d2bde8ad48d114955855",
+      "sqlSha256": "8e36f1f9c94edcf190c84d300a3d41ae4ad52a36410012079dc1f279f06546a7"
+    },
+    {
+      "version": "20260821044824",
+      "name": "allow_member_followup_queue_insert",
+      "statementsSha256": "5f7e6b4bbdb1eb54ca86a0f9b0018361142586402e92560116b3cc2c231bf83c",
+      "sqlSha256": "0f388252a3746a626628596390ac2d4f495d4da469c0b215387c3e0b8ff6c3f9"
+    },
+    {
+      "version": "20260821045440",
+      "name": "adaptive_checkin_load_feedback",
+      "statementsSha256": "14d60453d30017d4e47e02d52e252d6d9436f16f6fa563ab868e3d427af4ea10",
+      "sqlSha256": "c524b981ffea026bdc847801fabcecc3614946ccdb025926bbc167297d24fdfd"
+    },
+    {
+      "version": "20260821050940",
+      "name": "member_adaptation_direction_and_consent",
+      "statementsSha256": "8d4641e7edc8c37ad45b4f77ed9b854c8e1d22b7e98c50d4ae461767b01087b5",
+      "sqlSha256": "d558bd0c0efc627c0ee8b83cce3b4b5fb2cc0dd37c3b50dd459df49a64a2d81c"
+    },
+    {
+      "version": "20260821051445",
+      "name": "scheduled_checkin_questions",
+      "statementsSha256": "2b5a96b3815c3b2d922d06a016c04daff2e5dfcdf7b3d1500c741ddfc6d47468",
+      "sqlSha256": "75f0d63d44341cd4dc7cbad9e05a46a87d8f144e2114ab392ff792b8fdae3250"
+    },
+    {
+      "version": "20260821053217",
+      "name": "qa_debug_and_reengagement_support",
+      "statementsSha256": "cd01ea6d36822817742e8fa7fb8d08906e29046a8e0bb2ac712eb213f0daca55",
+      "sqlSha256": "4dae11a2578319b010ec0c53f3594093437d3491f4f4ff7654849c0f6d5b5864"
+    },
+    {
+      "version": "20260821053906",
+      "name": "adaptive_checkin_selector_support",
+      "statementsSha256": "82bab1525b07df94ca7331c37dff3f2a06af0d1accd130c0e49736fe33dc620e",
+      "sqlSha256": "050ffed20cec11555ad52dcc292e3294cff9e864115861750a9b2bfd645938b9"
+    },
+    {
+      "version": "20260821054212",
+      "name": "checkin_signal_engine",
+      "statementsSha256": "3c2ac3877cc12cbe7b898bd281769f876c034d3e6b18d260f1d46aa9aa80647b",
+      "sqlSha256": "5b277fb1598e98d7ec170524e23b43ff7edf771d3da01689663ad52ee666268b"
+    },
+    {
+      "version": "20260821063231",
+      "name": "add_question_experiment_sampling_layer",
+      "statementsSha256": "f4ec8a9a8fa4cccb983d1a46b67fe0863498d5c4a65e3190b4a70ed16c8791a7",
+      "sqlSha256": "b7154896b66127e14dd276d8a48bf3f3cafb3e58695d31c330a8db2f3ce2009b"
+    },
+    {
+      "version": "20260821073911",
+      "name": "add_t0006_daily_checkin_qa_reset",
+      "statementsSha256": "1f9c7cca700d51a1fb71aad0602b505cb3d9165c6664b3ca1674071082faa0b5",
+      "sqlSha256": "31776e3edb70c75a97d8caebe54d3e4dee480e761b6685e336768cc248e96df4"
+    },
+    {
+      "version": "20260821084319",
+      "name": "extend_adaptive_question_bank_metadata",
+      "statementsSha256": "689c1bd7746186d5acc9187649e93708eac53e29af821ae582f0f2a8390aa6f1",
+      "sqlSha256": "3a86ae39b491faab1d41d9180739593092f3d02df7f590203839f1342c4246d0"
+    },
+    {
+      "version": "20260821084351",
+      "name": "allow_dynamic_dimension_question_options",
+      "statementsSha256": "eb0424c8db7611c7647d27e0a61806427f9f43d352e6b1584848bed7d71c27e0",
+      "sqlSha256": "ee4cc6589084d0836519d37361a610ae2bd1998282552aee67ee29ccbdee9dc0"
+    },
+    {
+      "version": "20260821100900",
+      "name": "add_accelerated_checkin_qa_runs",
+      "statementsSha256": "6aeb5a7eea69fee37469125b3cb28255968941a52a58888b956ef27f87991e9b",
+      "sqlSha256": "370070f03cb9d51382599ad9fd36d6b8868b99b603e1b554fc21bb6c5bcc7523"
+    },
+    {
+      "version": "20260821112419",
+      "name": "question_signal_matrix_v01",
+      "statementsSha256": "1fec128fb0b4f7d0d21a0faddbc1f630f2af026b42d9d76ca6837ad3096f1eb1",
+      "sqlSha256": "651393aa6b33aa92211ce5b12d17391d0e8dc08255cb53ee0b2ec3e295b5c272"
+    },
+    {
+      "version": "20260824040909",
+      "name": "create_discovery_human_test_reports",
+      "statementsSha256": "f7d103e59bd1d1108636b283ae1b7d06a010aeef8c8c18887e83a65a1eef5c51",
+      "sqlSha256": "a3e8d326646a13fdfee1ee1eb5c9b90b52013b5af5e4caa9eb302e16f07d6a83"
+    },
+    {
+      "version": "20260825090547",
+      "name": "canonical_onboarding_profile_fields",
+      "statementsSha256": "b61ef3044cb1f14ba4d5162bd9ebf5461fc794b6853c8442645ba27bf052c260",
+      "sqlSha256": "8d9cbf6860a4bbf8bd47e2aa5b18e387fc14de6252b3c1c7f42525ea3e3de370"
+    },
+    {
+      "version": "20260825090848",
+      "name": "allow_member_initial_plan_insert",
+      "statementsSha256": "b193e2cfafdf2a83d92daf45d77632e86c98ec3eda68d54fe54836adff91849d",
+      "sqlSha256": "2a839eaec6da207e21eaf42e9f107eeea065e1ce8be074cd4ced809f7859e8ea"
+    },
+    {
+      "version": "20260826031144",
+      "name": "add_discovery_onboarding_transition",
+      "statementsSha256": "da9db9de64ba152cc4713024dc7323fcbf154df90b2986b8f48a51d241f1806c",
+      "sqlSha256": "1a6f046ad508c3296348ac31b0a4f00934b1b04a9a6c17728fa7516994127d0b"
+    },
+    {
+      "version": "20260826034736",
+      "name": "accept_initial_plan_and_advance_onboarding",
+      "statementsSha256": "2ab3e6524bb194bb672f310e54b63a498ae77d7674930e939da9f8dd6d12ad51",
+      "sqlSha256": "10559820b673005561128cdac904208bfe1d6bcd45791768c3b32582d2d1ba72"
+    },
+    {
+      "version": "20260826052032",
+      "name": "allow_onboarding_plan_replacement",
+      "statementsSha256": "a87b776f38f773fb9adff6c6f48c830d573de099b554f05a175659e86b52a261",
+      "sqlSha256": "f0e9099629678cfaf21fa46406083ef717054788d44cf8fa806cc5ed6ad91d4e"
+    },
+    {
+      "version": "20260826053701",
+      "name": "supersede_any_active_plan_on_onboarding_reaccept",
+      "statementsSha256": "538bc1711547ff95ad0d974afca77a74a0a6150895a96b386c784889657c1cc5",
+      "sqlSha256": "afbbd7ec39ffa91e96fb99129f1e67ebe359f735af61222b16a0eb3e55c711b9"
+    },
+    {
+      "version": "20260826053906",
+      "name": "use_valid_onboarding_status_after_plan_acceptance",
+      "statementsSha256": "9ac51d984eef75d22ead6df57b47e42e22128d0986f21b66cfa571af72d639ff",
+      "sqlSha256": "eed9960525c1fe9622eca81de16be324fde08d0855beb9974975e923c0142383"
+    },
+    {
+      "version": "20260826073449",
+      "name": "create_intelligence_test_research_boundary",
+      "statementsSha256": "ba1c470484f26a9457da323b71aa21e1115308d83e5a5d8d64d766a404e0ed01",
+      "sqlSha256": "ab165cdfa7ec41f0be5bf028e031094ceaf31605858c971fc9d767ef86e04eaa"
+    },
+    {
+      "version": "20260826160716",
+      "name": "adaptive_plan_supersession_contract",
+      "statementsSha256": "18c1cc91448ff3483da9f9c3c0adfe9a38ff5df3e7a246b168b48f90a99a1d84",
+      "sqlSha256": "a45e67af3a9f9bdc586f0fb4a47d40ee3dee3c0a3df76fb612cf327bb4fd4259"
+    },
+    {
+      "version": "20260826160735",
+      "name": "adaptive_plan_rpc_security_invoker",
+      "statementsSha256": "a6b19f43a25aa9b46af3e8d3e73acbb83ebbbcb9f64fcf9acd3dfcb4f90fc4a5",
+      "sqlSha256": "fa50ae4fdcc392b7bb8ab2618e287e582f0e8bfc461e74a723dd912bd9c3500e"
+    },
+    {
+      "version": "20260826160804",
+      "name": "adaptive_plan_rpc_table_privileges",
+      "statementsSha256": "54d07a8bf7aa3375697c1aa14cd592e73215a78a049e13f55230b4df3f3a1d71",
+      "sqlSha256": "a69c97b2e8af624e8176c4bf79087635e01c12b977abedbc9da45ca7c3dcdbeb"
+    },
+    {
+      "version": "20260826161048",
+      "name": "adaptive_reassessment_contract",
+      "statementsSha256": "f31f829d18eaac5cdc98cde22e33ef97edf8b89a78bcba6929d8eea3243ab67d",
+      "sqlSha256": "f53945eb676b5b419e87d2d788a8ca9c8863be5d8e62e2dbeb368e377ed9f4f6"
+    },
+    {
+      "version": "20260826161102",
+      "name": "adaptive_reassessment_rpc",
+      "statementsSha256": "924ad3e8fdeb179b1756c6dbe1d218ba53f7cf1bc600f0146067c6712ce034a3",
+      "sqlSha256": "2f7b52904b435e604a06fe3f84b2f912f1fbcba61f15f1738601c3d898002cd2"
+    },
+    {
+      "version": "20260826161106",
+      "name": "reassessment_rpc_write_privileges",
+      "statementsSha256": "d35a01e1a39e1dd94be58d0388502e6fd69744f4c0eea39739a75a1da4c40025",
+      "sqlSha256": "33f632a3ce6e24dc972479190259400e84c7c30aa9d6384b02d953c943688669"
+    },
+    {
+      "version": "20260826161121",
+      "name": "reassessment_completion_policy",
+      "statementsSha256": "fac8d50311dd422ce1f03adc6d1b60df3ef094826adf55baecf5a0e7b9f5c08f",
+      "sqlSha256": "b3ce6132c6ad947eb709ce33c6860d8accd81497a47ea42a31cdec854e9d8645"
+    },
+    {
+      "version": "20260826161211",
+      "name": "reassessment_privilege_guard",
+      "statementsSha256": "e5dedb604d0e1f288a285b3c0a584806b8acfc9d1925b22084d2980adca538e8",
+      "sqlSha256": "86039761b9547d13e09d36c02e8bd28ce8b746f40c78f97f6fd2b03f66b3e979"
+    },
+    {
+      "version": "20260826161221",
+      "name": "index_reassessment_result_plan",
+      "statementsSha256": "20d775bb1db390c839d0f4eec55a6aad64177f91aa5d16e9023ff44fb81c9641",
+      "sqlSha256": "a3ed30467116cdfef3c8eebccc31387432ef83a59962f9ec847931a133359a02"
+    },
+    {
+      "version": "20260826165856",
+      "name": "governed_account_purge",
+      "statementsSha256": "38730905cc8f78a3bba81da5d346ce6017e667419bb145dedd0e66c2958d8e38",
+      "sqlSha256": "5f1de56ce0fb26a12e6c91b169135a4e9d28a41d1e3fb759475a643fc267e9a5"
+    },
+    {
+      "version": "20260826233718",
+      "name": "accept_initial_plan_after_baseline_deepening",
+      "statementsSha256": "c8e879a2dd34d1a430f642f29753301e8fe3f085d6a927bd36514f51807d09ae",
+      "sqlSha256": "4d529bd02fa7216828cf9e38a6d84a0e63039ea4f2f60de972467f133692d075"
+    },
+    {
+      "version": "20260827064111",
+      "name": "add_mvp_qa_telemetry",
+      "statementsSha256": "8a04a675bf98317bac36bd8e1e74a6a677f63c43ce772290363335a098489bec",
+      "sqlSha256": "2b95cff5feb5231f521b8a6c392f66b2a73d3e8b48038251647d479271748e20"
+    },
+    {
+      "version": "20260827225613",
+      "name": "retire_legacy_plan_reassessment_rpcs",
+      "statementsSha256": "38773646889af37a34955d5050678fe3b9e94eaa8900a231790163dbe9bd78b3",
+      "sqlSha256": "405ad900214e084eb4695f74f805333e058e4a9a542e3d62c53e70e7af3a675e"
+    },
+    {
+      "version": "20260827231800",
+      "name": "add_canonical_member_state",
+      "statementsSha256": "0e1a5da46943f4a06efb7a1b36f6d76a7b65c1ca4b8bae4c4b6e0f4e412be6cc",
+      "sqlSha256": "96c96f4490f8a2bc35d25e8471cc7f0049bad2da29a94ac60d43444ae95a8109"
+    },
+    {
+      "version": "20260827233159",
+      "name": "retire_legacy_initial_plan_rpc",
+      "statementsSha256": "b38700c196a37c0d3cd37da2ad2704dabd4f6a0a058bf54569581842d01b4460",
+      "sqlSha256": "8af24183506edf2dfd4a3bb2563fb14e16407332187dd1b905c87ba5c6859d83"
+    },
+    {
+      "version": "20260827233425",
+      "name": "harden_onboarding_completion_rpc",
+      "statementsSha256": "199a058689a2c8a75bb38112eaacac0d9b670b62550d917337e378ada47cae46",
+      "sqlSha256": "25800e8dcec022c82fc7f76887babb932610f15e57d700187fd12b53960055dd"
+    },
+    {
+      "version": "20260827233603",
+      "name": "retire_dead_legacy_planning_rpcs",
+      "statementsSha256": "21fff7f7ae7e1280e106ff7aa441558ed31b7e623339729fb6fb7f89f2c9a539",
+      "sqlSha256": "1da88c405a473cd212deb94cfb63e33b88fe07e0d307a4bee90e9410083abcc5"
+    },
+    {
+      "version": "20260827233708",
+      "name": "retire_unused_member_read_helpers",
+      "statementsSha256": "21935bb0dcafebbaa1f660c005673ed44de43aae6a7c78bce50ff8a1b2df7e0a",
+      "sqlSha256": "016aa2de2b7d8cebb213a2d53a2e0165a9fb1156c190336c16d8a1d9d76b7ae5"
+    },
+    {
+      "version": "20260827233845",
+      "name": "retire_legacy_plan_generation_chain",
+      "statementsSha256": "645404a98cd85f97b9335b9a0b6e80045f470cc3ae8db53ffc42d50bb71e11d2",
+      "sqlSha256": "0633f1a7e58948749a50de3f0f24034b04a9455d826115db72e77e9850a01314"
+    },
+    {
+      "version": "20260827234114",
+      "name": "retire_legacy_intelligence_test_ingestion",
+      "statementsSha256": "fc1079dcee62027f551a983b192d5f8be7cbf2ccd20afef822eb57909512122d",
+      "sqlSha256": "60cfbdd4c862548e458b059a577c8e2d9e1580596c6b3eabee363f1cbab39b58"
+    },
+    {
+      "version": "20260827234250",
+      "name": "retire_unused_member_rpc_surface",
+      "statementsSha256": "ccb7b2bd85cae09f983f1b254afff72d9914ce39759fcfb48b1947d77e78b390",
+      "sqlSha256": "75c5330f4b17587f5180531f9442b67ee7af3d40a3a9f08a4027fb684d67cef1"
+    },
+    {
+      "version": "20260827234521",
+      "name": "remove_dead_qa_database_helpers",
+      "statementsSha256": "0d837ce16d1cd1f20cd55277d3db1f880f61359797f214bedad28af8eb275931",
+      "sqlSha256": "aa1c94d450b5dd9d6b46be361c3b37e564842c0f568104550632176ef0ee8f05"
+    },
+    {
+      "version": "20260827234644",
+      "name": "retire_legacy_adaptive_plan_transaction",
+      "statementsSha256": "85bc8a3601979fb9dcb38cf6cc70003423bcf43344c50b511e7524f747808737",
+      "sqlSha256": "c0d336ab40ccbc7c2bb7244e064f1c530fc14cc9cdc2289a72accab82264fc79"
+    },
+    {
+      "version": "20260827234804",
+      "name": "harden_utility_function_search_paths",
+      "statementsSha256": "d10971346e9c53878c763d357aa9811e79e07cb2bb1d7650c7f1bef9b9a7c9ad",
+      "sqlSha256": "e1a7f9c9ea24500c167cc9f021a39e862f93dd447a7c37684d0f44845003c352"
+    },
+    {
+      "version": "20260827235250",
+      "name": "lock_retired_question_experiment_tables",
+      "statementsSha256": "8e1b0e5046b708757011f4deeaa1dd541240f9f3bf85dceb8714f24a11c058d6",
+      "sqlSha256": "638e107829bddd00916ed0cc493aa3ac0246c9396e360dcc219f4f864ccec013"
+    },
+    {
+      "version": "20260827235412",
+      "name": "harden_security_definer_search_paths",
+      "statementsSha256": "7b04df2c2466ec2f20b7ab8070f811201d1b6338cfca83f634f522a4e8135477",
+      "sqlSha256": "3aa61c3dc5e3a3c0fe7bd1c50de406550e492e03c649e47a24d847b64ee9c7cf"
+    },
+    {
+      "version": "20260827235643",
+      "name": "revoke_unused_admin_rpc_api_surface",
+      "statementsSha256": "472fbe75dd981805788b4f77946e7993e78adb3fdaa611b4294938d5c88ed929",
+      "sqlSha256": "a57710ec9c26ad96f0bf3a0dc79a76b0ca64bf07b370284054f96a777928a229"
+    },
+    {
+      "version": "20260827235851",
+      "name": "replace_onboarding_completion_definer_with_rls",
+      "statementsSha256": "a4c9520122b1baa18c375aaace396a252693e2ab2a6153a814282e6d76a7b243",
+      "sqlSha256": "f64fdb764519c38eefe1783144421247603fec57eae8e32a8c4d28f7589cb10b"
+    },
+    {
+      "version": "20260829041809",
+      "name": "restore_intelligence_test_anon_rpc_execute",
+      "statementsSha256": "865419995c41312610ecb035519605c9ac977defa5e1ea233112b6ed23a5f6d5",
+      "sqlSha256": "b7b7adca30e203d771130cc8bb8d27515eb04c7ff18c06d239de5f544055e237"
+    },
+    {
+      "version": "20260830140344",
+      "name": "canonical_member_state_v3",
+      "statementsSha256": "f518c05565ff99ffd350d2ab8ee6fc7b3e3a867d8e737618139749f13de582ca",
+      "sqlSha256": "ad8c38434fa949652feeb1db4321e7393a54ce568db501a69bff0b3bd166107a"
+    },
+    {
+      "version": "20260830140419",
+      "name": "canonical_plan_v2_envelope",
+      "statementsSha256": "e2731a93edf0462f9b5181aba39d6b63d741538234a387dbe0a4c80816d5c69b",
+      "sqlSha256": "636f22f71cd8a24cf42dc94041783b27913d664826e2546af7f4cdbab3fbe663"
+    },
+    {
+      "version": "20260830140449",
+      "name": "harden_intelligence_test_rpcs",
+      "statementsSha256": "c2c0059bb8933ee8758c681970a370f91eed2ff41c3297cdc14de9e28af3dd7d",
+      "sqlSha256": "bc9dd1ad8f9da1335504d49a30b33f0502e085ca3bf37c4cc2b249f0ed48a95c"
+    },
+    {
+      "version": "20260830140612",
+      "name": "member_state_v3_insert_revision",
+      "statementsSha256": "d75935ddeec9fa351823de600ecf7bf7b3c378bcc31a44c8fe80830f0375bfb9",
+      "sqlSha256": "ac68f544654130a52e796961bf5bb7cc14a7a949ac6c8d2ad5402248364becc0"
+    },
+    {
+      "version": "20260830140621",
+      "name": "member_state_v3_update_envelope_rls",
+      "statementsSha256": "9c2bf6f455998f6de2eb6baac94dfbb1291b89da746624f4e27196f3eb633d68",
+      "sqlSha256": "0d40d79c50a7c8738a1d1af7cb8354f9a49f30e6abc876442f0e511b2c9967b5"
+    },
+    {
+      "version": "20260830140645",
+      "name": "member_state_v3_rpc_initial_revision_fix",
+      "statementsSha256": "4f6f66e4f4715f00469e2df766721a1c1683f0de25abcedd2929ac8aab77d926",
+      "sqlSha256": "559fd45ab66918694f3512f5c308408c64651817f0983b86e3b7daf3d2bb2ad3"
+    },
+    {
+      "version": "20260830140716",
+      "name": "plan_v2_canonical_write_gate",
+      "statementsSha256": "449508d108f15015b3e7bff7660f4515997dad521920596228a88d092f4134e5",
+      "sqlSha256": "c10299ede33a793edeba0a5669cd614137e11c6e33a73c5b07bc3ade49570bf1"
+    },
+    {
+      "version": "20260830140739",
+      "name": "plan_v2_relax_legacy_required_columns",
+      "statementsSha256": "2204ae9be7dc66ca9fbdf103183644182d9ca237827c716492fd0797292b87b3",
+      "sqlSha256": "899bc646808eed391045e1de78f03b34142106e269fd960bdb44a231e70671de"
+    },
+    {
+      "version": "20260830140816",
+      "name": "plan_v2_canonical_write_rls",
+      "statementsSha256": "bd4901de4aa63a571e9ffac561c37d9f38df17a31635491b54dff1d79d22a2be",
+      "sqlSha256": "5bc6d6e0aa6d1e838edcb59e4a84850a8cb438ce27886e73ff1a5e931fa76776"
+    },
+    {
+      "version": "20260830140904",
+      "name": "plan_v2_preserve_historical_updates",
+      "statementsSha256": "e9df8a43c2e17aceb77dd98c830448bb9ca30b45b804e8b0baca2cca38217d12",
+      "sqlSha256": "777f91ac585b125b8843bb2d01d6442f3fa5466b541b80d34edd8606b2773ade"
+    },
+    {
+      "version": "20260830140919",
+      "name": "plan_v2_schema_version_immutable_guard",
+      "statementsSha256": "7c0886ab06729d01e9a686e94f70e2fa943ce68880482a88e7c3201410504ff1",
+      "sqlSha256": "7db831e668ce9fddd13b323c7cf009a87037df785fd64ee201403430205cdce1"
+    },
+    {
+      "version": "20260830140947",
+      "name": "member_state_v3_revision_trigger_guard",
+      "statementsSha256": "f4486eb0efc8f9bd75e882cc91d2037ecc57d975668d0822495fa48b0c33137c",
+      "sqlSha256": "061b119bddfb988143e6fbeb8e24d8ec2d4fa45301ebab7f28a7af804282ee2f"
+    },
+    {
+      "version": "20260830141009",
+      "name": "member_state_v3_insert_rpc_policy",
+      "statementsSha256": "d75935ddeec9fa351823de600ecf7bf7b3c378bcc31a44c8fe80830f0375bfb9",
+      "sqlSha256": "ac68f544654130a52e796961bf5bb7cc14a7a949ac6c8d2ad5402248364becc0"
+    },
+    {
+      "version": "20260830141101",
+      "name": "plan_v2_require_canonical_insert",
+      "statementsSha256": "1614df44a43d0bb8a2af6296a4cceb4c0f23e35ad29db7510934230c3afb9231",
+      "sqlSha256": "345a791ae1a443a845db6443f123f6b4dfb5dd6c12961136d75e3c183ba9862f"
+    },
+    {
+      "version": "20260830141154",
+      "name": "plan_v2_canonical_insert_defaults",
+      "statementsSha256": "e9f48982fb2cfdb5962ee903d6f79bfa6f9f334f3d1a01234e35f04b89f9c0c3",
+      "sqlSha256": "5ae3b3edfd883df0354c16a87768d95137e4f99599cbd2601a05804423458af8"
+    },
+    {
+      "version": "20260830141217",
+      "name": "plan_v2_canonical_insert_defaults",
+      "statementsSha256": "e9f48982fb2cfdb5962ee903d6f79bfa6f9f334f3d1a01234e35f04b89f9c0c3",
+      "sqlSha256": "5ae3b3edfd883df0354c16a87768d95137e4f99599cbd2601a05804423458af8"
+    },
+    {
+      "version": "20260830141259",
+      "name": "plan_v2_relax_source_for_canonical",
+      "statementsSha256": "72bc39cc8409214b95e960d25e22d781c02dbf10010b6c94a2ab3e03722264bd",
+      "sqlSha256": "b7f0a9f0aa47aaa9f32b3f652f54477d959505131ea03189853e42376edf2a7c"
+    },
+    {
+      "version": "20260830141342",
+      "name": "plan_v2_review_days_legacy_only",
+      "statementsSha256": "7fa7ea414c0dfc18af6d11fb9cad67f9118300264218deb4d3509f22f480816d",
+      "sqlSha256": "09ece3891b305b1b986116e4ef487371074b496f14993c3e6d94104e194e0893"
+    },
+    {
+      "version": "20260830141425",
+      "name": "plan_v2_status_contract",
+      "statementsSha256": "43a678c180112e233284897a3acc2880b98951e9b857e511c49ce3fed4d61b2d",
+      "sqlSha256": "47fffb7a8f7507b49bef9883399fa7337d04e25d310f04135f6b45bfa7fd69c5"
+    },
+    {
+      "version": "20260830141549",
+      "name": "member_state_v3_envelope_constraint",
+      "statementsSha256": "7f0fca0b8eb2c49df30d15fb3563313a67ceab8c6027f9eeb59eaea6841e648a",
+      "sqlSha256": "9d6a223de9293dda06a6d634d96b6b62c1cc2153c0c64c89b466b5eba96a7de2"
+    },
+    {
+      "version": "20260830141626",
+      "name": "plan_v2_require_canonical_focus_action_strings",
+      "statementsSha256": "ba5635d16f97f383758e04787241fb4e930127d346314ec66b1444de09a46fe0",
+      "sqlSha256": "96a49df66eb0c00df4d676a586269e82e3b5bc907eef5982463119152154796a"
+    },
+    {
+      "version": "20260830160502",
+      "name": "canonical_plan_v2_activation_lifecycle",
+      "statementsSha256": "511c23e93a9bc05e123d77b315dde97fd5a1bfcfc6562f1c0e51978b8d86ac8f",
+      "sqlSha256": "2182ace7afc94a633ea04bb7832e2e6a6c2a2c209587bd5965c2e9f8fce35432"
+    },
+    {
+      "version": "20260830165345",
+      "name": "plan_v2_canonical_action_id_namespace",
+      "statementsSha256": "999de8038c60649a613a984cf7fdc079bdfeecd5e94c2848e180fba9a77085ff",
+      "sqlSha256": "795537b74276d150dd572041082bb755e6bdfadc091e08fd34a8aaef8dedc96c"
+    },
+    {
+      "version": "20260830181724",
+      "name": "relax_development_data_immutability",
+      "statementsSha256": "f9455608f0b0644104f9adbb074269be24433ad02e3cf12b60bdd83a5f355d25",
+      "sqlSha256": "b57df85f215496a72dc80656603d96e2ffaea0669bcf65af380090a2077cf13f"
+    },
+    {
+      "version": "20260831184749",
+      "name": "harden_internal_function_execute_privileges",
+      "statementsSha256": "c63426711dd43a708146264b5abcb00ebe04964d118714eb215022234343bfde",
+      "sqlSha256": "d4bd174dc6b8b648c0e11357631c66d39d0faed3a1e9badcba86528ba2da7477"
+    },
+    {
+      "version": "20260831185829",
+      "name": "dedupe_plan_checkin_review_rls",
+      "statementsSha256": "641777914d1098933060148d6e6a8124f5d9026e234aa55ae4ee711f0c132f37",
+      "sqlSha256": "6deee1ab43e0b33e0f60629e7e535ff76616dc1e8f3283fd5d2bce6834fbe1ba"
+    },
+    {
+      "version": "20260831190720",
+      "name": "plan_v3_governed_contract",
+      "statementsSha256": "5eeba500f46675e838d252d1dbf442ea130a846203122b12593843c52051583e",
+      "sqlSha256": "ba965b296d8e6a7ad4caa3c249e9379e39d277d70067823051a9e2aa04f171a4"
+    },
+    {
+      "version": "20260902064147",
+      "name": "intelligence_test_qa_v3",
+      "statementsSha256": "1c7161393e049c34e03f6997863b7d7a785bacdf6e60b8bd88c3a0dabe2a83ef",
+      "sqlSha256": "9f75100b1cbad57e429fad87e47582ffe6c950b1abbfc7c56f936362c6f1e96d"
+    }
+  ],
+  "repositoryFiles": [
+    {
+      "path": "20260827090000_add_mvp_qa_telemetry.sql",
+      "sha256": "00c4ccbf77077ecbbf492fca7a841328e7153639723f2aef0a84f1ec4d702a6b",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260827193000_add_member_state_v1.sql",
+      "sha256": "c742eae3b856397593fff8671e924461176f918ef7ef56d638cc1b8f3b9144a5",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830140344_canonical_member_state_v3.sql",
+      "sha256": "75273a384f4bbeedf6bf23312fbdc5bb6e89efeba86378122e62f2f60676a81a",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830140419_canonical_plan_v2_envelope.sql",
+      "sha256": "0d2603bdaa18d7f6a504e0d0efc80b38dee7426994e6883c1152b6ace30568de",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830140449_harden_intelligence_test_rpcs.sql",
+      "sha256": "f6ef4a26f404ce7db66e2ee7e89062bc641a951f21fe3857bb9abf9cc787c916",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830140612_member_state_v3_insert_revision.sql",
+      "sha256": "aab37546c0064c7c8083a9f39562ab68893e19d78c9859e69b323a4fb6faa5a2",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830140621_member_state_v3_update_envelope_rls.sql",
+      "sha256": "b0609bb9a87d7f60d6a94d14fe87715fa61dd70e7f7b2e880406683e972a201f",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830140645_member_state_v3_rpc_initial_revision_fix.sql",
+      "sha256": "db74e2343a5d2c3d816278def01536197dd9d63618b2482a15cc8601e26eb75d",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830140716_plan_v2_canonical_write_gate.sql",
+      "sha256": "20599268dd83b5607298367eb88ffc2000b6126de0c3e050f38d990a279c2f03",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830140739_plan_v2_relax_legacy_required_columns.sql",
+      "sha256": "46bb0476028a5bec133ac26fedf838adf86533ebbba7d69b715f24602fc4cf9a",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830140816_plan_v2_canonical_write_rls.sql",
+      "sha256": "9d00d94d7c6a959822532775f92a4b5ad475832d0cae617d82425db3c1d0bb18",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830140904_plan_v2_preserve_historical_updates.sql",
+      "sha256": "5a80cfb9e1a8de27e83eab45b2f4cd751590148e4e35836a0748e252fcfaf6e0",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830140919_plan_v2_schema_version_immutable_guard.sql",
+      "sha256": "b55ea085482bd883eab7a3c55e86e3984b88754c6c3582720fac2e4455b6a99a",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830140947_member_state_v3_revision_trigger_guard.sql",
+      "sha256": "a6c643f1c731a017fe0ec2787df4393303f3de1d0abab53929ac46dbe212d37e",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830141009_member_state_v3_insert_rpc_policy.sql",
+      "sha256": "aab37546c0064c7c8083a9f39562ab68893e19d78c9859e69b323a4fb6faa5a2",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830141101_plan_v2_require_canonical_insert.sql",
+      "sha256": "4b6f067527e1292d247fb3a352bd3732ca2817b50b9d80375eb358274059537f",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830141154_plan_v2_canonical_insert_defaults.sql",
+      "sha256": "9df608e8b7b59b41e5062420a35e84208b7100ab511c678e0c82afd5bd3a94f6",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830141217_plan_v2_canonical_insert_defaults.sql",
+      "sha256": "c3c0cf501225278015dac4d0abf392aec6f08e6f07ca331f2f1b6949805558fe",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830141259_plan_v2_relax_source_for_canonical.sql",
+      "sha256": "49497408537fe4ea1e3ca179a233cc1d708baa175b8328a849618511ee5096c2",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830141342_plan_v2_review_days_legacy_only.sql",
+      "sha256": "d68e0254b0dfee4370dd8526062d4aadc4a86432f5dc718a051384a47c7fde24",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830141425_plan_v2_status_contract.sql",
+      "sha256": "99a630c0c51f3a14b80f25ace2cee614f79dc59dc172bbd450503885fd27a792",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830141549_member_state_v3_envelope_constraint.sql",
+      "sha256": "746b919d3a9b70562118d06ee469f75426e6540299f7e327574843065f57f8d9",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830141626_plan_v2_require_canonical_focus_action_strings.sql",
+      "sha256": "91af16954afac238eaab42c37bd2bccab6a6c9d2d893dd37f0a4c099bab1bcfc",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830160502_canonical_plan_v2_activation_lifecycle.sql",
+      "sha256": "c2564cee457eeddd480e25cc3eb016498f50cff07b58a6a3ba8e7de1a1092308",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260830165345_plan_v2_canonical_action_id_namespace.sql",
+      "sha256": "c43fb088443cc0a38ca7b281ae87566511cf592351660c108d4edeeb15d012c2",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260902090000_intelligence_test_qa_v3.sql",
+      "sha256": "3008d151eff6f73f82e7a7dc832b6920b5c6e172c0f2d60dd6e24497cc705827",
+      "status": "historical-repository-artifact"
+    },
+    {
+      "path": "20260910102819_member_state_single_writer.sql",
+      "sha256": "f528deaba2157bc2ee5517a3b96eb5283e0d3099f333871d33db130b1c84dce5",
+      "status": "unapplied-candidate"
+    }
+  ]
+}

@@ -298,3 +298,37 @@ forward migrations. No application semantics change in this slice. Test before
 repair: absence of a reconstructable checkpoint; checkpoint replay and catalog
 equality; fail on an occupied destination, unapproved execution or source drift;
 verify the existing writer migration against the complete captured public boundary.
+
+### Checkpoint slice verification and self-review
+
+The new checkpoint acceptance failed before the artifact existed. The identity
+acceptance also failed before bootstrap inputs were included in the migration
+fingerprint. Final scoped database/gate suite: 40/40 pass. The checkpoint restores
+all eight independently captured catalog sections, rejects execution without the
+explicit disposable setting and rejects a second bootstrap into an occupied schema.
+Actual catalog mutations prove detection of policy, grant, function, constraint and
+trigger drift. The complete captured public schema accepts the existing F forward
+migration, with one ordinary-member writer and no direct table DML grants.
+
+Full canonical gate: 83 files, 340 tests, 339 pass / 1 fail / 0 skipped; the same
+valid mixed-Focus UI regression and nine broken page import graphs remain. No
+receipt or deployment was produced. Existing historical migration files were not
+edited. No additional benchmark mechanism or semantic implementation was added.
+
+Self-review: sequence bigint bounds initially passed through JSON numbers during
+inspection. Re-read them as decimal strings before constructing/fingerprinting the
+checkpoint; exact 9223372036854775807 bounds now survive. A second live read matches
+every captured section. Historical SQL containing environment-bound scheduling stays
+outside automatic replay. No captured public function contains an HTTP endpoint,
+Vault/net reference or credential literal. The checkpoint retains observed legacy
+objects for explicit later classification/retirement, without asserting current
+application consumption or approved semantics. The bootstrap is outside the
+automatic migration directory and excludes platform event-trigger/configuration,
+Auth/Storage implementation, data, secrets, schedules and Edge deployment.
+
+Next prerequisite: independent Supabase Auth/PostgREST/native connection environment.
+Concrete proposal: fresh `el8-remediation-staging`, existing EL8 organization
+`pqieapngqtigeblthqth`, region `us-east-2`, quoted provisioning cost USD 0/month.
+Supabase's project creation/confirmation tools require explicit organization and
+cost confirmation. Await that confirmation before creating infrastructure. This is
+not a renewed product-semantic decision and does not authorize any live mutation.

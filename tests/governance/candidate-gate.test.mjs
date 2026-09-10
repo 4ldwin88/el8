@@ -6,7 +6,7 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {discoverTests, verifyWorkflows,verifyTestScripts} from '../../scripts/candidate-gate.mjs';
 import {checkBrowserModules} from '../../scripts/browser-import-smoke.mjs';
-import {assertValidatedIdentity} from '../../scripts/candidate-identity.mjs';
+import {assertValidatedIdentity,sourceIdentity} from '../../scripts/candidate-identity.mjs';
 
 function fixture(t, files) {
   const root=mkdtempSync(path.join(tmpdir(),'el8-gate-'));
@@ -52,6 +52,15 @@ test('artifact promotion rejects stale, dirty or failed validation',()=>{
   for(const key of ['sha','tree','sourceHash','migrationFingerprint']) assert.throws(()=>assertValidatedIdentity(receipt,{...identity,[key]:'different'}));
   assert.throws(()=>assertValidatedIdentity(receipt,{...identity,dirty:true}));
   assert.throws(()=>assertValidatedIdentity({...receipt,status:'fail'},identity));
+});
+test('backend bootstrap changes invalidate the migration fingerprint',t=>{
+ const root=fixture(t,{'supabase/baselines/fixture.sql':'select 1;'});
+ execFileSync('git',['init','--quiet'],{cwd:root});
+ execFileSync('git',['add','.'],{cwd:root});
+ execFileSync('git',['-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','--quiet','-m','fixture'],{cwd:root});
+ const before=sourceIdentity(root);
+ writeFileSync(path.join(root,'supabase/baselines/fixture.sql'),'select 2;');
+ assert.notEqual(sourceIdentity(root).migrationFingerprint,before.migrationFingerprint);
 });
 test('offline transport guard handles Node normalized socket arguments without making connections',()=>{
   execFileSync(process.execPath,['--input-type=module','-e',`
