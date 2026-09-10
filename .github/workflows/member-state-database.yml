@@ -1,0 +1,27 @@
+name: Member State Database Boundary
+
+on:
+  pull_request:
+    branches: [main, development]
+  push:
+    branches: [main, development, benchmark-f-el8-remediation]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  member-state-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: PostgreSQL write-boundary acceptance (in-memory, no live credentials)
+        run: npm run test:database
+      - name: Existing persistence and onboarding consumers
+        run: npm run test:persistence && npm run test:state && npm run test:onboarding

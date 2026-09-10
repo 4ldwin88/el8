@@ -82,3 +82,82 @@ the only requested new Drive artifact.
 - [05.03](https://docs.google.com/document/d/1alNDHLhvkgIrxkJEXJmS_iJmrbLDq5Ea9UIfpHuBKl8)
 - [05.04](https://docs.google.com/document/d/1njiB-CpkGl-pr-23_Y4ds1NrVMpodYEIfWId-PV6Ir4)
 - [05.05](https://docs.google.com/document/d/1bR652PByAkjoDlZxSEUXM3iXngOFMahMPOauBwCsd6Q)
+
+## Implementation evidence and self-review
+
+Implemented `20260910102819_member_state_single_writer.sql`. The single
+`save_el8_member_state(integer,jsonb)` RPC now owns ordinary member writes;
+its narrowly scoped SECURITY DEFINER body pins an empty search path, targets
+only `auth.uid()`, and delegates envelope validation to one table constraint.
+Table and column client write privileges and all write policies are removed.
+The old bigint overload and redundant envelope constraints are retired.
+Unexpected overloads, inherited write privileges, invalid existing rows or
+dependent objects cause migration failure rather than silent accommodation.
+
+No application module changed. Existing JSON payload fields and timestamps
+survive migration unchanged. This does not establish semantic validity of every
+Member State field: the client still proposes whole-state documents. Baseline,
+safety, decision-history and plan-transition authority need subsequent slices.
+Privileged maintenance is outside the ordinary-member single-writer guarantee.
+
+Self-review corrected two test/setup assumptions: RLS WITH CHECK already rejects
+NULL for ordinary member writes; the old table CHECK loophole is reproducible
+through a privileged writer. Repository replay also retained text-casting
+envelope constraints; these were removed instead of weakening negative tests
+to accept inconsistent validation paths. Later SQL migrations that reference
+this boundary are included by the acceptance harness regardless of filename.
+Dynamic SQL with concealed identifiers and other aggregates are not covered by
+that discovery mechanism.
+
+Final local checks after a clean lockfile install:
+
+| Check | Result |
+| --- | --- |
+| `npm run test:database` | 25 passed, 0 failed |
+| `npm run test:persistence` | 17 passed, 0 failed |
+| `npm run test:state` | 29 passed, 0 failed |
+| `npm run test:onboarding` | 41 passed, 0 failed; preceding render regression also passed |
+| `git diff --check` | Passed |
+| Constraint mutation experiment | Changing `IS TRUE` to `IS NOT FALSE` caused 13 failures in the then-24-test suite; original SQL restored |
+| `npm test` | Stops at two existing Profile QA module-load failures |
+
+The Profile failures import the removed `MEMBER_STATE_SCHEMA_VERSION` export
+in `app/profile/qa-lifecycle.test.mjs` and `app/profile/qa-runner.test.mjs`.
+`npm run test:profile` reproduces both failures in an independent archive of
+the exact required starting commit. They are unrelated pre-existing stale
+consumer/test dependencies, not evidence to restore an obsolete alias. Later
+commands in the chained full suite did not execute. No failing old test was edited.
+
+PGlite 0.5.8 executes PostgreSQL 18.3 in-process; local Node is 24.19.0, CI is
+configured for Node 22. This proves SQL enforcement with a simulated auth
+transport, not simultaneous multi-session locking, actual JWT verification,
+PostgREST RPC resolution or live PostgreSQL 17 behavior. The workflow has no
+live credentials and never calls a deployment or migration endpoint. Branch
+protection configuration is unchanged; adding a workflow is not proof that its
+status is required for merge.
+
+## Remaining blockers and next safe work
+
+Status: **IMPROVED BUT BLOCKED** for integrated EL8 readiness. The repository
+candidate is ready for a separate non-production integration/semantic slice.
+Before any eventual application, repeat preflight against the actual target,
+rehearse on disposable PostgreSQL 17 with Supabase/PostgREST auth and concurrent
+sessions, and resolve invalid historical envelopes without guessing their
+meaning. Full repository schema bootstrap remains unreconciled; only the
+affected Member State migration chain is covered here.
+
+Next reconcile first-save/session revision semantics: an inspected session path
+submits revision 1 with creation sentinel -1 while the existing SQL creation
+contract requires 0; its fake-client test currently passes. Preserve the database
+boundary and derive that repair from a real first-save acceptance test. Then
+scope atomic plan activation and trusted semantic transitions separately. The
+current onboarding transaction performs separate Plan and Member State writes.
+
+Recovery: the candidate migration is transactional and changes no member rows.
+A failure rolls back its DDL. After an eventual successful non-production
+application, prefer a reviewed forward correction; do not reopen client DML or
+silently restore v1 compatibility. Live application remains outside Run F.
+
+Technical references: [PostgreSQL function security](https://www.postgresql.org/docs/current/sql-createfunction.html),
+[Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security),
+[PGlite execution and single-connection limit](https://pglite.dev/docs/).
