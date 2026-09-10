@@ -123,3 +123,58 @@ original object exactly. No defaults, read migration, aliases or second mapper.
 Retired four normalizer/migration source/test files and migrated all callers.
 Self-review: no ordinary migration imports remain; no test assertion was weakened
 to preserve old semantic defaults. First-save mismatch remains explicitly open.
+
+## Slice 3 decision: PostgreSQL fidelity and fail-closed writer migration
+
+Authority: 05.03 trusted boundaries; 05.04 replay/integrity; 05.05 ownership;
+05.07 migration rehearsal. G's PostgreSQL 17 PGlite pin is useful: verified 0.3.15
+runs PostgreSQL 17.5, matching live's major version (live is 17.6). This remains
+an embedded single-session database, not proof of JWT/PostgREST or concurrency.
+Use it in the canonical gate, not a new database workflow.
+
+Keep F's single qualified definer body, strict null-safe table constraint,
+overload retirement and inherited privilege checks. G's extra private wrapper
+does not remove an observed ambiguity and is not incorporated. G's name-only
+policy retirement and missing inherited-grant/overload postconditions are weaker.
+
+Observed F gap: it can accept an unexpected baseline read policy or trigger.
+Add preflight checks for the exact supported table columns, known policies and
+revision trigger before any DDL; reject unexpected additions rather than silently
+removing unknown policy behavior. Prove rollback and two-member SELECT isolation.
+This is an edit to F's still-unapplied candidate migration, recorded in a new Git
+commit; no applied live migration is rewritten. Supabase has no development
+branches and the live writer is unchanged. Repository historical migrations stay
+byte-for-byte intact.
+
+Slice 3 result: the unexpected-baseline acceptance failed before repair. The
+PostgreSQL 17 suite now checks extra policies, permissive replacement of the
+known SELECT policy, extra columns, additional triggers and changed revision-guard
+body. Baseline guard source fingerprint matches both repository and read-only live
+definition. All F privilege, envelope, invalid-history rollback, overload and SQL
+round-trip invariants remain required. No G wrapper or second writer was added.
+
+## Backend reproduction investigation / creation-slice decision
+
+Read-only Supabase evidence: 175 applied migration records, all retaining SQL
+statements; repository has 27 migration files. No Supabase development branch
+exists. These are not interchangeable histories. Do not relabel repository
+migrations or fabricate historical files. The next backend gate must recover and
+classify the recorded migration statements, identify retained versus experimental
+objects, and compare a replayed schema/function/policy fingerprint with current
+catalog. No complete bootstrap is claimed by the scoped Member State fixture.
+
+The native runtime has no Docker/Postgres and no process capabilities; the
+embedded PostgreSQL 17 environment is available, but cannot prove independent
+connections or real authenticated PostgREST. A provisioned non-production backend
+is still required for those gates.
+
+Creation invariant is already fixed by the inspected SQL: expected=-1 creates
+revision 0; each accepted update is exactly +1. Session code currently sends
+revision 1 with expected=-1; its fake accepts this invalid combination. Repair
+that mismatch without changing the database contract: on explicit first-save,
+persist the revision-0 predecessor, then persist the single next revision. A
+failure between writes leaves a valid recoverable predecessor; ambiguous success
+is resolved by reload, never a blind overwrite. Positive/failure cases run through
+the same JS session owner into actual SQL. Duplicate requests retain the RPC's
+explicit conflict behavior. This does not initialize or decide immutable baseline
+timing and does not make the later Plan activation transaction safe.

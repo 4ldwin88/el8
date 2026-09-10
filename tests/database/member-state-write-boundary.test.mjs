@@ -26,6 +26,7 @@ const envelope = (id, revision, extra = {}) =>
 
 async function checkpoint(kind = 'live') {
   const db = new PGlite();
+  assert.match((await db.query('show server_version')).rows[0].server_version,/^17\./,'SQL acceptance must use the deployed PostgreSQL major');
   // Only the auth transport is simulated. PostgreSQL executes all grants, RLS,
   // constraints, triggers and the actual repository RPC/migration bodies.
   await db.exec(`
@@ -266,6 +267,26 @@ test('uninspected overload blocks migration instead of silently keeping a second
     assert.equal((await db.query(`select prosecdef from pg_proc
       where oid='public.save_el8_member_state(integer,jsonb)'::regprocedure`)).rows[0].prosecdef, false);
   } finally { await db.close(); }
+});
+
+test('unexpected baseline policies and triggers abort without deleting their behavior',async()=>{
+  for(const addition of [
+    'create policy unexpected_read on public.el8_member_state for select to authenticated using (true)',
+    'create policy unexpected_write on public.el8_member_state for update to authenticated using (true)',
+    'create trigger unexpected_trigger before update on public.el8_member_state for each row execute function public.el8_guard_member_state_revision()',
+    'alter policy "Members can read own canonical state" on public.el8_member_state using (true)',
+    'alter table public.el8_member_state add column uninspected_truth jsonb',
+    'create or replace function public.el8_guard_member_state_revision() returns trigger language plpgsql as $$begin return new; end$$'
+  ]) {
+    const db=await checkpoint();
+    try {
+      await db.exec(addition);
+      const before=await db.query("select relacl::text from pg_class where oid='public.el8_member_state'::regclass");
+      await assert.rejects(()=>db.exec(forward),/unexpected Member State baseline/);
+      await db.exec('rollback');
+      assert.deepEqual(await db.query("select relacl::text from pg_class where oid='public.el8_member_state'::regclass"),before);
+    } finally { await db.close(); }
+  }
 });
 
 test('inherited client write privilege blocks migration rather than claiming isolation', async () => {

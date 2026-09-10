@@ -2,6 +2,47 @@
 -- No historical payload is repaired: invalid existing envelopes abort this transaction.
 begin;
 
+-- This candidate has never been applied to a shared environment. Refuse unknown
+-- baseline objects before retiring known historical write paths. A policy with a
+-- familiar name is not sufficient proof of own-member SELECT isolation.
+do $$
+declare
+  columns text[];
+begin
+  select array_agg(attname || ':' || atttypid::regtype::text || ':' || attnotnull::text order by attname)
+    into columns from pg_attribute
+    where attrelid='public.el8_member_state'::regclass and attnum>0 and not attisdropped;
+  if columns not in (
+    array['created_at:timestamp with time zone:true','revision:integer:true','schema_version:text:true','state:jsonb:true','updated_at:timestamp with time zone:true','user_id:uuid:true'],
+    array['created_at:timestamp with time zone:true','revision:bigint:true','schema_version:text:true','state:jsonb:true','updated_at:timestamp with time zone:true','user_id:uuid:true']
+  ) then raise exception 'unexpected Member State baseline columns'; end if;
+  if exists(select 1 from pg_policy where polrelid='public.el8_member_state'::regclass
+    and (lower(polname) not in ('members read own canonical state','members create own canonical state','members update own canonical state',
+      'members can read own canonical state','members can create own canonical state','members can update own canonical state')
+      or polroles<>array['authenticated'::regrole::oid] or not polpermissive)) then
+    raise exception 'unexpected Member State baseline policy';
+  end if;
+  if (select count(*) from pg_policy where polrelid='public.el8_member_state'::regclass and polcmd='r')<>1
+    or exists(select 1 from pg_policy where polrelid='public.el8_member_state'::regclass and polcmd='r'
+      and regexp_replace(pg_get_expr(polqual,polrelid),'\s','','g') not in
+        ('(auth.uid()=user_id)','((SELECTauth.uid()ASuid)=user_id)')) then
+    raise exception 'unexpected Member State baseline read policy';
+  end if;
+  if (select count(*) from pg_trigger where tgrelid='public.el8_member_state'::regclass and not tgisinternal)<>1
+    or exists(select 1 from pg_trigger where tgrelid='public.el8_member_state'::regclass and not tgisinternal
+      and (tgname<>'el8_guard_member_state_revision' or tgfoid<>'public.el8_guard_member_state_revision()'::regprocedure
+        or tgtype<>19 or tgenabled<>'O' or tgnargs<>0 or tgqual is not null)) then
+    raise exception 'unexpected Member State baseline trigger';
+  end if;
+  -- Source fingerprint of the repository's 20260830140947 revision guard,
+  -- independently matched to the inspected live definition. Not a semantic copy.
+  if (select md5(prosrc) from pg_proc where oid='public.el8_guard_member_state_revision()'::regprocedure)
+      is distinct from '90ddb4a1da232b4b732951442199f7d6' then
+    raise exception 'unexpected Member State baseline trigger body';
+  end if;
+end
+$$;
+
 -- The v1 constraint/overload survive the repository's old Member State migration
 -- chain, but are absent from the inspected live v3 checkpoint. Neither is a
 -- current writer contract. RESTRICT deliberately blocks unknown dependencies.

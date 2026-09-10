@@ -32,7 +32,7 @@
     "test:database": "node --test tests/database/member-state-write-boundary.test.mjs"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "0.5.8",
+    "@electric-sql/pglite": "0.3.15",
     "esbuild": "0.25.10",
     "parse5": "8.0.0",
     "yaml": "2.8.1"
