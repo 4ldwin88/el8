@@ -210,7 +210,17 @@ evidence cannot be selected and retains the hard-gate rejection reason. Producti
 Planning is unchanged and its broader comparison/relationship gaps remain open.
 Creation suite final: 46/46 pass. This does not claim true simultaneous connections.
 
-## STOP: immutable baseline timing needs an authoritative decision
+## Resolved stop: immutable baseline timing (founder approved 2026-09-10)
+
+The founder approved establishment at completed Discovery, before Prioritization.
+Fresh reads verified unchanged Git refs and the pre-remediation live SQL boundary.
+02.01.01 now explicitly owns the trigger, immutable evidence/uncertainty snapshot,
+separate Focus decision, linked later evidence/corrections, and separation from
+account creation/revision 0. Verified targeted updates reconciled 00.00, 02.04,
+00.01 Decision Register C13:G13 and Member Record Standard G4. D-012 is marked
+approved / implementation pending; its former wording remains in a cell note and
+Drive history. 02.01.02 already states the approved timing and was not rewritten.
+The following describes the former stop and is retained as decision provenance.
 
 Fresh current Drive evidence is materially inconsistent:
 - 02.01.02, Discovery Outputs: completed Discovery establishes the immutable initial
@@ -251,3 +261,40 @@ the one canonical remediation line; mark lossless storage and scoped writer/sess
 acceptance complete; mark overall release gate RED; add the baseline-timing decision
 and full backend replay as blocking; retain G-02/human-test readiness as blocked.
 Do not mark architectural migration, beta, external testing or production ready.
+
+## Next slice decision: source-attributed disposable backend foundation
+
+Authority: fresh 05.04 historical integrity and schema evolution, 05.07 isolated
+environments and reproducible implementation, plus the founder's remediation order.
+Invariant: recorded migration SQL, observed runtime schema and candidate forward
+changes must remain distinguishable. A disposable bootstrap must not execute
+production-bound schedules, copy member data/secrets, or claim historical files
+were applied verbatim when their bodies differ.
+
+Read-only recovery found 175 migration records with retained statements (236,937
+characters). Repository history has 26 pre-F files and one unapplied F migration.
+The recorded 20260830140344 function differs materially from its repository copy;
+20260830140419 also contains a constraint missing from that repository file.
+Several additional mismatches concern comments, wrapping, names or timestamps.
+Do not alter either history to hide these facts.
+
+Diagnostic replay of the first 14 recorded migrations succeeds in PostgreSQL 17;
+the next requires Supabase Storage. This uses explicit platform stubs and is not
+full replay evidence. Later history enables pg_net/cron and schedules an HTTP call
+to the production project using Vault references. Blind historical replay or an
+unverified project clone is not an acceptable non-production bootstrap.
+
+Prepare a data-free, source-attributed public-schema checkpoint outside the automatic
+migration directory, retaining current constraints/RLS/functions as evidence rather
+than endorsing their semantics. Bootstrap only a fresh isolated environment with
+independent Supabase platform services, no cloned Edge Functions, schedules, secrets
+or member data; then apply the single candidate forward-writer migration. Historical
+records stay untouched. Native Supabase/Auth/PostgREST and real simultaneous-session
+verification remain required after local SQL rehearsal.
+
+Affected owners: repository backend bootstrap/provenance artifacts and database
+acceptance tests; candidate identity must fingerprint bootstrap inputs as well as
+forward migrations. No application semantics change in this slice. Test before
+repair: absence of a reconstructable checkpoint; checkpoint replay and catalog
+equality; fail on an occupied destination, unapproved execution or source drift;
+verify the existing writer migration against the complete captured public boundary.
