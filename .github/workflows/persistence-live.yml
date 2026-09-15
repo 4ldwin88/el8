@@ -1,4 +1,4 @@
-name: Live Persistence Validation
+name: Owner-approved live persistence check
 
 on:
   workflow_dispatch:
@@ -8,6 +8,7 @@ permissions:
 
 jobs:
   persistence:
+    name: Manual live persistence check after Supabase reactivation approval
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -16,10 +17,12 @@ jobs:
       EL8_QA_EMAIL: ${{ secrets.EL8_QA_EMAIL }}
       EL8_QA_PASSWORD: ${{ secrets.EL8_QA_PASSWORD }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           package-manager-cache: false
-      - name: Run authenticated live persistence concurrency suite
+      - name: Run authenticated live persistence concurrency suite after owner-approved Supabase reactivation
         run: npm run test:persistence:live
