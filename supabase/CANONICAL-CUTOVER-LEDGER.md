@@ -37,6 +37,16 @@ Canonical Plan uses schema `2.0.0`, non-empty string Focus IDs, non-empty object
 
 The Intelligence test ingestion RPCs are no longer executable by `anon` or ordinary `authenticated` clients.
 
+## 2026-09-15 source-ownership reconciliation note
+
+This branch records the current repository interpretation of the prior Supabase cutover; it is not proof that the live Supabase project is fully source-owned by this repository.
+
+Read-only refresh on 2026-09-15 found the EL8 Supabase project `jprdsidxwjkgiqqakwpr` in `INACTIVE` status, with no development branches listed and 21 active Edge Functions listed by metadata. Repository `main` has no `supabase/functions` directory. This branch has only `supabase/functions/intelligence-test`. Therefore live Edge Function source ownership remains incomplete: the repository does not yet contain source for the other live functions listed in Supabase.
+
+Read-only SQL/catalog refresh for tables, RLS policies, function definitions, and the applied migration ledger returned `INVALID_ARGUMENT`; do not treat this note as a fresh database-contract verification. DB-level conclusions must be rechecked against a readable live catalog or exported snapshot before merge, deployment, migration, or human-test promotion.
+
+Required follow-up before release promotion: create a source-ownership inventory mapping every live Edge Function and every readable applied database object/migration to Drive authority, repository source, disposition (`KEEP`, `MODIFY`, `REPLACE`, `RETIRE`, or `DEFER`), and a named promotion gate.
+
 ## Reconciliation rule
 
 Do not rewrite or delete the remote migration ledger to hide the duplicate `plan_v2_canonical_insert_defaults` entry. Repository history must describe what actually happened. Any future migration must roll forward from the current remote state.
