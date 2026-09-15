@@ -4,6 +4,12 @@ Source session: `e9525dbc-1cb7-4815-990b-89ab67f13e34`
 Candidate tested: `26cf2b6ca9092371f383567161de3315bfd46c87`
 Intelligence tested: `v0.05`
 
+## 2026-09-15 status note
+
+This file is a historical v0.05-v0.07 human-QA findings and correction-cycle record. The validation/deployment success entries below are evidence for the exact historical candidates named in their sections; they are not current authorization to treat PR #144, `reconcile/g02-intelligence`, or EL8 generally as human-test-ready.
+
+Current readiness is governed by the README, `docs/qa/human-test-readiness-packet.md`, `docs/supabase-reactivation-source-ownership.md`, and `supabase/read-only/reactivation-catalog-checks.sql`. EL8 remains blocked/not human-test-ready until source ownership is resolved, Supabase can be reactivated under owner approval, required catalog/live-backend checks pass, H-gates pass, and Jay explicitly approves promotion toward human testing.
+
 ## Required correction batch
 
 1. Matrix presentation
