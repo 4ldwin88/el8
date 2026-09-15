@@ -1,4 +1,4 @@
-name: Deploy EL8 Human QA to GitHub Pages
+name: Publish EL8 prototype QA harness to GitHub Pages
 
 on:
   push:
@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   deploy:
+    name: Publish prototype QA harness
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,17 +26,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Write exact deployed candidate provenance
+      - name: Write exact prototype QA provenance
         env:
-          CONTEXT: github-pages
+          CONTEXT: github-pages-prototype-qa
           DEPLOY_ID: github-actions-${{ github.run_id }}-${{ github.run_attempt }}
         run: node scripts/write-intelligence-test-build-meta.mjs
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-      - name: Upload site
+      - name: Upload prototype QA site
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
-      - name: Deploy to GitHub Pages
+      - name: Publish to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
