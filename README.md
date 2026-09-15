@@ -4,6 +4,10 @@ EL8 is a wellness product in MVP development. This repository contains the membe
 
 ## Current objective
 
+Current status as of 2026-09-15: EL8 is improved but blocked and not human-test-ready. PR #144 remains draft/open/unmerged. EL8 Supabase project `jprdsidxwjkgiqqakwpr` remains intentionally inactive while Jay reserves the two active Supabase slots for Sontu and Ridgewood. Do not activate Supabase, run migrations, deploy functions, push/merge to `main`, deploy, or promote human testing from this branch without explicit owner approval.
+
+The current repository preparation objective is to keep Drive authority, repository source, test gates, and later Supabase reactivation work aligned so the next backend-readable pass is faster and safer.
+
 The current product-development gate is the member-facing onboarding decision path:
 
 `Discovery → Member State → Prioritization / member confirmation → proposed Planning`
@@ -12,13 +16,25 @@ The complete canonical Intelligence loop remains:
 
 `Discovery → Member State → Prioritization → Planning → Action → Outcome Evidence → Review → Planning or focused Reassessment`
 
-Safety is a cross-cutting authority and may interrupt ordinary flow at any point. Stabilizing the entire post-plan loop is not a blocker for the next structured external Discovery test unless it exposes a Discovery-to-Planning contract failure.
+Safety is a cross-cutting authority and may interrupt ordinary flow at any point. Stabilizing the entire post-plan loop is not by itself a blocker for the next structured external Discovery test, but the current source/runtime blockers are: Supabase source ownership, live database/catalog reconciliation, exact candidate gate evidence, and approved human-test script/checklist must be resolved before any human-test promotion.
 
 A capability belongs in the current MVP when it is necessary to make the member loop useful, safe, testable or maintainable. Git history preserves retired implementations; duplicate executable systems and obsolete compatibility layers are not retained as archives.
 
+## Current blocker packet
+
+Use these repository documents before reopening EL8 for backend or human-test work:
+
+1. `docs/supabase-reactivation-source-ownership.md` — source-ownership matrix, inactive-Supabase boundary, reactivation checklist, pass/fail gates, and failure actions.
+2. `supabase/read-only/reactivation-catalog-checks.sql` — read-only SQL/catalog snippets prepared for later authorized reactivation/readability.
+3. `docs/qa/human-test-readiness-packet.md` — offline human-test readiness checklist, synthetic scenario packet, gate dependencies, and recommended repo-only work while Supabase remains inactive.
+4. `docs/REPOSITORY-GOVERNANCE.md` — repository lifecycle and engineering policy.
+5. `docs/canonical-persistence-contract.md` — persistence boundary.
+
+Documentation-only preparation heads are not newly tested implementation candidates. The last audited implementation head before 2026-09-15 documentation updates was `9bbcf926ff518aff868168c4feb905f441e83452`.
+
 ## Repository authority
 
-`main` is the sole permanent development line and authoritative repository state. Short-lived branches may be created for bounded work when useful and should be deleted after merge or explicit rejection.
+`main` is the sole permanent development line and authoritative repository state after promotion. Short-lived branches may be created for bounded work when useful and should be deleted after merge or explicit rejection. Until PR #144 is resolved, `reconcile/g02-intelligence` is the visible active reconciliation container, not a production or human-test release line.
 
 There is one canonical implementation per capability. Repository code implements the current Drive-governed product and Intelligence contracts; repository documentation must not silently redefine those product authorities.
 
@@ -81,11 +97,11 @@ Before adding an engine, bridge, persistent state, service or major page, establ
 
 Compatibility mechanisms are temporary migration tools only. Canonical IDs and semantics should be used directly once controlled migration is complete. UI, persistence, telemetry and QA adapt to production contracts rather than redefine them.
 
-`npm test` is the repository-level automated gate. Automated success is necessary but not sufficient for external testing or MVP validity. Before a manual/external candidate is used, the exact candidate must pass the applicable canonical regression and scenario/E2E gates and the deployed member path must be verified.
+`npm test` is the repository-level automated gate. Automated success is necessary but not sufficient for external testing or MVP validity. Before a manual/external candidate is used, the exact candidate must pass the applicable canonical regression and scenario/E2E gates, the deployed member path must be verified if deployment is authorized, and backend/source ownership must be reconciled against the active Supabase evidence or a current exported snapshot.
 
 ## Repository hygiene
 
-- `main` is the only permanent branch.
+- `main` is the only permanent branch after promotion.
 - Temporary branches are bounded and short-lived.
 - Git history is the code archive.
 - No duplicate decision engines, retired-code folders or permanent compatibility architecture.
