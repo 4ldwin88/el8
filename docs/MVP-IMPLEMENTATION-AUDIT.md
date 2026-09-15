@@ -1,13 +1,19 @@
 # EL8 MVP Implementation Audit
 
-Status: Working reconciliation against `MVP-INTELLIGENCE-BOUNDARY.md`.
+Status: Historical implementation-boundary audit with current 2026-09-15 readiness constraint.
 
-Purpose: prevent further architecture growth before controlled human testing. Existing code is classified by whether it is required to test EL8's core closed-loop hypothesis.
+Purpose: prevent further architecture growth before controlled human testing while preserving the newer source-ownership and human-test readiness gates. Existing code is classified by whether it is required to test EL8's core closed-loop hypothesis.
+
+## 2026-09-15 readiness addendum
+
+This audit remains useful for architecture and test-boundary cleanup, but it is not a current authorization to begin controlled human testing.
+
+Where this document conflicts with newer readiness records, use the current README, `docs/qa/human-test-readiness-packet.md`, `docs/supabase-reactivation-source-ownership.md`, and `supabase/read-only/reactivation-catalog-checks.sql` as the active gate package. EL8 remains blocked/not human-test-ready until source ownership is resolved, Supabase can be reactivated under owner approval, read-only catalog checks pass, required H-gates pass, and Jay explicitly approves promotion toward human testing.
 
 ## KEEP
 
 ### Canonical authority boundaries
-Keep the separation Baseline → Discovery → Member Confirmation → Planning → Review → Adaptation. Do not merge responsibilities merely to reduce file count. Simplicity means simpler logic inside stable boundaries, not returning to shortcuts.
+Keep the separation Discovery → Member State → Prioritization → Planning → Review → Adaptation. Opening snapshot/baseline evidence may be captured inside Discovery, but there is no separate Baseline decision stage with intervention authority. Do not merge responsibilities merely to reduce file count. Simplicity means simpler logic inside stable boundaries, not returning to shortcuts.
 
 ### `intelligence/safety/`
 Keep one canonical cross-stage Safety authority and its lifecycle regression coverage. Simplify policy internals where possible, but do not restore weighted aggregate risk scoring or allow ordinary ranking to override Safety.
@@ -55,7 +61,7 @@ Retain enough member-visible history to show progress and enough internal histor
 
 ## DEFER
 
-The following are not valid reasons to delay controlled MVP testing unless a concrete current defect proves otherwise:
+The following are not valid reasons to delay controlled MVP testing unless a concrete current defect proves otherwise, and only after the current source-ownership/Supabase/human-test gates are satisfied:
 
 - learned ranking weights;
 - probabilistic confidence calibration;
@@ -106,4 +112,4 @@ Therefore the architecture should NOT be collapsed into one monolithic engine. I
 3. Run canonical QA and fix only genuine MVP-boundary failures.
 4. Search for remaining parallel decision authority/default-plan shortcuts and remove them.
 5. Perform one final MVP-scoped adversarial review using this question: "Does any remaining issue create a credible safety failure or prevent a small controlled cohort from testing EL8's core closed-loop hypothesis? Do not recommend sophistication that can reasonably wait until after MVP validation."
-6. If the answer is no and QA is green, proceed to controlled human testing.
+6. If the answer is no and QA is green, proceed only to readiness-gate review. Do not proceed to controlled human testing until the current human-test readiness packet passes, source ownership is resolved, Supabase can be reactivated under owner approval, read-only catalog checks pass, required live-backend evidence is collected, and Jay explicitly approves the testing move.
